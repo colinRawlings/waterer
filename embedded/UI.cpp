@@ -6,9 +6,9 @@
 #include "HWDef.h"
 
 static const String kRequestPrefix{"request{"};
-static const String kRequestSuffix{"}"};
+static const String kRequestSuffix{"}\r"};
 static const String kRequestSeparator{","};
-static const char kLineEnding{'\r'};
+static const char kLineEnding{'\n'};
 static const String kErrorPrefix{"ERROR"};
 
 void InitSerialPort() {
@@ -20,14 +20,6 @@ void InitSerialPort() {
 
     if ((millis() - T0) > DT_WAIT_FOR_SERIAL_PORT_MS) return;  // give up
   }
-
-  delayMicroseconds(DT_INIT_SERIAL_WAIT_VSCODE_TEST_MSG);
-
-  String initMsg = "";
-
-  while (Serial.available() > 0) initMsg += (char)Serial.read();
-
-  Serial.println("Initialised the serial port, received: '" + initMsg + "'");
 }
 
 //
@@ -52,12 +44,13 @@ void CUI::Update() {
 }
 
 bool CUI::ParseRequest(const String &request_str, SRequest &request) const {
-  auto exit_error = [this](const String &msg) {
-    ReportError(msg);
+  auto exit_error = [this, request_str](const String &msg) {
+    ReportError(msg + ": " + request_str);
     return false;
   };
 
-  if (!request_str.startsWith(kRequestPrefix)) return exit_error("Bad prefix");
+  if (!request_str.startsWith(kRequestPrefix))
+    return exit_error("Bad prefix" + request_str);
 
   if (!request_str.endsWith(kRequestSuffix)) return exit_error("Bad suffix");
 
@@ -100,19 +93,24 @@ void CUI::HandleRequest(const SRequest &request) {
 
 // Logging Output
 
-void CUI::EchoKeyValue(const String &key, const String &value) const {
+void CUI::EchoKeyValue(const String &key, const String &value,
+                       bool new_line) const {
   m_SerialPort.print(key + ": ");
-  m_SerialPort.println(value);
+  m_SerialPort.print(value);
+  if (new_line)
+    m_SerialPort.println("");
+  else
+    m_SerialPort.print(kRequestSeparator);
 }
 
 void CUI::EchoRequest(const SRequest &request) const {
-  m_SerialPort.println("Request: ");
+  m_SerialPort.print("Request= ");
 
-  EchoKeyValue("channel", String{request.channel});
-  EchoKeyValue("instruction", request.instruction);
-  EchoKeyValue("data", String{request.data0});
+  EchoKeyValue("channel", String{request.channel}, false);
+  EchoKeyValue("instruction", request.instruction, false);
+  EchoKeyValue("data", String{request.data0}, true);
 }
 
 void CUI::ReportError(const String &error_msg) const {
-  EchoKeyValue(kErrorPrefix, error_msg);
+  EchoKeyValue(kErrorPrefix, error_msg, true);
 }

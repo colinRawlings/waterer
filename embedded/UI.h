@@ -24,7 +24,8 @@ class CUI : public IEventLoopEntity {
 
   void ReportError(const String &error_msg) const;
   void EchoRequest(const SRequest &request) const;
-  void EchoKeyValue(const String &key, const String &value) const;
+  void EchoKeyValue(const String &key, const String &value,
+                    bool new_line) const;
 
  private:
   Stream &m_SerialPort;
