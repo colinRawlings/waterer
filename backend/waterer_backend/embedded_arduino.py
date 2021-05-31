@@ -23,6 +23,7 @@ from time import sleep
 
 import logging
 
+from waterer_backend.request import Request
 
 ###############################################################
 # Definitions
@@ -32,16 +33,6 @@ import logging
 _LOGGER = logging.getLogger(__name__)
 ARDUINO_DESCRIPTION = "Arduino"
 BAUD_RATE_CONFIG_KEY = "baud_rate"
-
-
-@dataclass
-class Request:
-    channel: int
-    instruction: str
-    data: int
-
-    def __repr__(self) -> str:
-        return f"request{{{self.channel},{self.instruction},{self.data}}}"
 
 
 ###############################################################
@@ -108,7 +99,7 @@ class EmbeddedArduino:
 
         self._device = serial.Serial(port=self._port, baudrate=9600, timeout=1)
 
-    def make_request(self, request: Request):
+    def make_request(self, request: Request) -> str:
 
         if self._device is None:
             raise RuntimeError("Device not initialized")
@@ -120,7 +111,11 @@ class EmbeddedArduino:
 
         self._device.write(f"{request}\r\n".encode())
 
-        print(self._device.readline())
+        response = self._device.readline().decode()
+
+        _LOGGER.info(response)
+
+        return response
 
 
 ###############################################################
