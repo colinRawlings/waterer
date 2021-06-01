@@ -60,6 +60,18 @@ def turn_off():
     return {"data": response}
 
 
+@app.route("/get_voltage")
+def get_voltage():
+    ard = es.get_embedded_device()
+
+    if ard is None:
+        return "No ard!"
+
+    response = ard.get_voltage(1)
+
+    return {"data": response}
+
+
 ###############################################################
 # Main
 ###############################################################

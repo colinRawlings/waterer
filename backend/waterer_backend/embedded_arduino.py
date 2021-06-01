@@ -33,7 +33,7 @@ from waterer_backend.request import Request
 _LOGGER = logging.getLogger(__name__)
 ARDUINO_DESCRIPTION = "Arduino"
 BAUD_RATE_CONFIG_KEY = "baud_rate"
-
+STARTUP_MESSAGE = "Arduino ready"
 
 ###############################################################
 # Class
@@ -51,6 +51,8 @@ class EmbeddedArduino:
         self._port = port
         self._config_filepath = config_filepath
         self._device = None
+
+        self._tx_idx = 0
 
     @property
     def connect_info(self) -> str:
@@ -97,25 +99,53 @@ class EmbeddedArduino:
 
         _LOGGER.info(f"Opening serial port: {self._port}")
 
-        self._device = serial.Serial(port=self._port, baudrate=9600, timeout=1)
+        self._device = serial.Serial(port=self._port, baudrate=9600, timeout=5)
+
+        _LOGGER.info(f"Starting to wait for startup message")
+
+        startup_message = self._device.readline().decode()
+
+        _LOGGER.info(f"Recieved: {startup_message}")
+
+        if not startup_message.startswith(STARTUP_MESSAGE):
+            raise RuntimeError("Failed to properly start device")
 
     def make_request(self, request: Request) -> str:
 
         if self._device is None:
             raise RuntimeError("Device not initialized")
 
-        if not self._device.isOpen():
+        if not self._device.is_open:
             raise RuntimeError("Device not open")
-
-        self._device.flushInput()
 
         self._device.write(f"{request}\r\n".encode())
 
         response = self._device.readline().decode()
 
-        _LOGGER.info(response)
+        _LOGGER.info(f"{self._tx_idx}: {response}")
+        self._tx_idx += 1
 
         return response
+
+    def get_voltage(self, channel: int) -> float:
+
+        voltage_request = Request(channel, "get_voltage", 100)
+        request_response = self.make_request(voltage_request)
+
+        def report_error() -> None:
+            msg = f"get_voltage failed: {request_response}"
+            _LOGGER.error(msg)
+            raise RuntimeError(msg)
+
+        if "ERROR" in request_response:
+            report_error()
+
+        response_str = request_response.split("response")
+
+        if len(response_str) != 2:
+            report_error()
+
+        return json.loads(response_str[1])["data"]
 
 
 ###############################################################
@@ -130,10 +160,9 @@ if __name__ == "__main__":
     ard = EmbeddedArduino()
     on_request = Request(1, "turn_on", 100)
     off_request = Request(1, "turn_off", 100)
+    voltage_request = Request(1, "get_voltage", 100)
 
     ard.connect()
-
-    sleep(1)
 
     while True:
         ard.make_request(on_request)
@@ -141,6 +170,10 @@ if __name__ == "__main__":
         sleep(0.5)
 
         ard.make_request(off_request)
+
+        sleep(0.5)
+
+        print(f"voltage: {ard.get_voltage(1)}")
 
         sleep(0.5)
 

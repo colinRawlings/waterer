@@ -12,6 +12,9 @@ Run `ng generate component component-name` to generate a new component. You can 
 
 ## Build
 
+To install plotly: https://github.com/plotly/angular-plotly.js/blob/master/README.md
+(n.b. manual renaming step)
+
 Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory.
 
 ## Running unit tests
@@ -25,3 +28,4 @@ Run `ng e2e` to execute the end-to-end tests via a platform of your choice. To u
 ## Further help
 
 To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI Overview and Command Reference](https://angular.io/cli) page.
+

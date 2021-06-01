@@ -2,8 +2,13 @@ import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { HttpClientModule  } from '@angular/common/http';
 
+import * as PlotlyJS from 'plotly.js-dist';
+import { PlotlyModule } from 'angular-plotly.js';
+
 import { AppComponent } from './app.component';
 import { PumpComponent } from './pump/pump.component';
+
+PlotlyModule.plotlyjs = PlotlyJS;
 
 @NgModule({
   declarations: [
@@ -11,7 +16,7 @@ import { PumpComponent } from './pump/pump.component';
     PumpComponent
   ],
   imports: [
-    BrowserModule, HttpClientModule 
+    BrowserModule, HttpClientModule, PlotlyModule 
   ],
   providers: [],
   bootstrap: [AppComponent]

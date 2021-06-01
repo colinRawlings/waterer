@@ -6,6 +6,10 @@
     
     <p><button (click)="onTurnOn()">Turn On</button> <button (click)="onTurnOff()">Turn Off</button></p>
 
+    <p><button (click)="onGetVoltage()">GetVoltage</button> Voltage: {{voltage}}</p>
+
     <p>Result: {{result}}</p>
+
+    <plotly-plot [data]="graph.data" [layout]="graph.layout"></plotly-plot>
     
 </div>
