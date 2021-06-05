@@ -1,11 +1,13 @@
 exclude: \.ts$|\.html$
 repos:
 -   repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v2.3.0
+    rev: v4.0.1
     hooks:
     -   id: check-yaml
     -   id: end-of-file-fixer
+        exclude: \.py$|\.h$|\.cpp$
     -   id: trailing-whitespace
+        exclude: \.py$|\.h$|\.cpp$
 -   repo: https://github.com/psf/black
     rev: 21.5b2
     hooks:
@@ -16,7 +18,7 @@ repos:
     - id: isort
       name: isort (python)
 - repo: https://github.com/pocc/pre-commit-hooks
-  rev: python
+  rev: v1.1.1
   hooks:
     - id: clang-format
       args: [--style=file, -i]
