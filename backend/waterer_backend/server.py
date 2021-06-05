@@ -5,9 +5,8 @@
 ###############################################################
 
 
-from flask import Flask
-
 import waterer_backend.embedded_singleton as es
+from flask import Flask
 from waterer_backend.request import Request
 
 ###############################################################

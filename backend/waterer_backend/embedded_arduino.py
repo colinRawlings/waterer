@@ -1,7 +1,7 @@
 # python3
 
 """
-Wrapper for the arduino implementation of the embedded device 
+Wrapper for the arduino implementation of the embedded device
 """
 
 ###############################################################
@@ -9,20 +9,16 @@ Wrapper for the arduino implementation of the embedded device
 ###############################################################
 
 
-import typing as ty
-
-import pathlib as pt
 import json
-import serial
-import serial.tools.list_ports
+import logging
+import pathlib as pt
+import typing as ty
 from dataclasses import dataclass
-import pkg_resources as rc
-
-
 from time import sleep
 
-import logging
-
+import pkg_resources as rc
+import serial
+import serial.tools.list_ports
 from waterer_backend.request import Request
 
 ###############################################################
@@ -176,4 +172,3 @@ if __name__ == "__main__":
         print(f"voltage: {ard.get_voltage(1)}")
 
         sleep(0.5)
-

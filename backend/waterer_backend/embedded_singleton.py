@@ -13,4 +13,3 @@ def get_embedded_device() -> EmbeddedArduino:
         _ARD.connect()
 
     return _ARD
-
