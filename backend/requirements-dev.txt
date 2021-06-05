@@ -1,0 +1,4 @@
+# sync with .pre-commit-config.yaml
+pre-commit
+black==21.5b2
+isort==5.8.0
