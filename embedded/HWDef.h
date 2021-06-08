@@ -13,6 +13,8 @@ extern const unsigned long SERIAL_PORT_BAUD_RATE;
 
 extern const int DT_WAIT_FOR_SERIAL_PORT_MS;
 
+extern const int JSON_DOC_SIZE;
+
 // Scaling
 
 extern const int AIN_LEVELS;

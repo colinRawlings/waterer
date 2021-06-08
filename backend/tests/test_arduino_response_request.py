@@ -1,38 +1,25 @@
 #!python3
 
-import pytest
+###############################################################
+# Imports
+###############################################################
+
+
 import waterer_backend.embedded_arduino as ae
-
-###############################################################
-# Fixtures
-###############################################################
-
-
-@pytest.fixture
-def arduino():
-    with ae.EmbeddedArduinoContext() as ard:
-        yield ard
-
-
-@pytest.fixture
-def turn_on_request():
-    return ae.Request(1, "turn_on", 100)
-
+from waterer_backend._test_utils import arduino_fxt, turn_on_request_fxt
 
 ###############################################################
 # Tests
 ###############################################################
 
 
-def test_stop_start(arduino: ae.EmbeddedArduino):
+def test_stop_start(arduino_fxt: ae.EmbeddedArduino):
 
-    assert arduino is not None
+    assert arduino_fxt is not None
 
 
-def test_turn_on_request(arduino: ae.EmbeddedArduino, turn_on_request: ae.Request):
+def test_turn_on_request(
+    arduino_fxt: ae.EmbeddedArduino, turn_on_request_fxt: ae.Request
+):
 
-    from time import sleep
-
-    sleep(0.5)
-
-    arduino.make_request(turn_on_request)
+    arduino_fxt.make_request(turn_on_request_fxt)

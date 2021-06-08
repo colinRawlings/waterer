@@ -5,7 +5,12 @@
     "python.formatting.blackPath": "${workspaceFolder}/backend/.venv/Scripts/black",
     "python.sortImports.path": "${workspaceFolder}/backend/.venv/Scripts/isort",
     "files.associations": {
-        "vector": "cpp"
+        "vector": "cpp",
+        "bitset": "cpp",
+        "deque": "cpp",
+        "iterator_base": "cpp",
+        "map": "cpp",
+        "valarray": "cpp"
     },
     "python.pythonPath": "backend\\.venv\\Scripts\\python.exe",
     "python.testing.pytestArgs": [

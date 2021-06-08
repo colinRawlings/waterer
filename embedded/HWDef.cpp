@@ -6,6 +6,8 @@ const unsigned long SERIAL_PORT_BAUD_RATE{9600};
 
 const int DT_WAIT_FOR_SERIAL_PORT_MS{2000};
 
+const int JSON_DOC_SIZE{200};
+
 // Scaling
 
 const int AIN_LEVELS{1023};

@@ -1,11 +1,13 @@
 
 #include "Arduino.h"
 
+#include <ArduinoJson.h>
+
 #include "UI.h"
 
 #include "HWDef.h"
 
-static const String kRequestPrefix{"request{"};
+static const String kRequestKey{"request"};
 static const String kResponsePrefix{"response{"};
 static const String kErrorPrefix{"ERROR"};
 
@@ -53,8 +55,6 @@ void CUI::Update() {
   bool ok = ParseRequest(request_str, request);
   if (!ok) return;
 
-  PrintRequest(request);
-
   auto response = HandleRequest(request);
 
   PrintResponse(response);
@@ -68,32 +68,22 @@ bool CUI::ParseRequest(const String &request_str, SRequest &request) const {
     return false;
   };
 
-  if (!request_str.startsWith(kRequestPrefix))
-    return exit_error("Bad prefix" + request_str);
+  StaticJsonDocument<JSON_DOC_SIZE> request_doc;
 
-  if (!request_str.endsWith(kRequestSuffix)) return exit_error("Bad suffix");
+  // Deserialize the JSON document
+  DeserializationError error = deserializeJson(request_doc, request_str);
+  if (error) {
+    return exit_error("Deserialize failed: " + request_str);
+  }
 
-  String request_body = request_str.substring(
-      kRequestPrefix.length(), request_str.length() - kRequestSuffix.length());
+  if (!request_doc.containsKey(kRequestKey))
+    return exit_error("Missing request key: " + request_str);
 
-  // split
+  // Collect values
 
-  auto first_comma_index = request_body.indexOf(kSeparator);
-  auto last_comma_index = request_body.lastIndexOf(kSeparator);
-
-  if (first_comma_index >= last_comma_index)
-    return exit_error("Not enough commas");
-
-  //
-
-  request.channel = request_body.substring(0, first_comma_index).toInt();
-
-  request.instruction =
-      request_body.substring(first_comma_index + 1, last_comma_index);
-
-  request.data0 =
-      request_body.substring(last_comma_index + 1, request_body.length())
-          .toInt();
+  request.channel = request_doc["request"]["channel"];
+  request.instruction = request_doc["request"]["instruction"].as<String>();
+  request.data0 = request_doc["request"]["data0"];
 
   return true;
 }
@@ -129,7 +119,7 @@ void CUI::PrintKeyValue(const String &key, const String &value,
 }
 
 void CUI::PrintRequest(const SRequest &request) const {
-  m_SerialPort.print(kRequestPrefix);
+  m_SerialPort.print("request{");
 
   PrintKeyValue("\"channel\"", String{request.channel}, false);
   m_SerialPort.print(kSeparator);

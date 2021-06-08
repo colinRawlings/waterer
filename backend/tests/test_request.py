@@ -4,18 +4,13 @@
 # Imports
 ###############################################################
 
-from dataclasses import asdict, dataclass
+import waterer_backend.embedded_arduino as ae
+from waterer_backend._test_utils import turn_on_request_fxt
 
 ###############################################################
-# Definitions
+# Tests
 ###############################################################
 
 
-@dataclass
-class Request:
-    channel: int
-    instruction: str
-    data: int
-
-    def __repr__(self) -> str:
-        return f"{dict(request=asdict(self))}"
+def test_serialize(turn_on_request_fxt: ae.Request):
+    print(f"{turn_on_request_fxt}")
