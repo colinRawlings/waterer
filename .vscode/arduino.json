@@ -1,5 +1,6 @@
 {
     "board": "arduino:avr:uno",
     "sketch": "embedded/base.ino",
-    "port": "COM3"
+    "port": "COM3",
+    "output": "./ArduinoOutput"
 }

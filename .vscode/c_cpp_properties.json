@@ -11,7 +11,8 @@
                 "-ffunction-sections",
                 "-fdata-sections",
                 "-fno-threadsafe-statics",
-                "-Wno-error=narrowing"
+                "-Wno-error=narrowing",
+                "-Wno-deprecated"
             ],
             "intelliSenseMode": "gcc-x64",
             "includePath": [
@@ -19,7 +20,9 @@
                 "C:\\Program Files (x86)\\Arduino\\hardware\\arduino\\avr\\variants\\standard",
                 "c:\\program files (x86)\\arduino\\hardware\\tools\\avr\\lib\\gcc\\avr\\7.3.0\\include",
                 "c:\\program files (x86)\\arduino\\hardware\\tools\\avr\\lib\\gcc\\avr\\7.3.0\\include-fixed",
-                "c:\\program files (x86)\\arduino\\hardware\\tools\\avr\\avr\\include"
+                "c:\\program files (x86)\\arduino\\hardware\\tools\\avr\\avr\\include",
+                "${env:USERPROFILE}\\Documents\\Arduino\\libraries\\ArduinoJson\\src",
+                "${env:USERPROFILE}\\Documents\\Arduino\\libraries\\ArduinoSTL\\src"
             ],
             "forcedInclude": [
                 "C:\\Program Files (x86)\\Arduino\\hardware\\arduino\\avr\\cores\\arduino\\Arduino.h"
