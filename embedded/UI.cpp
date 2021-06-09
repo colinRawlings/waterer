@@ -51,18 +51,17 @@ void CUI::Update() {
 
   if (request_str.length() == 1) return;
 
-  SRequest request;
+  CRequest request;
   bool ok = ParseRequest(request_str, request);
   if (!ok) return;
 
   auto response = HandleRequest(request);
 
-  PrintResponse(response);
-
+  m_SerialPort.print(response.Serialize());
   m_SerialPort.println("");
 }
 
-bool CUI::ParseRequest(const String &request_str, SRequest &request) const {
+bool CUI::ParseRequest(const String &request_str, CRequest &request) const {
   auto exit_error = [this, request_str](const String &msg) {
     ReportError(msg + ": " + request_str);
     return false;
@@ -81,29 +80,29 @@ bool CUI::ParseRequest(const String &request_str, SRequest &request) const {
 
   // Collect values
 
-  request.channel = request_doc["request"]["channel"];
-  request.instruction = request_doc["request"]["instruction"].as<String>();
-  request.data0 = request_doc["request"]["data0"];
+  request.m_Channel = request_doc["request"]["channel"];
+  request.m_Instruction = request_doc["request"]["instruction"].as<String>();
+  request.m_Data0 = request_doc["request"]["data0"];
 
   return true;
 }
 
 //
 
-SResponse CUI::HandleRequest(const SRequest &request) {
-  SResponse response{0, "Error", 0.0f};
+CResponse CUI::HandleRequest(const CRequest &request) {
+  CResponse response{0, "Error", 0.0f};
 
-  if (request.instruction == "turn_on") {
+  if (request.m_Instruction == "turn_on") {
     m_DigitalOutput.TurnOn();
-    response = SResponse{request.channel, request.instruction, 0.0f};
-  } else if (request.instruction == "turn_off") {
+    response = CResponse{request.m_Channel, request.m_Instruction, 0.0f};
+  } else if (request.m_Instruction == "turn_off") {
     m_DigitalOutput.TurnOff();
-    response = SResponse{request.channel, request.instruction, 0.0f};
-  } else if (request.instruction == "get_voltage") {
+    response = CResponse{request.m_Channel, request.m_Instruction, 0.0f};
+  } else if (request.m_Instruction == "get_voltage") {
     auto output = m_AnalogueInput.GetVoltage();
-    response = SResponse{request.channel, request.instruction, output};
+    response = CResponse{request.m_Channel, request.m_Instruction, output};
   } else {
-    ReportError("Unrecognized instruction: " + request.instruction);
+    ReportError("Unrecognized instruction: " + request.m_Instruction);
   }
 
   return response;
@@ -118,26 +117,26 @@ void CUI::PrintKeyValue(const String &key, const String &value,
   if (new_line) m_SerialPort.println("");
 }
 
-void CUI::PrintRequest(const SRequest &request) const {
+void CUI::PrintRequest(const CRequest &request) const {
   m_SerialPort.print("request{");
 
-  PrintKeyValue("\"channel\"", String{request.channel}, false);
+  PrintKeyValue("\"channel\"", String{request.m_Channel}, false);
   m_SerialPort.print(kSeparator);
-  PrintKeyValue("\"instruction\"", "\"" + request.instruction + "\"", false);
+  PrintKeyValue("\"instruction\"", "\"" + request.m_Instruction + "\"", false);
   m_SerialPort.print(kSeparator);
-  PrintKeyValue("\"data\"", String{request.data0}, false);
+  PrintKeyValue("\"data\"", String{request.m_Data0}, false);
 
   m_SerialPort.print("}");
 }
 
-void CUI::PrintResponse(const SResponse &response) const {
+void CUI::PrintResponse(const CResponse &response) const {
   m_SerialPort.print(kResponsePrefix);
 
-  PrintKeyValue("\"channel\"", String{response.channel}, false);
+  PrintKeyValue("\"channel\"", String{response.m_Channel}, false);
   m_SerialPort.print(kSeparator);
-  PrintKeyValue("\"instruction\"", "\"" + response.instruction + "\"", false);
+  PrintKeyValue("\"instruction\"", "\"" + response.m_Instruction + "\"", false);
   m_SerialPort.print(kSeparator);
-  PrintKeyValue("\"data\"", String{response.data0}, false);
+  PrintKeyValue("\"data\"", String{response.m_Data0}, false);
 
   m_SerialPort.print("}");
 }
