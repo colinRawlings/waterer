@@ -3,55 +3,65 @@
 #include <ArduinoJson.h>
 #include "HWDef.h"
 
+const String CRequest::kIDKey = "id";
 const String CRequest::kChannelKey = "channel";
 const String CRequest::kInstructionKey = "instruction";
-const String CRequest::kData0Key = "data0";
+const String CRequest::kDataKey = "data";
 
-CRequest::CRequest()
+CRequest::CRequest() : m_ID{-1}, m_Channel{-1}, m_Instruction{""}, m_Data{0} {}
 
-    CRequest CRequest::Create(String doc_as_str) {
+CRequest::CRequest(long ID, long channel, String instruction, long data)
+    : m_ID{ID}, m_Channel{channel}, m_Instruction{instruction}, m_Data{data} {}
+
+CRequest CRequest::Create(String doc_as_str, bool &success,
+                          String &error_message) {
   StaticJsonDocument<JSON_DOC_SIZE> doc;
 
-  CRequest request{-1, "Error", -1};
+  CRequest request;
 
-  auto exit_error = [&request](String msg) {
-    request.m_Instruction = msg;
+  auto exit_error = [&request, &success, &error_message](String msg) {
+    error_message = msg;
+    success = false;
     return request;
   };
 
   // Deserialize the JSON document
   DeserializationError error = deserializeJson(doc, doc_as_str);
   if (error) {
-    return exit_error("Deserialize failed: " + doc_as_str);
+    return exit_error("Deserialize failed.");
   }
 
-  if (!doc.containsKey(kChannelKey))
-    return exit_error("Missing channel key: " + doc_as_str);
+  if (!doc.containsKey(kIDKey)) return exit_error("Missing ID key.");
+
+  if (!doc.containsKey(kChannelKey)) return exit_error("Missing channel key.");
 
   if (!doc.containsKey(kInstructionKey))
-    return exit_error("Missing instruction key: " + doc_as_str);
+    return exit_error("Missing instruction key.");
 
-  if (!doc.containsKey(kData0Key))
-    return exit_error("Missing data0 key: " + doc_as_str);
+  if (!doc.containsKey(kDataKey)) return exit_error("Missing data key.");
 
   // Collect values
 
-  request.m_Channel = doc["channel"];
-  request.m_Instruction = doc["instruction"].as<String>();
-  request.m_Data0 = doc["data0"];
+  request.m_ID = doc[kIDKey];
+  request.m_Channel = doc[kChannelKey];
+  request.m_Instruction = doc[kInstructionKey].as<String>();
+  request.m_Data = doc[kDataKey];
+
+  success = true;
 
   return request;
 }
 
 String CRequest::Serialize() {
   StaticJsonDocument<JSON_DOC_SIZE> doc;
-  doc["channel"] = m_Channel;
-  doc["instruction"] = m_Instruction;
-  doc["data0"] = m_Data0;
+  doc[kIDKey] = m_ID;
+  doc[kChannelKey] = m_Channel;
+  doc[kInstructionKey] = m_Instruction;
+  doc[kDataKey] = m_Data;
 
   String doc_as_str;
 
-  serializeJsonPretty(doc, doc_as_str);
+  serializeJson(doc, doc_as_str);
 
   return doc_as_str;
 }

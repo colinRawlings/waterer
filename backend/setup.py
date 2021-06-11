@@ -7,5 +7,8 @@ setup(
     author_email="colin.d.rawlings@gmail.com",
     description="The waterer backend",
     packages=find_packages(),
+    package_data={
+        "waterer_backend": ["assets/*.json"],
+    },
     install_requires=["flask", "pyserial"],
 )

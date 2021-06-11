@@ -20,6 +20,7 @@ import pkg_resources as rc
 import serial
 import serial.tools.list_ports
 from waterer_backend.request import Request
+from waterer_backend.response import Response
 
 ###############################################################
 # Definitions
@@ -76,7 +77,7 @@ class EmbeddedArduino:
 
         if self._config_filepath is None:
             self._config_filepath = pt.Path(
-                rc.resource_filename("waterer_backend", "config.json")
+                rc.resource_filename("waterer_backend", "assets/config.json")
             )
 
         if not self._config_filepath.is_file():
@@ -118,7 +119,8 @@ class EmbeddedArduino:
 
         _LOGGER.info("Closed device")
 
-    def make_request(self, request: Request) -> str:
+    def send_str(self, request_str) -> str:
+        """Low level method useful for testing"""
 
         if self._device is None:
             raise RuntimeError("Device not initialized")
@@ -126,38 +128,39 @@ class EmbeddedArduino:
         if not self._device.is_open:
             raise RuntimeError("Device not open")
 
-        # n.b. best effort (won't work if device is busy creating data at time of request)
+        # n.b. best effort (won't work if device is busy creating output at time of request)
         self._device.flushInput()
         self._device.flushOutput()
 
-        self._device.write(f"{request}\r\n".encode())
+        self._device.write(f"{request_str}\r\n".encode())
 
-        response = self._device.readline().decode()
+        response_str = self._device.readline().decode()
 
-        _LOGGER.info(f"{self._tx_idx} <{request}>: {response}")
+        _LOGGER.info(f"{self._tx_idx} <{request_str}>: {response_str}")
         self._tx_idx += 1
+
+        return response_str
+
+    def make_request(self, request: Request) -> Response:
+
+        response_str = self.send_str(request_str=request.serialize())
+
+        response = Response.create(response_str=response_str)
+
+        if not response.id == request.id:
+            raise RuntimeError("Request/Reponse id's do not match")
 
         return response
 
     def get_voltage(self, channel: int) -> float:
 
         voltage_request = Request(channel, "get_voltage", 100)
-        request_response = self.make_request(voltage_request)
+        response = self.make_request(voltage_request)
 
-        def report_error() -> None:
-            msg = f"get_voltage failed: {request_response}"
-            _LOGGER.error(msg)
-            raise RuntimeError(msg)
+        if not response.success:
+            raise RuntimeError("Request failed: " + response.message)
 
-        if "ERROR" in request_response:
-            report_error()
-
-        response_str = request_response.split("response")
-
-        if len(response_str) != 2:
-            report_error()
-
-        return json.loads(response_str[1])["data"]
+        return response.data
 
 
 ###############################################################

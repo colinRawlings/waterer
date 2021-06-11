@@ -6,17 +6,20 @@
 
 class CRequest : public ISerializableEntity {
  public:
+  static const String kIDKey;
   static const String kChannelKey;
   static const String kInstructionKey;
-  static const String kData0Key;
+  static const String kDataKey;
 
-  CRequest(long channel, String instruction, long data0);
+  CRequest();
+  CRequest(long id, long channel, String instruction, long data);
+  static CRequest Create(String request_as_str, bool &success,
+                         String &error_message);
+  String Serialize();
 
+ public:
+  long m_ID;
   long m_Channel;
   String m_Instruction;
-  long m_Data0;
-
-  static CRequest Create(String request_as_str);
-
-  String Serialize();
+  long m_Data;
 };
