@@ -15,7 +15,7 @@ CRequest::CRequest(long ID, long channel, String instruction, long data)
 
 CRequest CRequest::Create(String doc_as_str, bool &success,
                           String &error_message) {
-  StaticJsonDocument<JSON_DOC_SIZE> doc;
+  DynamicJsonDocument doc(JSON_DOC_SIZE);
 
   CRequest request;
 

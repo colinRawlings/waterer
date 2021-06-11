@@ -79,7 +79,7 @@ CResponse CResponse::Create(String doc_as_str, bool &success,
 }
 
 String CResponse::Serialize() {
-  StaticJsonDocument<JSON_DOC_SIZE> doc;
+  DynamicJsonDocument doc(JSON_DOC_SIZE);
 
   doc[kIDKey] = m_ID;
   doc[kChannelKey] = m_Channel;

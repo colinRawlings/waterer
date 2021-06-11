@@ -40,11 +40,13 @@ void InitSerialPort() {
 //
 
 CUI::CUI(Stream &serial_port)
-    : m_SerialPort(serial_port),
-      m_DigitalOutput(LED_BUILTIN, false),
-      m_AnalogueInput(A0, false) {}
+    : m_SerialPort(serial_port), m_SmartPump{A0, LED_BUILTIN} {};
 
 void CUI::Update() {
+  m_SmartPump.Update();
+
+  //
+
   if (!m_SerialPort.available()) return;
 
   String request_str = m_SerialPort.readStringUntil(kLineEnding);
@@ -72,13 +74,28 @@ CResponse CUI::HandleRequest(const CRequest &request) {
   CResponse response{request};
 
   if (request.m_Instruction == "turn_on") {
-    m_DigitalOutput.TurnOn();
+    auto &pump = m_SmartPump.GetPump();
+
+    if (request.m_Data <= 0) {
+      pump.TurnOn();
+    } else {
+      pump.TurnOnFor(request.m_Data * 1000);
+      response.m_Message = "TurnOnFor";
+      response.m_Data = request.m_Data;
+      pump.Update();
+    }
     response.m_Success = true;
   } else if (request.m_Instruction == "turn_off") {
-    m_DigitalOutput.TurnOff();
+    auto &pump = m_SmartPump.GetPump();
+    pump.TurnOff();
+    response.m_Success = true;
+  } else if (request.m_Instruction == "get_state") {
+    auto &pump = m_SmartPump.GetPump();
+    response.m_Data = (bool)pump.GetOutputState();
     response.m_Success = true;
   } else if (request.m_Instruction == "get_voltage") {
-    auto output = m_AnalogueInput.GetVoltage();
+    auto &sensor = m_SmartPump.GetHumiditySensor();
+    auto output = sensor.GetVoltage();
     response.m_Success = true;
     response.m_Data = output;
   } else {
@@ -90,40 +107,3 @@ CResponse CUI::HandleRequest(const CRequest &request) {
 
   return response;
 }
-
-// Logging Output
-
-// void CUI::PrintKeyValue(const String &key, const String &value,
-//                         bool new_line) const {
-//   m_SerialPort.print(key + ": ");
-//   m_SerialPort.print(value);
-//   if (new_line) m_SerialPort.println("");
-// }
-
-// void CUI::PrintRequest(const CRequest &request) const {
-//   m_SerialPort.print("request{");
-
-//   PrintKeyValue("\"channel\"", String{request.m_Channel}, false);
-//   m_SerialPort.print(kSeparator);
-//   PrintKeyValue("\"instruction\"", "\"" + request.m_Instruction + "\"",
-//   false); m_SerialPort.print(kSeparator); PrintKeyValue("\"data\"",
-//   String{request.m_Data0}, false);
-
-//   m_SerialPort.print("}");
-// }
-
-// void CUI::PrintResponse(const CResponse &response) const {
-//   m_SerialPort.print(kResponsePrefix);
-
-//   PrintKeyValue("\"channel\"", String{response.m_Channel}, false);
-//   m_SerialPort.print(kSeparator);
-//   PrintKeyValue("\"instruction\"", "\"" + response.m_Instruction + "\"",
-//   false); m_SerialPort.print(kSeparator); PrintKeyValue("\"data\"",
-//   String{response.m_Data0}, false);
-
-//   m_SerialPort.print("}");
-// }
-
-// void CUI::ReportError(const String &error_msg) const {
-//   PrintKeyValue(kErrorPrefix, error_msg, true);
-// }

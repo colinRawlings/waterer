@@ -20,7 +20,7 @@ def arduino_fxt():
 
 @pytest.fixture
 def turn_on_request_fxt():
-    return Request(channel=1, instruction="turn_on", data=100)
+    return Request(channel=1, instruction="turn_on", data=0)
 
 
 @pytest.fixture

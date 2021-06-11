@@ -8,7 +8,7 @@ enum class OutputStates : pin_state_type {
   ON = true,
 };
 
-enum class Statuses { NOT_READY, READY, RUNNING };
+enum class Statuses : int { NOT_READY = 0, READY, RUNNING };
 
 class CDigitalOutput : IEventLoopEntity {
  public:
@@ -22,7 +22,7 @@ class CDigitalOutput : IEventLoopEntity {
 
   // Enter a timed activation of the pin (us) - requires polling of the event
   // loop via Update
-  void TurnOnFor(time_us_type activation_duration_us);
+  void TurnOnFor(time_ms_type activation_duration_ms);
 
   // Get the status
   Statuses GetStatus();
@@ -40,8 +40,8 @@ class CDigitalOutput : IEventLoopEntity {
   pin_id_type m_Pin;
   bool m_InvertedOutput;
 
-  time_us_type m_TimeActivated_us;
-  time_us_type m_ActivationDuration_us;
+  time_ms_type m_TimeActivated_ms;
+  time_ms_type m_ActivationDuration_ms;
 
   OutputStates m_OutputState;
   Statuses m_Status;

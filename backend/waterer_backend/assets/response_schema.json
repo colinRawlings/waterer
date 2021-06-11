@@ -12,6 +12,7 @@
             "type": "string",
             "enum": [
                 "",
+                "get_state",
                 "turn_on",
                 "turn_off",
                 "get_voltage"

@@ -4,6 +4,7 @@
 # Imports
 ###############################################################
 
+from time import perf_counter, sleep
 
 import waterer_backend.embedded_arduino as ae
 from waterer_backend._test_utils import arduino_fxt, turn_on_request_fxt
@@ -20,10 +21,53 @@ def test_stop_start(arduino_fxt: ae.EmbeddedArduino):
     assert arduino_fxt is not None
 
 
-def test_turn_on_request(arduino_fxt: ae.EmbeddedArduino, turn_on_request_fxt: Request):
+def test_turn_on_off_request(
+    arduino_fxt: ae.EmbeddedArduino, turn_on_request_fxt: Request
+):
 
-    response = arduino_fxt.make_request(turn_on_request_fxt)
+    response = arduino_fxt.make_request(Request(1, "turn_on", 0))
     assert response.success
+
+    response = arduino_fxt.make_request(Request(1, "get_state", 0))
+    assert response.success
+    assert response.data == 1
+
+    response = arduino_fxt.make_request(Request(1, "turn_off", 0))
+    assert response.success
+
+    response = arduino_fxt.make_request(Request(1, "get_state", 0))
+    assert response.success
+    assert response.data == 0
+
+
+def test_turn_on_for_request(
+    arduino_fxt: ae.EmbeddedArduino, turn_on_request_fxt: Request
+):
+
+    response = arduino_fxt.make_request(Request(1, "turn_on", 5))
+    assert response.success
+
+    T0 = perf_counter()
+
+    while perf_counter() - T0 < 4:
+        response = arduino_fxt.make_request(Request(1, "get_state", 0))
+        assert response.success
+        assert response.data == 1
+
+    sleep(2)
+
+    response = arduino_fxt.make_request(Request(1, "get_state", 0))
+    assert response.success
+    assert response.data == 0
+
+
+def test_turn_on_for_long_request(arduino_fxt: ae.EmbeddedArduino):
+
+    duration = 600
+
+    response = arduino_fxt.make_request(Request(1, "turn_on", duration))
+    assert response.success
+    assert response.data == duration
 
 
 def test_turn_off_request(arduino_fxt: ae.EmbeddedArduino):
