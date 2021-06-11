@@ -6,6 +6,7 @@
 #include "Request.h"
 #include "Response.h"
 #include "SmartPump.h"
+#include "PumpManager.h"
 
 // Free function to start the serial port - hopefully this succeeds
 void InitSerialPort();
@@ -30,5 +31,5 @@ class CUI : public IEventLoopEntity {
 
  private:
   Stream &m_SerialPort;
-  CSmartPump m_SmartPump;
+  CPumpManager m_PumpManager;
 };

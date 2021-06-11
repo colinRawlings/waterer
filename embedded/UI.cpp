@@ -39,11 +39,10 @@ void InitSerialPort() {
 
 //
 
-CUI::CUI(Stream &serial_port)
-    : m_SerialPort(serial_port), m_SmartPump{A0, LED_BUILTIN} {};
+CUI::CUI(Stream &serial_port) : m_SerialPort(serial_port), m_PumpManager{} {};
 
 void CUI::Update() {
-  m_SmartPump.Update();
+  m_PumpManager.Update();
 
   //
 
@@ -62,7 +61,7 @@ void CUI::Update() {
     response = HandleRequest(request);
   } else {
     response.m_Success = false;
-    response.m_Message = "Request de-serialization failed: " + error_msg;
+    response.m_Message = error_msg;
   }
   m_SerialPort.print(response.Serialize());
   m_SerialPort.println("");
@@ -73,8 +72,17 @@ void CUI::Update() {
 CResponse CUI::HandleRequest(const CRequest &request) {
   CResponse response{request};
 
+  bool success{false};
+  CSmartPump &smart_pump = m_PumpManager.GetPump(request.m_Channel, success);
+
+  if (!success) {
+    response.m_Success = false;
+    response.m_Message = "Invalid channel";
+    return response;
+  }
+
   if (request.m_Instruction == "turn_on") {
-    auto &pump = m_SmartPump.GetPump();
+    CDigitalOutput &pump = smart_pump.GetPump();
 
     if (request.m_Data <= 0) {
       pump.TurnOn();
@@ -86,15 +94,15 @@ CResponse CUI::HandleRequest(const CRequest &request) {
     }
     response.m_Success = true;
   } else if (request.m_Instruction == "turn_off") {
-    auto &pump = m_SmartPump.GetPump();
+    CDigitalOutput &pump = smart_pump.GetPump();
     pump.TurnOff();
     response.m_Success = true;
   } else if (request.m_Instruction == "get_state") {
-    auto &pump = m_SmartPump.GetPump();
+    CDigitalOutput &pump = smart_pump.GetPump();
     response.m_Data = (bool)pump.GetOutputState();
     response.m_Success = true;
   } else if (request.m_Instruction == "get_voltage") {
-    auto &sensor = m_SmartPump.GetHumiditySensor();
+    CAnalogueInput &sensor = smart_pump.GetHumiditySensor();
     auto output = sensor.GetVoltage();
     response.m_Success = true;
     response.m_Data = output;

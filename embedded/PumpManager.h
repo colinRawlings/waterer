@@ -4,15 +4,15 @@
 
 #include "SmartPump.h"
 
-// class CPumpManager : public IEventLoopEntity {
-//  public:
-//   static const int kNumPumps;
-//   CPumpManager();
+class CPumpManager : public IEventLoopEntity {
+ public:
+  static const int kNumPumps;
+  CPumpManager();
 
-//   CSmartPump& GetPump(long channel, bool& success);
+  CSmartPump& GetPump(long channel, bool& success);
 
-//   void Update() override;
+  void Update() override;
 
-//  private:
-//   // CSmartPump m_Pumps[3];
-// };
+ private:
+  CSmartPump m_Pumps[3];
+};
