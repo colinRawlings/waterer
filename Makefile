@@ -11,11 +11,13 @@ ifdef OS
 	BASE_PYTHON = py -3.6
 	BACKEND_VENV_PYTHON = ${BACKEND_VENV_DIR}/Scripts/python.exe
 	RENAME_CMD = rename
+	ACTIVATE_CMD = ${BACKEND_VENV_DIR}/Scripts/activate
 else
 	COMMENT_CHAR = #
 	BASE_PYTHON = python3
 	BACKEND_VENV_PYTHON = ${BACKEND_VENV_DIR}/bin/python
 	RENAME_CMD = mv
+	ACTIVATE_CMD = source ${BACKEND_VENV_DIR}/bin/activate
 endif
 
 
@@ -56,6 +58,7 @@ install-dev:
 	${BACKEND_VENV_PYTHON} -m pre_commit install --install-hooks
 	${COMMENT_CHAR} Install backend
 	${BACKEND_VENV_PYTHON} -m pip install -e ${BACKEND_DIR}
+	npm install -g pyright@1.1.138
 	${COMMENT_CHAR} Install Frontend
 	cd ${FRONTEND_DIR} && yarn install --production=false
 	cd ${FRONTEND_DIR}/node_modules/@types && ${RENAME_CMD} plotly.js plotly.js-dist
@@ -68,6 +71,7 @@ make up-backend:
 
 tests-backend:
 	${BACKEND_VENV_PYTHON} -m pytest ${makefile_dir}/backend/tests
+	${ACTIVATE_CMD} && pyright --verbose
 
 pip-list:
 	${BACKEND_VENV_PYTHON} -m pip list

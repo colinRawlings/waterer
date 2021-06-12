@@ -1,3 +1,4 @@
 {
-    "include": ["backend/"]
+    "include": ["backend/waterer_backend", "backend/tests"],
+    "exclude":["backend/build", "backend/.venv"]
 }

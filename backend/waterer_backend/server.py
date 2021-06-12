@@ -66,7 +66,7 @@ def get_voltage():
     if ard is None:
         return "No ard!"
 
-    response = ard.get_voltage(1)
+    response = ard.make_request(Request(1, "get_voltage", 0))
 
     return {"data": response}
 

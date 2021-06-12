@@ -33,6 +33,10 @@ colorama==0.4.4
     #   -r C:/Users/colin/Documents/waterer/backend/requirements\base.txt
     #   click
     #   pytest
+cycler==0.10.0
+    # via
+    #   -r C:/Users/colin/Documents/waterer/backend/requirements\base.txt
+    #   matplotlib
 dataclasses==0.8
     # via
     #   -r C:/Users/colin/Documents/waterer/backend/requirements\base.txt
@@ -73,18 +77,32 @@ jinja2==3.0.1
     #   flask
 jsonschema==3.2.0
     # via -r C:/Users/colin/Documents/waterer/backend/requirements\base.txt
+kiwisolver==1.3.1
+    # via
+    #   -r C:/Users/colin/Documents/waterer/backend/requirements\base.txt
+    #   matplotlib
 markupsafe==2.0.1
     # via
     #   -r C:/Users/colin/Documents/waterer/backend/requirements\base.txt
     #   jinja2
+matplotlib==3.3.4
+    # via -r C:/Users/colin/Documents/waterer/backend/requirements\base.txt
 mypy-extensions==0.4.3
     # via black
 nodeenv==1.6.0
     # via pre-commit
+numpy==1.19.5
+    # via
+    #   -r C:/Users/colin/Documents/waterer/backend/requirements\base.txt
+    #   matplotlib
 packaging==20.9
     # via pytest
 pathspec==0.8.1
     # via black
+pillow==8.2.0
+    # via
+    #   -r C:/Users/colin/Documents/waterer/backend/requirements\base.txt
+    #   matplotlib
 pluggy==0.13.1
     # via pytest
 pre-commit==2.13.0
@@ -92,7 +110,10 @@ pre-commit==2.13.0
 py==1.10.0
     # via pytest
 pyparsing==2.4.7
-    # via packaging
+    # via
+    #   -r C:/Users/colin/Documents/waterer/backend/requirements\base.txt
+    #   matplotlib
+    #   packaging
 pyrsistent==0.17.3
     # via
     #   -r C:/Users/colin/Documents/waterer/backend/requirements\base.txt
@@ -101,6 +122,10 @@ pyserial==3.5
     # via -r C:/Users/colin/Documents/waterer/backend/requirements\base.txt
 pytest==6.2.4
     # via -r C:/Users/colin/Documents/waterer/backend/requirements/dev.in
+python-dateutil==2.8.1
+    # via
+    #   -r C:/Users/colin/Documents/waterer/backend/requirements\base.txt
+    #   matplotlib
 python-engineio==4.2.0
     # via
     #   -r C:/Users/colin/Documents/waterer/backend/requirements\base.txt
@@ -114,7 +139,9 @@ regex==2021.4.4
 six==1.16.0
     # via
     #   -r C:/Users/colin/Documents/waterer/backend/requirements\base.txt
+    #   cycler
     #   jsonschema
+    #   python-dateutil
     #   virtualenv
 toml==0.10.2
     # via

@@ -2,6 +2,7 @@
 
 #
 pytest
+matplotlib
 
 #
 pre-commit
