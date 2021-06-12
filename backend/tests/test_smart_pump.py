@@ -4,7 +4,7 @@
 # Imports
 ###############################################################
 
-from time import perf_counter, sleep
+from time import perf_counter
 
 import matplotlib.pyplot as plt
 import waterer_backend.embedded_arduino as ae
@@ -29,7 +29,7 @@ def test_turn_on_off_request(arduino_fxt: ae.EmbeddedArduino):
     results = smart_pump.status
 
 
-def test_threading(arduino_fxt: ae.EmbeddedArduino):
+def test_smart_pump(arduino_fxt: ae.EmbeddedArduino):
 
     time = []
     rel_humidity_pcnt = []
@@ -37,17 +37,17 @@ def test_threading(arduino_fxt: ae.EmbeddedArduino):
 
     if DEBUG:
         plt.ion()
-        _, axs = plt.subplots(2, 1)
+        _, axs0 = plt.subplots()
 
-        axs[0].plot(time, rel_humidity_pcnt)
-        axs[0].set_xlabel("elapsed time [s]")
-        axs[0].set_ylabel("relative_humidity [%]")
-        axs[0].plot(time, rel_humidity_pcnt, ".-b")
+        axs0.plot(time, rel_humidity_pcnt)
+        axs0.set_xlabel("elapsed time [s]")
+        axs0.set_ylabel("relative_humidity [%]")
 
-        axs[1].plot(time, rel_humidity_pcnt)
-        axs[1].set_xlabel("elapsed time [s]")
-        axs[1].set_ylabel("relative_humidity [%]")
-        axs[1].plot(time, pump_state, ".-r")
+        axs1 = axs0.twinx()
+
+        axs1.plot(time, rel_humidity_pcnt)
+        axs1.set_xlabel("elapsed time [s]")
+        axs1.set_ylabel("relative_humidity [%]")
 
     smart_pump = SmartPump(
         2,
@@ -70,8 +70,8 @@ def test_threading(arduino_fxt: ae.EmbeddedArduino):
         pump_state.append(status.pump_running)
 
         if DEBUG:
-            axs[0].plot(time, rel_humidity_pcnt, ".-b")
-            axs[1].plot(time, pump_state, ".-r")
+            axs0.plot(time, rel_humidity_pcnt, ".-b")
+            axs1.plot(time, pump_state, ".-r")
             plt.pause(0.001)
 
     smart_pump.interrupt()

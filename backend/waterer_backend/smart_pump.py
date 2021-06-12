@@ -7,7 +7,6 @@
 import logging
 from dataclasses import dataclass
 from threading import Event, Lock, Thread
-from time import sleep
 
 from waterer_backend.embedded_arduino import EmbeddedArduino
 from waterer_backend.request import Request
@@ -162,8 +161,8 @@ class SmartPump(Thread):
     # Stops the feedback loop (so a join() should execute quickly)
     def interrupt(self):
         _LOGGER.info("Interrupting the pump thread")
-        self._sleep_event.set()
         self._abort_running = True
+        self._sleep_event.set()
 
     def run(self):
 
