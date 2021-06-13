@@ -58,7 +58,7 @@ class Request:
             )
 
         request_schema_filepath = rc.resource_filename(
-            "waterer_backend", str(pt.Path("assets") / "request_schema.json")
+            "waterer_backend", str(pt.Path("config") / "request_schema.json")
         )
 
         if not pt.Path(request_schema_filepath).is_file():

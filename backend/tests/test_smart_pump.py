@@ -8,7 +8,7 @@ from time import perf_counter
 
 import matplotlib.pyplot as plt
 import waterer_backend.embedded_arduino as ae
-from waterer_backend._test_utils import arduino_fxt, turn_on_request_fxt
+from waterer_backend._test_utils import arduino_fxt
 from waterer_backend.smart_pump import SmartPump, SmartPumpSettings
 
 ###############################################################
@@ -70,9 +70,9 @@ def test_smart_pump(arduino_fxt: ae.EmbeddedArduino):
         pump_state.append(status.pump_running)
 
         if DEBUG:
-            axs0.plot(time, rel_humidity_pcnt, ".-b")
-            axs1.plot(time, pump_state, ".-r")
-            plt.pause(0.001)
+            axs0.plot(time, rel_humidity_pcnt, ".-b")  # type: ignore #matplotlib
+            axs1.plot(time, pump_state, ".-r")  # type: ignore #matplotlib
+            plt.pause(0.001)  # type: ignore matplotlib
 
     smart_pump.interrupt()
     smart_pump.join()

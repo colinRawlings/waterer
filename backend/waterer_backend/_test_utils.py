@@ -3,7 +3,7 @@
 from random import randint
 
 import pytest
-import waterer_backend.embedded_arduino as ae
+import waterer_backend.embedded_device as ed
 from waterer_backend.request import Request
 from waterer_backend.response import Response
 
@@ -14,7 +14,7 @@ from waterer_backend.response import Response
 
 @pytest.fixture
 def arduino_fxt():
-    with ae.EmbeddedArduinoContext() as ard:
+    with ed.EmbeddedDeviceContext() as ard:
         yield ard
 
 

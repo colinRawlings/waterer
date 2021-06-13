@@ -3,6 +3,7 @@
 #
 pytest
 matplotlib
+pydantic # for schema generation
 
 #
 pre-commit

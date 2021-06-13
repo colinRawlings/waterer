@@ -5,6 +5,7 @@
 ###############################################################
 
 import logging
+import typing as ty
 from dataclasses import dataclass
 from threading import Event, Lock, Thread
 
@@ -63,7 +64,10 @@ class SmartPumpStatus:
 
 class SmartPump(Thread):
     def __init__(
-        self, channel: int, device: EmbeddedArduino, settings: SmartPumpSettings
+        self,
+        channel: int,
+        device: EmbeddedArduino,
+        settings: SmartPumpSettings,
     ) -> None:
 
         Thread.__init__(self)

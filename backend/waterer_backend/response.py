@@ -54,7 +54,7 @@ class Response:
             )
 
         response_schema_filepath = rc.resource_filename(
-            "waterer_backend", str(pt.Path("assets") / "response_schema.json")
+            "waterer_backend", str(pt.Path("config") / "response_schema.json")
         )
 
         if not pt.Path(response_schema_filepath).is_file():

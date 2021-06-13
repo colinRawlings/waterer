@@ -79,7 +79,9 @@ class EmbeddedArduino:
         with self._lock:
             if self._config_filepath is None:
                 self._config_filepath = pt.Path(
-                    rc.resource_filename("waterer_backend", "assets/config.json")
+                    rc.resource_filename(
+                        "waterer_backend", str(pt.Path("config") / "device_config.json")
+                    )
                 )
 
             if not self._config_filepath.is_file():
@@ -159,30 +161,3 @@ class EmbeddedArduino:
             raise RuntimeError("Request/Reponse id's do not match")
 
         return response
-
-
-###############################################################
-
-
-class EmbeddedArduinoContext:
-    def __init__(
-        self,
-        port: ty.Optional[str] = None,
-        config_filepath: ty.Optional[pt.Path] = None,
-    ) -> None:
-        self._arduino = None
-
-        self._port = port
-        self._config_filepath = config_filepath
-
-    def __enter__(self) -> EmbeddedArduino:
-
-        self._arduino = EmbeddedArduino(
-            port=self._port, config_filepath=self._config_filepath
-        )
-        self._arduino.connect()
-
-        return self._arduino
-
-    def __exit__(self, exc_type, exc_value, exc_traceback):
-        self._arduino.disconnect()

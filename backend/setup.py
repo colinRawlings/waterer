@@ -8,7 +8,7 @@ setup(
     description="The waterer backend",
     packages=find_packages(),
     package_data={
-        "waterer_backend": ["assets/*.json"],
+        "waterer_backend": ["config/*.json"],
     },
     install_requires=["flask", "pyserial"],
 )
