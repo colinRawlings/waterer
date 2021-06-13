@@ -8,6 +8,7 @@ import logging
 import typing as ty
 from dataclasses import dataclass
 from threading import Event, Lock, Thread
+from time import time
 
 from waterer_backend.embedded_arduino import EmbeddedArduino
 from waterer_backend.request import Request
@@ -63,6 +64,7 @@ class SmartPumpStatus:
     rel_humidity_V: float
     rel_humidity_pcnt: float
     pump_running: bool
+    epoch_time: float
 
 
 class SmartPump(Thread):
@@ -151,7 +153,7 @@ class SmartPump(Thread):
             self._check_response("get_pump_state", response)
 
             return SmartPumpStatus(
-                rel_humidity_V, rel_humidity_pcnt, bool(response.data)
+                rel_humidity_V, rel_humidity_pcnt, bool(response.data), time()
             )
 
     # Stops the feedback loop (so a join() should execute quickly)

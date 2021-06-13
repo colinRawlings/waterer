@@ -67,7 +67,7 @@ up-frontend:
 	cd ${FRONTEND_DIR} && yarn start &
 
 make up-backend:
-	${BACKEND_VENV_PYTHON} -m waterer_backend.server
+	${BACKEND_VENV_PYTHON} -m waterer_backend.run_server
 
 tests-backend:
 	${BACKEND_VENV_PYTHON} -m pytest ${makefile_dir}/backend/tests

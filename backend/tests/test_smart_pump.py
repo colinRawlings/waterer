@@ -65,7 +65,7 @@ def test_smart_pump(arduino_fxt: ae.EmbeddedArduino):
     while perf_counter() - T0 < 15:
         status = smart_pump.status
 
-        time.append(perf_counter() - T0)
+        time.append(status.epoch_time)
         rel_humidity_pcnt.append(status.rel_humidity_pcnt)
         pump_state.append(status.pump_running)
 
