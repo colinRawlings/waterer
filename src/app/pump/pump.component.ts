@@ -1,83 +1,63 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 
-
 interface keyable {
-  [key: string]: any  
+  [key: string]: any;
 }
 
 @Component({
   selector: 'app-pump',
   templateUrl: './pump.component.html',
-  styleUrls: ['./pump.component.css']
+  styleUrls: ['./pump.component.css'],
 })
 export class PumpComponent implements OnInit {
-
-  public x: number[] = []
-  public y: number[] = []
+  public x: number[] = [];
+  public y: number[] = [];
   graph = {
-    data: [
-      { x: this.x, y: this.y, type: 'scatter' },
-    ],
+    data: [{ x: this.x, y: this.y, type: 'scatter' }],
     layout: {
       autosize: true,
       title: 'Voltage',
       font: { family: 'Roboto, "Helvetica Neue", sans-serif' },
       margin: { t: 50, b: 20, l: 40, r: 40 },
-    }
+    },
   };
-  
+
   @Input()
-  channel:number; 
-
-  connect_info: string;
-  result: string;
-  voltage: number;
-  counter: number;
-
-  constructor(private http: HttpClient) {
-    this.connect_info = "";
-    this.result="";
-    this.voltage=-1;
-    this.counter=0;
-  }
+  channel: number;
 
   ngOnInit(): void {
-    this.http.get('http://127.0.0.1:5000/')
-    .subscribe((data:keyable)=>{
-      this.connect_info = `${data.data}`;
-    })
-
-
+    this.http
+      .get(`http://127.0.0.1:5000/settings/${this.channel}`)
+      .subscribe((data: keyable) => {
+        this.settings = data.data;
+      });
   }
 
-  onTurnOn(): void{
-    this.http.get('http://127.0.0.1:5000/turn_on')
-    .subscribe((data:keyable)=>{
-      this.result = `${data.data}`;
-    })
+  voltage: number;
+  counter: number;
+  settings: keyable;
+
+  constructor(private http: HttpClient) {
+    this.settings = {};
+    this.voltage = -1;
+    this.counter = 0;
   }
 
-  onTurnOff(): void{
-    this.http.get('http://127.0.0.1:5000/turn_off')
-    .subscribe((data:keyable)=>{
-      this.result = `${data.data}`;
-    })
+  onTurnOn(): void {
+    this.http
+      .get(`http://127.0.0.1:5000/turn_on/${this.channel}`)
+      .subscribe((data: keyable) => {});
   }
 
-  onGetVoltage(): void{
-    this.http.get('http://127.0.0.1:5000/get_voltage')
-    .subscribe((data:keyable)=>{
-      this.voltage = data.data;
-       
-      this.counter += 1;
+  onTurnOff(): void {
+    this.http
+      .get(`http://127.0.0.1:5000/turn_off/${this.channel}`)
+      .subscribe((data: keyable) => {});
+  }
 
-      this.x.push(this.counter);
-      this.y.push(this.voltage);
-
-      this.graph.data = [{ x: this.x.slice(), y: this.y.slice(), type: 'scatter' }]
-
-    })
+  onSettingsChange(): void{
+    console.log(`Feedback: ${this.settings.feedback_active}`);
   }
 
 }
