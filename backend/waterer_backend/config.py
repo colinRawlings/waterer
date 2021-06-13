@@ -45,7 +45,7 @@ def get_config_schema_filepath() -> pt.Path:
     return get_config_dir() / "pump_config_schema.json"
 
 
-def get_pumps_config() -> ty.List[SmartPumpSettings]:
+def get_pumps_config(use_default: bool = False) -> ty.List[SmartPumpSettings]:
 
     if get_user_config_filepath().is_file():
         config_filepath = get_user_config_filepath()

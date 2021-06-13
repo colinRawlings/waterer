@@ -52,7 +52,7 @@ class EmbeddedArduino:
         self._tx_idx = 0
 
     @property
-    def connect_info(self) -> str:
+    def connection_info(self) -> str:
 
         if self._device is None:
             return "Not connected"

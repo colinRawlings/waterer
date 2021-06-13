@@ -34,6 +34,9 @@ class SmartPumpSettings:
     feedback_setpoint_pcnt: float = 50
 
     def __post_init__(self):
+        self.validate()
+
+    def validate(self):
         if self.wet_humidity_V < self.dry_humidity_V:
             raise ValueError(
                 f"Dry humidity: {self.dry_humidity_V} V cannot exceed wet: {self.wet_humidity_V} V"
@@ -96,6 +99,7 @@ class SmartPump(Thread):
     def settings(self, value: SmartPumpSettings) -> None:
         with self._settings_lock:
             self._settings = value
+            _LOGGER.info(f"New setting for channel {self._channel}: {self._settings}")
             self._sleep_event.set()
 
     def _check_response(self, desc: str, response: Response) -> None:
@@ -109,37 +113,25 @@ class SmartPump(Thread):
             * 100
         )
 
-    # TODO value qualification ...
-    def set_dry(self, dry_V: float) -> None:
-        with self._settings_lock:
-            self._settings.dry_humidity_V = dry_V
-
-    def set_wet(self, wet_V: float) -> None:
-        with self._settings_lock:
-            self._settings.wet_humidity_V = wet_V
-
-    def calibrate_dry(self) -> None:
-
-        with self._settings_lock:
-
-            response = self._device.make_request(
-                Request(channel=self.channel, instruction="get_voltage", data=0)
+    def turn_on(self):
+        response = self._device.make_request(
+            Request(
+                channel=self.channel,
+                instruction="turn_on",
+                data=0,
             )
-            self._check_response("calibrate_dry", response)
+        )
+        self._check_response("turn_on", response)
 
-            self._settings.dry_humidity_V = response.data
-
-    def calibrate_wet(self) -> None:
-
-        with self._settings_lock:
-
-            response = self._device.make_request(
-                Request(channel=self.channel, instruction="get_voltage", data=0)
+    def turn_off(self):
+        response = self._device.make_request(
+            Request(
+                channel=self.channel,
+                instruction="turn_off",
+                data=0,
             )
-
-            self._check_response("calibrate_wet", response)
-
-            self._settings.wet_humidity_V = response.data
+        )
+        self._check_response("turn_off", response)
 
     @property
     def status(self) -> SmartPumpStatus:

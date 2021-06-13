@@ -39,11 +39,13 @@ _GLOBAL_pump_manager = None
 # Class
 ###############################################################
 
+pump_manager_settings_type = Union[List[sp.SmartPumpSettings], sp.SmartPumpSettings]
+
 
 class PumpManager:
     def __init__(
         self,
-        settings: Union[List[sp.SmartPumpSettings], sp.SmartPumpSettings],
+        settings: pump_manager_settings_type,
         num_pumps: int,
         port: Optional[str] = None,
         config_filepath: Optional[pt.Path] = None,
@@ -69,6 +71,14 @@ class PumpManager:
     def num_pumps(self) -> int:
         return self._num_pumps
 
+    @property
+    def connection_info(self) -> str:
+
+        if self._device is None:
+            raise RuntimeError("Device not initialized did you call start()")
+
+        return self._device.connection_info
+
     def _check_channel(self, channel: int) -> None:
         if channel < 0:
             raise ValueError(f"Channel ({channel}) cannot be negative")
@@ -77,6 +87,14 @@ class PumpManager:
             raise ValueError(
                 f"Channel ({channel}) cannot be greater than {self._num_pumps}"
             )
+
+    def turn_on(self, channel: int) -> None:
+        self._check_channel(channel)
+        self._pumps[channel].turn_on()
+
+    def turn_off(self, channel: int) -> None:
+        self._check_channel(channel)
+        self._pumps[channel].turn_off()
 
     def set_settings(self, channel: int, settings: sp.SmartPumpSettings) -> None:
         self._check_channel(channel)
@@ -144,7 +162,7 @@ class PumpManager:
 
 
 def init_pump_manager(
-    settings: sp.SmartPumpSettings,
+    settings: pump_manager_settings_type,
     num_pumps: int,
     port: Optional[str] = None,
     config_filepath: Optional[pt.Path] = None,
@@ -173,7 +191,7 @@ def get_pump_manager() -> PumpManager:
 class PumpManagerContext:
     def __init__(
         self,
-        settings: sp.SmartPumpSettings,
+        settings: pump_manager_settings_type,
         num_pumps: int,
         port: Optional[str] = None,
         config_filepath: Optional[pt.Path] = None,
