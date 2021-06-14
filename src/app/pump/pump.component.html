@@ -4,9 +4,26 @@
   <p>
     <button (click)="onTurnOn()">Turn On</button>
     <button (click)="onTurnOff()">Turn Off</button>
-  </p>
+    <button (click)="onGetStatus()">Update</button>
+  <br />
 
-  <!-- <p><button (click)="onGetVoltage()">GetVoltage</button> Voltage: {{voltage}}</p> -->
+    <mat-slide-toggle
+      [(ngModel)]="display_voltage"
+      color="primary"
+      (change)="onDisplayVoltageChange()"
+    >
+      Display Voltage
+    </mat-slide-toggle>
+  <br />
+
+    <mat-slide-toggle
+      [(ngModel)]="auto_update"
+      color="primary"
+      (change)="onAutoUpdateChange()"
+    >
+      Auto-Update
+    </mat-slide-toggle>
+  </p>
 
   <plotly-plot [data]="graph.data" [layout]="graph.layout"></plotly-plot>
 
@@ -18,40 +35,44 @@
   >
     Feedback
   </mat-slide-toggle>
-  
-  <br>
+
+  <br />
 
   <mat-form-field (change)="onSettingsChange()" class="example-form-field">
     <mat-label>Dry Soil Humidity Reading (V)</mat-label>
-    <input matInput type="number" [(ngModel)]="settings.dry_humidity_V">
+    <input matInput type="number" [(ngModel)]="settings.dry_humidity_V" />
   </mat-form-field>
 
-  <br>
-  
+  <br />
+
   <mat-form-field (change)="onSettingsChange()" class="example-form-field">
     <mat-label>Wet Soil Humidity Reading (V)</mat-label>
-    <input matInput type="number" [(ngModel)]="settings.wet_humidity_V">
+    <input matInput type="number" [(ngModel)]="settings.wet_humidity_V" />
   </mat-form-field>
 
-  <br>
-  
+  <br />
+
   <mat-form-field (change)="onSettingsChange()" class="example-form-field">
     <mat-label>Feedback Set Point (%)</mat-label>
-    <input matInput type="number" [(ngModel)]="settings.feedback_setpoint_pcnt">
+    <input
+      matInput
+      type="number"
+      [(ngModel)]="settings.feedback_setpoint_pcnt"
+    />
   </mat-form-field>
 
-  <br>
+  <br />
 
   <mat-form-field (change)="onSettingsChange()" class="example-form-field">
     <mat-label>Pump Run Time (s)</mat-label>
-    <input matInput type="number" [(ngModel)]="settings.pump_on_time_s">
+    <input matInput type="number" [(ngModel)]="settings.pump_on_time_s" />
   </mat-form-field>
 
-  <br>
+  <br />
 
   <mat-form-field (change)="onSettingsChange()" class="example-form-field">
     <mat-label>Pump Run Time (s)</mat-label>
-    <input matInput type="number" [(ngModel)]="settings.pump_update_time_s">
+    <input matInput type="number" [(ngModel)]="settings.pump_update_time_s" />
   </mat-form-field>
 
   <div *ngFor="let item of settings | keyvalue">
