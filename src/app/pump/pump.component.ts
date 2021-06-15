@@ -60,9 +60,21 @@ export class PumpComponent implements OnInit {
       .subscribe((data: keyable) => {});
   }
 
+  // Settings: TODO spread to own component
+
   onSettingsChange(): void {
     console.log(`Feedback: ${this.settings.feedback_active}`);
   }
+
+  onTakeCurrentHumidityAsDry(): void{
+    console.log(`TODO: take dry`);
+  }
+
+  onTakeCurrentHumidityAsWet(): void{
+    console.log(`TODO: take wet`);
+  }
+
+  // Graph
 
   updateGraph(): void{
     if (this.display_voltage) {

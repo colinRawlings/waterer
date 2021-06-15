@@ -1,81 +1,138 @@
 <div class="app-pump">
-  <h2>Pump: {{ channel }}</h2>
+  <mat-card>
+    <p>
+      <button mat-button (click)="onTurnOn()">Turn On</button>
+      <button mat-button (click)="onTurnOff()">Turn Off</button>
+      <button mat-button (click)="onGetStatus()">Update</button>
+      <mat-slide-toggle
+        [(ngModel)]="auto_update"
+        color="primary"
+        (change)="onAutoUpdateChange()"
+      >
+        Auto-Update
+      </mat-slide-toggle>
+    </p>
 
-  <p>
-    <button (click)="onTurnOn()">Turn On</button>
-    <button (click)="onTurnOff()">Turn Off</button>
-    <button (click)="onGetStatus()">Update</button>
-  <br />
+    <mat-card>
+      <mat-card-title>Graph</mat-card-title>
+      <mat-card-content>
+        <p>
+          <mat-slide-toggle
+            [(ngModel)]="display_voltage"
+            color="primary"
+            (change)="onDisplayVoltageChange()"
+          >
+            Display Voltage
+          </mat-slide-toggle>
+          <br />
+        </p>
+        <plotly-plot [data]="graph.data" [layout]="graph.layout"></plotly-plot>
+      </mat-card-content>
+    </mat-card>
 
-    <mat-slide-toggle
-      [(ngModel)]="display_voltage"
-      color="primary"
-      (change)="onDisplayVoltageChange()"
-    >
-      Display Voltage
-    </mat-slide-toggle>
-  <br />
+    <mat-expansion-panel>
+      <mat-expansion-panel-header>
+        <mat-panel-title>Settings</mat-panel-title>
+      </mat-expansion-panel-header>
 
-    <mat-slide-toggle
-      [(ngModel)]="auto_update"
-      color="primary"
-      (change)="onAutoUpdateChange()"
-    >
-      Auto-Update
-    </mat-slide-toggle>
-  </p>
+      <mat-grid-list cols="2" rowHeight="250px">
+        <mat-grid-tile>
+          <mat-list>
+            <mat-list-item>
+              <h5>Feedback</h5>
+            </mat-list-item>
+            <mat-list-item>
+              <mat-slide-toggle
+                [(ngModel)]="settings.feedback_active"
+                color="primary"
+                (change)="onSettingsChange()"
+              >
+                Active
+              </mat-slide-toggle>
+            </mat-list-item>
+            <mat-list-item>
+              <mat-form-field
+                (change)="onSettingsChange()"
+                class="example-form-field"
+              >
+                <mat-label>Target Humidity (%)</mat-label>
+                <input
+                  matInput
+                  type="number"
+                  [(ngModel)]="settings.feedback_setpoint_pcnt"
+                />
+              </mat-form-field>
+            </mat-list-item>
+            <mat-list-item>
+              <mat-form-field
+                (change)="onSettingsChange()"
+                class="example-form-field"
+              >
+                <mat-label>Run Interval (s)</mat-label>
+                <input
+                  matInput
+                  type="number"
+                  [(ngModel)]="settings.pump_on_time_s"
+                />
+              </mat-form-field>
+            </mat-list-item>
 
-  <plotly-plot [data]="graph.data" [layout]="graph.layout"></plotly-plot>
+            <mat-list-item>
+              <mat-form-field
+                (change)="onSettingsChange()"
+                class="example-form-field"
+              >
+                <mat-label>Update Interval (s)</mat-label>
+                <input
+                  matInput
+                  type="number"
+                  [(ngModel)]="settings.pump_update_time_s"
+                />
+              </mat-form-field>
+            </mat-list-item>
+          </mat-list>
+        </mat-grid-tile>
+        <mat-grid-tile>
+          <mat-list>
+            <mat-list-item>
+              <h5>Humidity Reading</h5>
+            </mat-list-item>
+            <mat-list-item>
+              <mat-form-field
+                (change)="onSettingsChange()"
+                class="example-form-field"
+              >
+                <mat-label>Dry Soil (V)</mat-label>
+                <input
+                  matInput
+                  type="number"
+                  [(ngModel)]="settings.dry_humidity_V"
+                />
+                <button mat-button (click)="onTakeCurrentHumidityAsDry()">
+                  Current
+                </button>
 
-  <h3>Settings</h3>
-  <mat-slide-toggle
-    [(ngModel)]="settings.feedback_active"
-    color="primary"
-    (change)="onSettingsChange()"
-  >
-    Feedback
-  </mat-slide-toggle>
-
-  <br />
-
-  <mat-form-field (change)="onSettingsChange()" class="example-form-field">
-    <mat-label>Dry Soil Humidity Reading (V)</mat-label>
-    <input matInput type="number" [(ngModel)]="settings.dry_humidity_V" />
-  </mat-form-field>
-
-  <br />
-
-  <mat-form-field (change)="onSettingsChange()" class="example-form-field">
-    <mat-label>Wet Soil Humidity Reading (V)</mat-label>
-    <input matInput type="number" [(ngModel)]="settings.wet_humidity_V" />
-  </mat-form-field>
-
-  <br />
-
-  <mat-form-field (change)="onSettingsChange()" class="example-form-field">
-    <mat-label>Feedback Set Point (%)</mat-label>
-    <input
-      matInput
-      type="number"
-      [(ngModel)]="settings.feedback_setpoint_pcnt"
-    />
-  </mat-form-field>
-
-  <br />
-
-  <mat-form-field (change)="onSettingsChange()" class="example-form-field">
-    <mat-label>Pump Run Time (s)</mat-label>
-    <input matInput type="number" [(ngModel)]="settings.pump_on_time_s" />
-  </mat-form-field>
-
-  <br />
-
-  <mat-form-field (change)="onSettingsChange()" class="example-form-field">
-    <mat-label>Pump Run Time (s)</mat-label>
-    <input matInput type="number" [(ngModel)]="settings.pump_update_time_s" />
-  </mat-form-field>
-
-  <div *ngFor="let item of settings | keyvalue">
-    {{ item.key }}: {{ item.value }}
-  </div>
+              </mat-form-field>
+            </mat-list-item>
+            <mat-list-item>
+              <mat-form-field
+                (change)="onSettingsChange()"
+                class="example-form-field"
+              >
+                <mat-label>Wet Soil (V)</mat-label>
+                <input
+                  matInput
+                  type="number"
+                  [(ngModel)]="settings.wet_humidity_V"
+                />
+                <button mat-button (click)="onTakeCurrentHumidityAsWet()">
+                  Current
+                </button>
+              </mat-form-field>
+            </mat-list-item>
+          </mat-list>
+        </mat-grid-tile>
+      </mat-grid-list>
+    </mat-expansion-panel>
+  </mat-card>
 </div>

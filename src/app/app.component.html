@@ -1,5 +1,14 @@
-<h1>Waterer</h1>
+<mat-card>
+    <mat-card-title>Waterer</mat-card-title>
 
-<h2>Connection Info: {{connect_info}}</h2>
-
-<app-pump [channel]="2"></app-pump>
+    <mat-card>
+        Connection Info: {{ connect_info }}
+    </mat-card>    
+    
+    <mat-tab-group>
+        <mat-tab label="Pump 1"> <app-pump [channel]="0"></app-pump> </mat-tab>
+        <mat-tab label="Pump 2"> <app-pump [channel]="1"></app-pump> </mat-tab>
+        <mat-tab label="Pump 3"> <app-pump [channel]="2"></app-pump> </mat-tab>
+    </mat-tab-group>
+</mat-card>
+    

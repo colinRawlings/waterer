@@ -37,7 +37,7 @@ cycler==0.10.0
     # via
     #   -r C:/Users/colin/Documents/waterer/backend/requirements\base.txt
     #   matplotlib
-dataclasses==0.8
+dataclasses
     # via
     #   -r C:/Users/colin/Documents/waterer/backend/requirements\base.txt
     #   black
