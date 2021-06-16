@@ -25,6 +25,9 @@ export class PumpComponent implements OnInit {
       font: { family: 'Roboto, "Helvetica Neue", sans-serif' },
       margin: { t: 50, b: 20, l: 40, r: 40 },
     },
+    config: {
+      responsive: true
+    }
   };
 
   @Input()

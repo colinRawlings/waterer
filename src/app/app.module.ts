@@ -12,7 +12,7 @@ import { MatGridListModule } from '@angular/material/grid-list';
 import {MatListModule} from '@angular/material/list';
 import {MatIconModule} from '@angular/material/icon';
 import { NotifierModule } from 'angular-notifier';
-
+import { FlexLayoutModule } from "@angular/flex-layout";
 
 import * as PlotlyJS from 'plotly.js-dist';
 import { PlotlyModule } from 'angular-plotly.js';
@@ -31,6 +31,7 @@ PlotlyModule.plotlyjs = PlotlyJS;
     HttpClientModule,
     PlotlyModule,
     MatSlideToggleModule,
+    FlexLayoutModule,
     MatInputModule,
     MatButtonModule,
     MatListModule,

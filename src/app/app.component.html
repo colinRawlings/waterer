@@ -1,25 +1,25 @@
-<mat-card  class="container">
+<mat-card class="container">
   <mat-card-title>Waterer</mat-card-title>
-  <mat-card>
-    <mat-list>
-      <mat-list-item> Connection Info: {{ connect_info }} </mat-list-item>
-      <mat-list-item >
-        <mat-slide-toggle
-          [(ngModel)]="autoUpdate"
-          color="primary"
-          (change)="onAutoUpdateChange()"
-        >
-          Auto-Update
-        </mat-slide-toggle>
-        <mat-slide-toggle
+  <mat-card fxLayout fxLayoutGap="10px" fxLayoutAlign="space-around" fxLayout.xs="column">
+    <div>Info: {{ connect_info }}</div>
+    <div>
+      <mat-slide-toggle
+        [(ngModel)]="autoUpdate"
+        color="primary"
+        (change)="onAutoUpdateChange()"
+      >
+        Auto-Update
+      </mat-slide-toggle>
+    </div>
+    <div>
+      <mat-slide-toggle
         [(ngModel)]="autoSwitchGraphs"
         color="primary"
         (change)="onAutoSwitchGraphsChange()"
       >
         Auto-Switch Graphs
       </mat-slide-toggle>
-      </mat-list-item>
-    </mat-list>
+    </div>
   </mat-card>
 
   <mat-tab-group>

@@ -41,11 +41,11 @@ requirements: venv
 install: venv
 	${COMMENT_CHAR} TODO: Install node
 	${COMMENT_CHAR} TODO: Install yarn
-	${COMMENT_CHAR} Install Frontend
-	cd ${FRONTEND_DIR} && yarn install --production=true
 	${COMMENT_CHAR} Install Backend
 	${BACKEND_VENV_PYTHON} -m pip install -r ${BACKEND_DIR}/requirements/base.txt
 	${BACKEND_VENV_PYTHON} -m pip install ${BACKEND_DIR}
+	${COMMENT_CHAR} Install Frontend
+	cd ${FRONTEND_DIR} && yarn install --production=true
 
 
 install-dev:

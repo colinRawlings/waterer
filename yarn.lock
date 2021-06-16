@@ -204,6 +204,13 @@
   dependencies:
     tslib "^2.1.0"
 
+"@angular/flex-layout@^12.0.0-beta.34":
+  version "12.0.0-beta.34"
+  resolved "https://registry.yarnpkg.com/@angular/flex-layout/-/flex-layout-12.0.0-beta.34.tgz#24d83bf3f8e4eacb661b3b8f9f85b0102415ff30"
+  integrity sha512-nLwKovXpyG+/U3Lbmfwt+q4ARupxtbPmFTZD0Y8oItFAV6/Oh9l+QQsNQa2VhOHAOrVagyDwcEM+SePtB5EmrQ==
+  dependencies:
+    tslib "^2.1.0"
+
 "@angular/forms@~12.0.2":
   version "12.0.2"
   resolved "https://registry.yarnpkg.com/@angular/forms/-/forms-12.0.2.tgz#7fc17e7e93ce01aa228e969b6a2b3d25f60543cf"
@@ -4804,7 +4811,6 @@ minipass-fetch@^1.3.0, minipass-fetch@^1.3.2:
   resolved "https://registry.yarnpkg.com/minipass-fetch/-/minipass-fetch-1.3.3.tgz#34c7cea038c817a8658461bf35174551dce17a0a"
   integrity sha512-akCrLDWfbdAWkMLBxJEeWTdNsjML+dt5YgOI4gJ53vuO0vrmYQkUPxa6j6V65s9CcePIr2SSWqjT2EcrNseryQ==
   dependencies:
-    encoding "^0.1.12"
     minipass "^3.1.0"
     minipass-sized "^1.0.3"
     minizlib "^2.0.0"
