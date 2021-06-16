@@ -12,7 +12,6 @@
         "map": "cpp",
         "valarray": "cpp"
     },
-    "python.pythonPath": "backend\\.venv\\Scripts\\python.exe",
     "python.testing.pytestArgs": [
         "-v", "-s", "backend/tests"
     ]

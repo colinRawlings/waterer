@@ -16,8 +16,6 @@ export class PumpComponent implements OnInit {
   public rel_humidity_V: number[] = [];
   public rel_humidity_pcnt: number[] = [];
   public display_voltage: boolean;
-  public auto_update: boolean;
-
 
   graph = {
     data: [{ x: this.time, y: this.rel_humidity_V, type: 'scatter' }],
@@ -114,7 +112,5 @@ export class PumpComponent implements OnInit {
       });
   }
 
-  onAutoUpdateChange(): void{
-    
-  }
+
 }

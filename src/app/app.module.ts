@@ -11,6 +11,7 @@ import { MatTabsModule } from '@angular/material/tabs';
 import { MatGridListModule } from '@angular/material/grid-list';
 import {MatListModule} from '@angular/material/list';
 import {MatIconModule} from '@angular/material/icon';
+import { NotifierModule } from 'angular-notifier';
 
 
 import * as PlotlyJS from 'plotly.js-dist';
@@ -39,6 +40,10 @@ PlotlyModule.plotlyjs = PlotlyJS;
     MatGridListModule,
     MatExpansionModule,
     BrowserAnimationsModule,
+    NotifierModule.withConfig({
+      // Custom options in here
+      theme: "material"
+    })
   ],
   providers: [],
   bootstrap: [AppComponent],

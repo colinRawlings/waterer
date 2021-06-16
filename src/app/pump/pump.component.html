@@ -4,13 +4,6 @@
       <button mat-button (click)="onTurnOn()">Turn On</button>
       <button mat-button (click)="onTurnOff()">Turn Off</button>
       <button mat-button (click)="onGetStatus()">Update</button>
-      <mat-slide-toggle
-        [(ngModel)]="auto_update"
-        color="primary"
-        (change)="onAutoUpdateChange()"
-      >
-        Auto-Update
-      </mat-slide-toggle>
     </p>
 
     <mat-card>

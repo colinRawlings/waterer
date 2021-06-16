@@ -64,7 +64,7 @@ install-dev:
 	cd ${FRONTEND_DIR}/node_modules/@types && ${RENAME_CMD} plotly.js plotly.js-dist
 
 up-frontend:
-	cd ${FRONTEND_DIR} && yarn start &
+	cd ${FRONTEND_DIR} && yarn start
 
 make up-backend:
 	${BACKEND_VENV_PYTHON} -m waterer_backend.run_server

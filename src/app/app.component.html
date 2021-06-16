@@ -1,14 +1,31 @@
-<mat-card>
-    <mat-card-title>Waterer</mat-card-title>
+<mat-card  class="container">
+  <mat-card-title>Waterer</mat-card-title>
+  <mat-card>
+    <mat-list>
+      <mat-list-item> Connection Info: {{ connect_info }} </mat-list-item>
+      <mat-list-item >
+        <mat-slide-toggle
+          [(ngModel)]="autoUpdate"
+          color="primary"
+          (change)="onAutoUpdateChange()"
+        >
+          Auto-Update
+        </mat-slide-toggle>
+        <mat-slide-toggle
+        [(ngModel)]="autoSwitchGraphs"
+        color="primary"
+        (change)="onAutoSwitchGraphsChange()"
+      >
+        Auto-Switch Graphs
+      </mat-slide-toggle>
+      </mat-list-item>
+    </mat-list>
+  </mat-card>
 
-    <mat-card>
-        Connection Info: {{ connect_info }}
-    </mat-card>    
-    
-    <mat-tab-group>
-        <mat-tab label="Pump 1"> <app-pump [channel]="0"></app-pump> </mat-tab>
-        <mat-tab label="Pump 2"> <app-pump [channel]="1"></app-pump> </mat-tab>
-        <mat-tab label="Pump 3"> <app-pump [channel]="2"></app-pump> </mat-tab>
-    </mat-tab-group>
+  <mat-tab-group>
+    <mat-tab label="Pump 1"> <app-pump [channel]="0"></app-pump> </mat-tab>
+    <mat-tab label="Pump 2"> <app-pump [channel]="1"></app-pump> </mat-tab>
+    <mat-tab label="Pump 3"> <app-pump [channel]="2"></app-pump> </mat-tab>
+  </mat-tab-group>
 </mat-card>
-    
+<notifier-container></notifier-container>
