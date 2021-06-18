@@ -1,6 +1,5 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { update } from 'plotly.js-dist';
 import { PumpStatusService } from '../pump-status.service';
 import { NotifierService } from 'angular-notifier';
 
@@ -75,7 +74,6 @@ export class PumpComponent implements OnInit {
   ngOnInit(): void {
     this.statusService.statuses$[this.channel].subscribe((data: keyable) => {
       this.onReceivedStatusData(data);
-      // this.notifierService.notify('success',`${this.channel}: Data in pump-component:  ${data.data.rel_humidity_pcnt}`)
     });
   }
 
@@ -147,11 +145,5 @@ export class PumpComponent implements OnInit {
     }
 
     this.updateGraph();
-  }
-
-  onGetStatus(): void {
-    this.http
-      .get(`http://127.0.0.1:5000/status/${this.channel}`)
-      .subscribe((data) => this.onReceivedStatusData(data));
   }
 }

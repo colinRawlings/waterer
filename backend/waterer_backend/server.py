@@ -55,7 +55,7 @@ def create_app() -> Flask:
         settings = get_pump_manager().get_settings(channel=int(channel))
         return {"data": asdict(settings)}
 
-    @app.route("/set_settings/<channel>")
+    @app.route("/set_settings/<channel>", methods=["POST", "GET"])
     def set_settings(channel: str):
 
         if not request.is_json:
@@ -63,6 +63,8 @@ def create_app() -> Flask:
 
         new_settings = SmartPumpSettings(**request.json)
         get_pump_manager().set_settings(channel=int(channel), settings=new_settings)
-        return {"data": ""}
+
+        settings = get_pump_manager().get_settings(channel=int(channel))
+        return {"data": asdict(settings)}
 
     return app

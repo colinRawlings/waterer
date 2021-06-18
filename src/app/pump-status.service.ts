@@ -1,9 +1,9 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { interval, Observable, Observer, Subject, Subscription } from 'rxjs';
+import { interval, Observable, Observer, Subject, Subscription, throwError } from 'rxjs';
 import { NotifierService } from 'angular-notifier';
 
-import { map, concatAll } from 'rxjs/operators';
+import { map, concatAll, retry } from 'rxjs/operators';
 
 interface keyable {
   [key: string]: any;
@@ -55,7 +55,7 @@ export class PumpStatusService {
       map((index: number) => {
         return this.http.get(`http://127.0.0.1:5000/status/${channel}`);
       }),
-      concatAll()
+      concatAll(), retry()
     );
   }
 }

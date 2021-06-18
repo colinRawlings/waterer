@@ -1,6 +1,7 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { NotifierService } from 'angular-notifier';
 import { PumpSettingsService } from '../pump-settings.service';
+import { PumpStatusService } from '../pump-status.service';
 
 interface keyable {
   [key: string]: any;
@@ -17,12 +18,13 @@ export class PumpSettingsComponent implements OnInit {
   @Input()
   channel: number;
 
-  constructor(notifierService: NotifierService, private settingsService: PumpSettingsService) {
+  constructor(private notifierService: NotifierService, private settingsService: PumpSettingsService, private statusService: PumpStatusService) {
     this.notifier = notifierService;
     this.settings = {};
   }
 
   settings: keyable;
+  private status: keyable;
 
   ngOnInit(): void {
     this.settingsService.getSettings(this.channel).subscribe(
@@ -32,19 +34,34 @@ export class PumpSettingsComponent implements OnInit {
       (error: keyable) => {
         this.notifier.notify('error', `getSettings Error:  ${error.message}`);
       }
+
+
     )
+
+    this.statusService.statuses$[this.channel].subscribe((data: keyable) => {
+      this.status = data.data;
+    });
   }
 
   onTakeCurrentHumidityAsDry(): void{
-    console.log(`TODO: take dry`);
+    this.settings.dry_humidity_V = this.status.rel_humidity_V;
+    this.onSettingsChange();
   }
 
   onTakeCurrentHumidityAsWet(): void{
-    console.log(`TODO: take wet`);
+    this.settings.wet_humidity_V = this.status.rel_humidity_V;
+    this.onSettingsChange();
   }
 
   onSettingsChange(): void {
-    console.log(`Feedback: ${this.settings.feedback_active}`);
+    this.settingsService.setSettings(this.channel, this.settings).subscribe(
+      (data: keyable) => {
+        this.settings = data.data;
+      },
+      (error: keyable) => {
+        this.notifier.notify('error', `getSettings Error:  ${error.message}`);
+      }
+    )
   }
 
 }
