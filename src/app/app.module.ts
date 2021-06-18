@@ -20,11 +20,13 @@ import { PlotlyModule } from 'angular-plotly.js';
 import { AppComponent } from './app.component';
 import { PumpComponent } from './pump/pump.component';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { ManualPumpControlsComponent } from './manual-pump-controls/manual-pump-controls.component';
+import { PumpSettingsComponent } from './pump-settings/pump-settings.component';
 
 PlotlyModule.plotlyjs = PlotlyJS;
 
 @NgModule({
-  declarations: [AppComponent, PumpComponent],
+  declarations: [AppComponent, PumpComponent, ManualPumpControlsComponent, PumpSettingsComponent],
   imports: [
     FormsModule,
     BrowserModule,

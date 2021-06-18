@@ -1,6 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { NotifierService } from 'angular-notifier';
+import { PumpStatusService } from './pump-status.service';
 
 interface keyable {
   [key: string]: any  
@@ -10,7 +11,7 @@ interface keyable {
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css']
 })
-export class AppComponent implements OnInit {
+export class AppComponent implements OnInit, OnDestroy {
 
   private readonly notifier: NotifierService;
 
@@ -21,7 +22,7 @@ export class AppComponent implements OnInit {
 
   connect_info: string;
 
-  constructor(private http: HttpClient, notifierService: NotifierService) {  
+  constructor(private http: HttpClient, notifierService: NotifierService, private statusService: PumpStatusService) {  
     this.connect_info = "";
     this.autoUpdate = true;
 
@@ -35,11 +36,21 @@ export class AppComponent implements OnInit {
     },
     err => this.notifier.notify('error',`HTTP Error:  ${err.message}`)
     )
+
+    this.onAutoUpdateChange();
+
   };
 
+  ngOnDestroy(): void{
+    this.statusService.stopDataStream();
+  }
+
   onAutoUpdateChange(): void{
-    this.notifier.notify('success', 'You are awesome! I mean it!');
-    // TODO
+    if (this.autoUpdate){
+      this.statusService.startDataStream();
+    } else {
+      this.statusService.stopDataStream();
+    }
   };
 
   onAutoSwitchGraphsChange(): void{
