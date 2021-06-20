@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { interval, Observable, Observer, Subject, Subscription, throwError } from 'rxjs';
 import { NotifierService } from 'angular-notifier';
+import { ConstantsService } from './constants.service';
 
 import { map, concatAll, retry } from 'rxjs/operators';
 
@@ -14,17 +15,16 @@ interface keyable {
 })
 export class PumpStatusService {
 
-  private kNumChannels = 3; // TODO!
-
   private statusSubjects: Subject<keyable>[] = [];
   public statuses$: Observable<keyable>[] = [];
   private subscriptionsMap: keyable = {};
 
   constructor(
     private http: HttpClient,
-    private notifierService: NotifierService
+    private notifierService: NotifierService,
+    private constantsService: ConstantsService,
   ) {
-    for (let p=0; p< this.kNumChannels;++p){
+    for (let p=0; p< this.constantsService.kNumChannels;++p){
       this.statusSubjects.push(new Subject<keyable>());
       this.statuses$.push(this.statusSubjects[p].asObservable())
     }
@@ -33,11 +33,11 @@ export class PumpStatusService {
   //
 
   getStatus(channel: number): Observable<keyable> {
-    return this.http.get(`http://127.0.0.1:5000/status/${channel}`);
+    return this.http.get(`${this.constantsService.kBackendURL}status/${channel}`);
   }
 
   startDataStream(): void {
-    for (let channel = 0; channel < this.kNumChannels; channel++) {
+    for (let channel = 0; channel < this.constantsService.kNumChannels; channel++) {
       this.subscriptionsMap[`${channel}`] = this.getStatusStream(channel).subscribe((data: keyable) => {
         this.statusSubjects[channel].next(data);
       });
@@ -45,7 +45,7 @@ export class PumpStatusService {
   }
 
   stopDataStream(): void {
-    for (let channel = 0; channel < this.kNumChannels; channel++) {
+    for (let channel = 0; channel < this.constantsService.kNumChannels; channel++) {
     this.subscriptionsMap[`${channel}`].unsubscribe();
     }
   }
@@ -53,7 +53,7 @@ export class PumpStatusService {
   getStatusStream(channel: number) {
     return interval(5000).pipe(
       map((index: number) => {
-        return this.http.get(`http://127.0.0.1:5000/status/${channel}`);
+        return this.http.get(`${this.constantsService.kBackendURL}status/${channel}`);
       }),
       concatAll(), retry()
     );

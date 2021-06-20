@@ -71,13 +71,16 @@ class SmartPump(Thread):
     def __init__(
         self,
         channel: int,
-        device: EmbeddedArduino,
+        device: ty.Optional[EmbeddedArduino],
         settings: SmartPumpSettings,
     ) -> None:
 
         Thread.__init__(self)
 
         self._device = device
+        if device is None:
+            _LOGGER.warning("Pump created without valid device")
+
         self._channel = channel
 
         self._settings_lock = Lock()

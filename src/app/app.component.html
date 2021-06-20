@@ -23,9 +23,13 @@
   </mat-card>
 
   <mat-tab-group>
-    <mat-tab label="Pump 1"> <app-pump [channel]="0"></app-pump> </mat-tab>
-    <mat-tab label="Pump 2"> <app-pump [channel]="1"></app-pump> </mat-tab>
-    <mat-tab label="Pump 3"> <app-pump [channel]="2"></app-pump> </mat-tab>
+    <div *ngFor="let channel of channels">
+      <mat-tab>
+        <ng-template mat-tab-label>
+          Pump {{channel + 1}}
+        </ng-template>
+        <app-pump [channel]="channel"></app-pump> </mat-tab>
+    </div>
   </mat-tab-group>
 </mat-card>
 <notifier-container></notifier-container>

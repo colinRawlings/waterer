@@ -13,13 +13,11 @@ interface keyable {
   styleUrls: ['./pump-settings.component.css']
 })
 export class PumpSettingsComponent implements OnInit {
-  private readonly notifier: NotifierService;
   
   @Input()
   channel: number;
 
   constructor(private notifierService: NotifierService, private settingsService: PumpSettingsService, private statusService: PumpStatusService) {
-    this.notifier = notifierService;
     this.settings = {};
   }
 
@@ -32,7 +30,7 @@ export class PumpSettingsComponent implements OnInit {
         this.settings = data.data;
       },
       (error: keyable) => {
-        this.notifier.notify('error', `getSettings Error:  ${error.message}`);
+        this.notifierService.notify('error', `getSettings Error:  ${error.message}`);
       }
 
 
@@ -57,9 +55,10 @@ export class PumpSettingsComponent implements OnInit {
     this.settingsService.setSettings(this.channel, this.settings).subscribe(
       (data: keyable) => {
         this.settings = data.data;
+        this.notifierService.notify('success', `${this.channel}: Settings updated`)
       },
       (error: keyable) => {
-        this.notifier.notify('error', `getSettings Error:  ${error.message}`);
+        this.notifierService.notify('error', `getSettings Error:  ${error.message}`);
       }
     )
   }

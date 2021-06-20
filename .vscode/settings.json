@@ -14,5 +14,6 @@
     },
     "python.testing.pytestArgs": [
         "-v", "-s", "backend/tests"
-    ]
+    ],
+    "python.pythonPath": "backend\\.venv\\Scripts\\python.exe"
 }

@@ -117,10 +117,13 @@ class PumpManager:
                 "Device already exists did -you previously call start()?"
             )
 
-        self._device = EmbeddedArduino(
-            port=self._port, config_filepath=self._config_filepath
-        )
-        self._device.connect()
+        try:
+            self._device = EmbeddedArduino(
+                port=self._port, config_filepath=self._config_filepath
+            )
+            self._device.connect()
+        except Exception as e:
+            _LOGGER.error(f"Failed to create device: {repr(e)}")
 
         _LOGGER.info(f"Creating {self._num_pumps} pumps")
 

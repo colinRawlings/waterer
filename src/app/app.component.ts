@@ -1,59 +1,65 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { ConstantsService } from './constants.service';
 import { NotifierService } from 'angular-notifier';
 import { PumpStatusService } from './pump-status.service';
 
 interface keyable {
-  [key: string]: any  
+  [key: string]: any;
 }
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
-  styleUrls: ['./app.component.css']
+  styleUrls: ['./app.component.css'],
 })
 export class AppComponent implements OnInit, OnDestroy {
-
-  private readonly notifier: NotifierService;
 
   title = 'waterer';
   public autoUpdate: boolean;
   public autoSwitchGraphs: boolean;
-
+  public channels: number[];
 
   connect_info: string;
 
-  constructor(private http: HttpClient, notifierService: NotifierService, private statusService: PumpStatusService) {  
-    this.connect_info = "";
+  constructor(
+    private http: HttpClient,
+    private notifierService: NotifierService,
+    private statusService: PumpStatusService,
+    private constantsService: ConstantsService
+  ) {
+    this.connect_info = '';
     this.autoUpdate = true;
-
-    this.notifier = notifierService;
   }
 
   ngOnInit(): void {
-    this.http.get('http://127.0.0.1:5000/')
-    .subscribe((data:keyable)=>{
-      this.connect_info = `${data.data}`;
-    },
-    err => this.notifier.notify('error',`HTTP Error:  ${err.message}`)
-    )
+    this.http.get(this.constantsService.kBackendURL).subscribe(
+      (data: keyable) => {
+        this.connect_info = `${data.data}`;
+      },
+      (err) => this.notifierService.notify('error', `HTTP Error:  ${err.message}`)
+    );
+
+    this.channels = [];
+    for(let channel = 0; channel < this.constantsService.kNumChannels; channel++){
+      this.channels.push(channel);
+    }
 
     this.onAutoUpdateChange();
+  }
 
-  };
-
-  ngOnDestroy(): void{
+  ngOnDestroy(): void {
     this.statusService.stopDataStream();
   }
 
-  onAutoUpdateChange(): void{
-    if (this.autoUpdate){
+  onAutoUpdateChange(): void {
+    if (this.autoUpdate) {
       this.statusService.startDataStream();
     } else {
       this.statusService.stopDataStream();
     }
-  };
+  }
 
-  onAutoSwitchGraphsChange(): void{
-    // TODO 
-  };
+  onAutoSwitchGraphsChange(): void {
+    this.notifierService.notify("error", "TODO");
+  }
 }
