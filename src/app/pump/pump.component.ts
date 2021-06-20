@@ -1,83 +1,183 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-
+import { PumpStatusService } from '../pump-status.service';
+import { NotifierService } from 'angular-notifier';
 
 interface keyable {
-  [key: string]: any  
+  [key: string]: any;
 }
-
 @Component({
   selector: 'app-pump',
   templateUrl: './pump.component.html',
-  styleUrls: ['./pump.component.css']
+  styleUrls: ['./pump.component.css'],
 })
 export class PumpComponent implements OnInit {
+  public humidity_time: Date[] = [];
+  public pump_status_time: Date[] = [];
 
-  public x: number[] = []
-  public y: number[] = []
+  public rel_humidity_V: number[] = [];
+  public rel_humidity_pcnt: number[] = [];
+  public pump_running: number[] = [];
+  public display_voltage: boolean;
+  private kHumidityColor = 'rgb(0, 0, 200)';
+  private kPumpColor = 'rgb(50, 200, 50)';
+  private kHumidityMarker = {
+    color: this.kHumidityColor,
+  };
+
+  private kLayout = {
+    autosize: true,
+    title: 'pump',
+    yaxis: {
+      title: 'Humidity',
+      titlefont: { color: this.kHumidityColor },
+      tickfont: { color: this.kHumidityColor },
+    },
+    yaxis2: {
+      title: 'Pump Running',
+      titlefont: { color: this.kPumpColor },
+      tickfont: { color: this.kPumpColor },
+      overlaying: 'y',
+      side: 'right',
+      range: [0, 1],
+    },
+    font: { family: 'Roboto, "Helvetica Neue", sans-serif' },
+    margin: { t: 50, b: 100, l: 40, r: 40 },
+  };
+
+  private kConfig = {
+    responsive: false,
+  };
+
   graph = {
     data: [
-      { x: this.x, y: this.y, type: 'scatter' },
+      {
+        x: this.humidity_time,
+        y: this.rel_humidity_V,
+        type: 'scatter',
+        name: 'humidity',
+        marker: {
+          color: this.kHumidityColor,
+        },
+      },
+      {
+        x: this.pump_status_time,
+        y: this.pump_running,
+        type: 'scatter',
+        yaxis: 'y2',
+        name: 'running',
+        marker: {
+          color: this.kPumpColor,
+        },
+      },
     ],
-    layout: {
-      autosize: true,
-      title: 'Voltage',
-      font: { family: 'Roboto, "Helvetica Neue", sans-serif' },
-      margin: { t: 50, b: 20, l: 40, r: 40 },
-    }
+    layout: this.kLayout,
+    config: this.kConfig,
   };
-  
+
   @Input()
-  channel:number; 
-
-  connect_info: string;
-  result: string;
-  voltage: number;
-  counter: number;
-
-  constructor(private http: HttpClient) {
-    this.connect_info = "";
-    this.result="";
-    this.voltage=-1;
-    this.counter=0;
-  }
+  channel: number;
 
   ngOnInit(): void {
-    this.http.get('http://127.0.0.1:5000/')
-    .subscribe((data:keyable)=>{
-      this.connect_info = `${data.data}`;
-    })
-
-
+    this.statusService.statuses$[this.channel].subscribe((data: keyable) => {
+      this.onReceivedStatusData(data);
+    });
   }
 
-  onTurnOn(): void{
-    this.http.get('http://127.0.0.1:5000/turn_on')
-    .subscribe((data:keyable)=>{
-      this.result = `${data.data}`;
-    })
+  status: keyable;
+
+  constructor(
+    private http: HttpClient,
+    private notifierService: NotifierService,
+    private statusService: PumpStatusService
+  ) {
+    this.status = {};
   }
 
-  onTurnOff(): void{
-    this.http.get('http://127.0.0.1:5000/turn_off')
-    .subscribe((data:keyable)=>{
-      this.result = `${data.data}`;
-    })
+  // Graph
+
+  updateGraph(): void {
+    let data = [];
+
+    if (this.display_voltage) {
+      data.push({
+        x: this.humidity_time.slice(),
+        y: this.rel_humidity_V.slice(),
+        type: 'scatter',
+        name: 'humidity',
+        marker: this.kHumidityMarker,
+      });
+    } else {
+      data.push({
+        x: this.humidity_time.slice(),
+        y: this.rel_humidity_pcnt.slice(),
+        type: 'scatter',
+        name: 'humidity',
+        marker: this.kHumidityMarker,
+      });
+    }
+
+    data.push({
+      x: this.pump_status_time.slice(),
+      y: this.pump_running.slice(),
+      type: 'scatter',
+      yaxis: 'y2',
+      name: 'running',
+      marker: {
+        color: this.kPumpColor,
+      },
+    });
+
+    this.graph = { data: data, layout: this.kLayout, config: this.kConfig };
   }
 
-  onGetVoltage(): void{
-    this.http.get('http://127.0.0.1:5000/get_voltage')
-    .subscribe((data:keyable)=>{
-      this.voltage = data.data;
-       
-      this.counter += 1;
-
-      this.x.push(this.counter);
-      this.y.push(this.voltage);
-
-      this.graph.data = [{ x: this.x.slice(), y: this.y.slice(), type: 'scatter' }]
-
-    })
+  onDisplayVoltageChange(): void {
+    this.updateGraph();
   }
 
+  castPumpStatus(pump_status: boolean): number {
+    if(pump_status){
+      return 1;
+    } else {
+      return 0;
+    }
+  }
+
+  appendPumpRunningSample(sample: boolean): void {
+    this.pump_running.push(this.castPumpStatus(sample));
+    
+    // if (sample) {
+    //   this.pump_running.push(1);
+    // } else {
+    //   this.pump_running.push(0);
+    // }
+  }
+
+  onReceivedStatusData(data: keyable): void {
+    this.status = data.data;
+
+    this.humidity_time.push(new Date(this.status.epoch_time * 1000));
+    this.rel_humidity_V.push(this.status.rel_humidity_V);
+    this.rel_humidity_pcnt.push(this.status.rel_humidity_pcnt);
+
+    // this.pump_status_time.push(new Date(this.status.epoch_time * 1000));
+    // this.appendPumpRunningSample(this.status.pump_running);
+
+    const lastIndex = this.pump_running.length - 1;
+    if (lastIndex < 2) {
+      this.pump_status_time.push(new Date(this.status.epoch_time * 1000));
+      this.appendPumpRunningSample(this.status.pump_running);
+    } else {
+      if (this.pump_running[lastIndex] == this.castPumpStatus(this.status.pump_status)) {
+        this.pump_status_time[lastIndex] = new Date(
+          this.status.epoch_time * 1000
+        );
+      } else {
+        this.pump_status_time.push(new Date(this.status.epoch_time * 1000));
+        this.appendPumpRunningSample(this.status.pump_running);
+      }
+    }
+
+    this.updateGraph();
+  }
 }

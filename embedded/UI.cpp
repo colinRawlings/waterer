@@ -1,11 +1,13 @@
 
 #include "Arduino.h"
 
+#include <ArduinoJson.h>
+
 #include "UI.h"
 
 #include "HWDef.h"
 
-static const String kRequestPrefix{"request{"};
+static const String kRequestKey{"request"};
 static const String kResponsePrefix{"response{"};
 static const String kErrorPrefix{"ERROR"};
 
@@ -37,121 +39,79 @@ void InitSerialPort() {
 
 //
 
-CUI::CUI(Stream &serial_port)
-    : m_SerialPort(serial_port),
-      m_DigitalOutput(LED_BUILTIN, false),
-      m_AnalogueInput(A0, false) {}
+CUI::CUI(Stream &serial_port) : m_SerialPort(serial_port), m_PumpManager{} {};
 
 void CUI::Update() {
-  if (!m_SerialPort.available()) return;
-
-  String request_str = m_SerialPort.readStringUntil(kLineEnding);
-
-  if (request_str.length() == 1) return;
-
-  SRequest request;
-  bool ok = ParseRequest(request_str, request);
-  if (!ok) return;
-
-  PrintRequest(request);
-
-  auto response = HandleRequest(request);
-
-  PrintResponse(response);
-
-  m_SerialPort.println("");
-}
-
-bool CUI::ParseRequest(const String &request_str, SRequest &request) const {
-  auto exit_error = [this, request_str](const String &msg) {
-    ReportError(msg + ": " + request_str);
-    return false;
-  };
-
-  if (!request_str.startsWith(kRequestPrefix))
-    return exit_error("Bad prefix" + request_str);
-
-  if (!request_str.endsWith(kRequestSuffix)) return exit_error("Bad suffix");
-
-  String request_body = request_str.substring(
-      kRequestPrefix.length(), request_str.length() - kRequestSuffix.length());
-
-  // split
-
-  auto first_comma_index = request_body.indexOf(kSeparator);
-  auto last_comma_index = request_body.lastIndexOf(kSeparator);
-
-  if (first_comma_index >= last_comma_index)
-    return exit_error("Not enough commas");
+  m_PumpManager.Update();
 
   //
 
-  request.channel = request_body.substring(0, first_comma_index).toInt();
+  if (!m_SerialPort.available()) return;
 
-  request.instruction =
-      request_body.substring(first_comma_index + 1, last_comma_index);
+  String request_str = m_SerialPort.readStringUntil(kLineEnding);
+  request_str.trim();
 
-  request.data0 =
-      request_body.substring(last_comma_index + 1, request_body.length())
-          .toInt();
+  bool deserialize_ok{false};
+  String error_msg;
+  auto request = CRequest::Create(request_str, deserialize_ok, error_msg);
 
-  return true;
+  CResponse response{request};
+
+  if (deserialize_ok) {
+    response = HandleRequest(request);
+  } else {
+    response.m_Success = false;
+    response.m_Message = error_msg;
+  }
+  m_SerialPort.print(response.Serialize());
+  m_SerialPort.println("");
 }
 
 //
 
-SResponse CUI::HandleRequest(const SRequest &request) {
-  SResponse response{0, "Error", 0.0f};
+CResponse CUI::HandleRequest(const CRequest &request) {
+  CResponse response{request};
 
-  if (request.instruction == "turn_on") {
-    m_DigitalOutput.TurnOn();
-    response = SResponse{request.channel, request.instruction, 0.0f};
-  } else if (request.instruction == "turn_off") {
-    m_DigitalOutput.TurnOff();
-    response = SResponse{request.channel, request.instruction, 0.0f};
-  } else if (request.instruction == "get_voltage") {
-    auto output = m_AnalogueInput.GetVoltage();
-    response = SResponse{request.channel, request.instruction, output};
+  bool success{false};
+  CSmartPump &smart_pump = m_PumpManager.GetPump(request.m_Channel, success);
+
+  if (!success) {
+    response.m_Success = false;
+    response.m_Message = "Invalid channel";
+    return response;
+  }
+
+  if (request.m_Instruction == "turn_on") {
+    CDigitalOutput &pump = smart_pump.GetPump();
+
+    if (request.m_Data <= 0) {
+      pump.TurnOn();
+    } else {
+      pump.TurnOnFor(request.m_Data * 1000);
+      response.m_Message = "TurnOnFor";
+      response.m_Data = request.m_Data;
+      pump.Update();
+    }
+    response.m_Success = true;
+  } else if (request.m_Instruction == "turn_off") {
+    CDigitalOutput &pump = smart_pump.GetPump();
+    pump.TurnOff();
+    response.m_Success = true;
+  } else if (request.m_Instruction == "get_state") {
+    CDigitalOutput &pump = smart_pump.GetPump();
+    response.m_Data = (bool)pump.GetOutputState();
+    response.m_Success = true;
+  } else if (request.m_Instruction == "get_voltage") {
+    CAnalogueInput &sensor = smart_pump.GetHumiditySensor();
+    auto output = sensor.GetVoltage();
+    response.m_Success = true;
+    response.m_Data = output;
   } else {
-    ReportError("Unrecognized instruction: " + request.instruction);
+    response.m_Success = false;
+    response.m_Instruction = "";
+    response.m_Message =
+        "Error: Unrecognized instruction: " + request.m_Instruction;
   }
 
   return response;
-}
-
-// Logging Output
-
-void CUI::PrintKeyValue(const String &key, const String &value,
-                        bool new_line) const {
-  m_SerialPort.print(key + ": ");
-  m_SerialPort.print(value);
-  if (new_line) m_SerialPort.println("");
-}
-
-void CUI::PrintRequest(const SRequest &request) const {
-  m_SerialPort.print(kRequestPrefix);
-
-  PrintKeyValue("\"channel\"", String{request.channel}, false);
-  m_SerialPort.print(kSeparator);
-  PrintKeyValue("\"instruction\"", "\"" + request.instruction + "\"", false);
-  m_SerialPort.print(kSeparator);
-  PrintKeyValue("\"data\"", String{request.data0}, false);
-
-  m_SerialPort.print("}");
-}
-
-void CUI::PrintResponse(const SResponse &response) const {
-  m_SerialPort.print(kResponsePrefix);
-
-  PrintKeyValue("\"channel\"", String{response.channel}, false);
-  m_SerialPort.print(kSeparator);
-  PrintKeyValue("\"instruction\"", "\"" + response.instruction + "\"", false);
-  m_SerialPort.print(kSeparator);
-  PrintKeyValue("\"data\"", String{response.data0}, false);
-
-  m_SerialPort.print("}");
-}
-
-void CUI::ReportError(const String &error_msg) const {
-  PrintKeyValue(kErrorPrefix, error_msg, true);
 }

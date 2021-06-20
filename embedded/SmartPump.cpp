@@ -1,6 +1,6 @@
 #include "SmartPump.h"
 
-CSmartPump::CSmartPump(pin_id_type sensor_pin, pin_id_type pump_pin)
+CSmartPump::CSmartPump(pin_id_type pump_pin, pin_id_type sensor_pin)
     : m_Pump(pump_pin, false), m_HumiditySensor(sensor_pin, false) {}
 
 void CSmartPump::Update() {

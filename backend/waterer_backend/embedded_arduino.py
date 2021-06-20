@@ -13,13 +13,13 @@ import json
 import logging
 import pathlib as pt
 import typing as ty
-from dataclasses import dataclass
-from time import sleep
+from threading import Lock
 
 import pkg_resources as rc
 import serial
 import serial.tools.list_ports
 from waterer_backend.request import Request
+from waterer_backend.response import Response
 
 ###############################################################
 # Definitions
@@ -47,11 +47,12 @@ class EmbeddedArduino:
         self._port = port
         self._config_filepath = config_filepath
         self._device = None
+        self._lock = Lock()
 
         self._tx_idx = 0
 
     @property
-    def connect_info(self) -> str:
+    def connection_info(self) -> str:
 
         if self._device is None:
             return "Not connected"
@@ -59,6 +60,7 @@ class EmbeddedArduino:
         return f"Device on port: {self._port}"
 
     def _scan_for_ports(self) -> int:
+
         arduino_ports = [
             p.device
             for p in serial.tools.list_ports.comports()
@@ -74,101 +76,88 @@ class EmbeddedArduino:
 
     def connect(self):
 
-        if self._config_filepath is None:
-            self._config_filepath = pt.Path(
-                rc.resource_filename("waterer_backend", "config.json")
-            )
+        with self._lock:
+            if self._config_filepath is None:
+                self._config_filepath = pt.Path(
+                    rc.resource_filename(
+                        "waterer_backend", str(pt.Path("config") / "device_config.json")
+                    )
+                )
 
-        if not self._config_filepath.is_file():
-            raise ValueError(f"Config filepath does not exist: {self._config_filepath}")
+            if not self._config_filepath.is_file():
+                raise ValueError(
+                    f"Config filepath does not exist: {self._config_filepath}"
+                )
 
-        with open(self._config_filepath, "r") as fh:
-            config = json.load(fh)
+            with open(self._config_filepath, "r") as fh:
+                config = json.load(fh)
 
-        # TODO: Validate against schema
+            # TODO: Validate against schema
 
-        if BAUD_RATE_CONFIG_KEY not in config:
-            raise ValueError(f"Missing key in config: {BAUD_RATE_CONFIG_KEY}")
+            if BAUD_RATE_CONFIG_KEY not in config:
+                raise ValueError(f"Missing key in config: {BAUD_RATE_CONFIG_KEY}")
 
-        if self._port is None:
-            self._port = self._scan_for_ports()
+            if self._port is None:
+                self._port = self._scan_for_ports()
 
-        _LOGGER.info(f"Opening serial port: {self._port}")
+            _LOGGER.info(f"Opening serial port: {self._port}")
 
-        self._device = serial.Serial(port=self._port, baudrate=9600, timeout=5)
+            self._device = serial.Serial(port=self._port, baudrate=9600, timeout=5)
 
-        _LOGGER.info(f"Starting to wait for startup message")
+            _LOGGER.info(f"Starting to wait for startup message")
 
-        startup_message = self._device.readline().decode()
+            startup_message = self._device.readline().decode()
 
-        _LOGGER.info(f"Recieved: {startup_message}")
+            _LOGGER.info(f"Recieved: {startup_message}")
 
-        if not startup_message.startswith(STARTUP_MESSAGE):
-            raise RuntimeError("Failed to properly start device")
+            if not startup_message.startswith(STARTUP_MESSAGE):
+                raise RuntimeError("Failed to properly start device")
 
-    def make_request(self, request: Request) -> str:
+    def disconnect(self):
 
-        if self._device is None:
-            raise RuntimeError("Device not initialized")
+        with self._lock:
 
-        if not self._device.is_open:
-            raise RuntimeError("Device not open")
+            if self._device is None:
+                _LOGGER.warning("No device to disconnect")
 
-        self._device.write(f"{request}\r\n".encode())
+            if not self._device.is_open:
+                _LOGGER.warning("Device not open - no need to disconnect")
 
-        response = self._device.readline().decode()
+            self._device.close()
 
-        _LOGGER.info(f"{self._tx_idx}: {response}")
-        self._tx_idx += 1
+            _LOGGER.info("Closed device")
+
+    def send_str(self, request_str) -> str:
+        """Low level method useful for testing"""
+
+        with self._lock:
+
+            if self._device is None:
+                raise RuntimeError("Device not initialized")
+
+            if not self._device.is_open:
+                raise RuntimeError("Device not open")
+
+            # n.b. best effort (won't work if device is busy creating output at time of request)
+            self._device.flushInput()
+            self._device.flushOutput()
+
+            self._device.write(f"{request_str}\r\n".encode())
+
+            response_str = self._device.readline().decode()
+
+            _LOGGER.debug(f"{self._tx_idx} <{request_str}>: {response_str}")
+            self._tx_idx += 1
+
+            return response_str
+
+    def make_request(self, request: Request) -> Response:
+
+        response_str = self.send_str(request_str=request.serialize())
+
+        response = Response.create(response_str=response_str)
+
+        if not response.id == request.id:
+            raise RuntimeError("Request/Reponse id's do not match")
 
         return response
-
-    def get_voltage(self, channel: int) -> float:
-
-        voltage_request = Request(channel, "get_voltage", 100)
-        request_response = self.make_request(voltage_request)
-
-        def report_error() -> None:
-            msg = f"get_voltage failed: {request_response}"
-            _LOGGER.error(msg)
-            raise RuntimeError(msg)
-
-        if "ERROR" in request_response:
-            report_error()
-
-        response_str = request_response.split("response")
-
-        if len(response_str) != 2:
-            report_error()
-
-        return json.loads(response_str[1])["data"]
-
-
-###############################################################
-# Main
-###############################################################
-
-
-if __name__ == "__main__":
-
-    logging.basicConfig(level=logging.DEBUG)
-
-    ard = EmbeddedArduino()
-    on_request = Request(1, "turn_on", 100)
-    off_request = Request(1, "turn_off", 100)
-    voltage_request = Request(1, "get_voltage", 100)
-
-    ard.connect()
-
-    while True:
-        ard.make_request(on_request)
-
-        sleep(0.5)
-
-        ard.make_request(off_request)
-
-        sleep(0.5)
-
-        print(f"voltage: {ard.get_voltage(1)}")
-
-        sleep(0.5)

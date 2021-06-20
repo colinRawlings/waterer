@@ -1,15 +1,44 @@
 <div class="app-pump">
+  <mat-card>
+    <mat-card>
+      <mat-card-title>Graph</mat-card-title>
+      <mat-card-content>
+        <p>
+          <mat-slide-toggle
+            [(ngModel)]="display_voltage"
+            color="primary"
+            (change)="onDisplayVoltageChange()"
+          >
+            Display Voltage
+          </mat-slide-toggle>
+          <br />
+        </p>
+        <plotly-plot
+          [data]="graph.data"
+          [layout]="graph.layout"
+          [config]="graph.config"
+        ></plotly-plot>
+      </mat-card-content>
+    </mat-card>
 
-    <h2>Pump: {{channel}}</h2>
+    <mat-expansion-panel>
+      <mat-expansion-panel-header>
+        <mat-panel-title>Settings</mat-panel-title>
+      </mat-expansion-panel-header>
 
-    <p>Connect Info: {{connect_info}}</p>
-    
-    <p><button (click)="onTurnOn()">Turn On</button> <button (click)="onTurnOff()">Turn Off</button></p>
+      <app-pump-settings [channel]="channel"></app-pump-settings>
+    </mat-expansion-panel>
 
-    <p><button (click)="onGetVoltage()">GetVoltage</button> Voltage: {{voltage}}</p>
-
-    <p>Result: {{result}}</p>
-
-    <plotly-plot [data]="graph.data" [layout]="graph.layout"></plotly-plot>
-    
+    <mat-expansion-panel>
+      <mat-expansion-panel-header>
+        <mat-panel-title>Manual Controls</mat-panel-title>
+      </mat-expansion-panel-header>
+      <app-manual-pump-controls
+        fxLayout="row"
+        fxLayoutGap="10px"
+        fxLayout.xs="column"
+        [channel]="channel"
+      ></app-manual-pump-controls>
+    </mat-expansion-panel>
+  </mat-card>
 </div>

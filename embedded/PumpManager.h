@@ -6,13 +6,13 @@
 
 class CPumpManager : public IEventLoopEntity {
  public:
-  CPumpManager(long num_pumps);
+  static const int kNumPumps;
+  CPumpManager();
 
-  CSmartPump& GetPump(long channel);
+  CSmartPump& GetPump(long channel, bool& success);
 
   void Update() override;
 
  private:
-  long m_NumPumps;
-  CSmartPump* m_Pumps;
+  CSmartPump m_Pumps[3];
 };

@@ -9,7 +9,7 @@
 // sensor input)
 class CSmartPump : public IEventLoopEntity {
  public:
-  CSmartPump(pin_id_type pump_pin, pin_id_type humidity_sensor_pin);
+  CSmartPump(pin_id_type pump_pin, pin_id_type sensor_pin);
 
   CDigitalOutput& GetPump() { return m_Pump; }
 

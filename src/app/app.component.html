@@ -1,3 +1,35 @@
-<h1>Waterer</h1>
+<mat-card class="container">
+  <mat-card-title>Waterer</mat-card-title>
+  <mat-card fxLayout fxLayoutGap="10px" fxLayoutAlign="space-around" fxLayout.xs="column">
+    <div>Info: {{ connect_info }}</div>
+    <div>
+      <mat-slide-toggle
+        [(ngModel)]="autoUpdate"
+        color="primary"
+        (change)="onAutoUpdateChange()"
+      >
+        Auto-Update
+      </mat-slide-toggle>
+    </div>
+    <div>
+      <mat-slide-toggle
+        [(ngModel)]="autoSwitchGraphs"
+        color="primary"
+        (change)="onAutoSwitchGraphsChange()"
+      >
+        Auto-Switch Graphs
+      </mat-slide-toggle>
+    </div>
+  </mat-card>
 
-<app-pump [channel]="0"></app-pump>
+  <mat-tab-group>
+    <div *ngFor="let channel of channels">
+      <mat-tab>
+        <ng-template mat-tab-label>
+          Pump {{channel + 1}}
+        </ng-template>
+        <app-pump [channel]="channel"></app-pump> </mat-tab>
+    </div>
+  </mat-tab-group>
+</mat-card>
+<notifier-container></notifier-container>

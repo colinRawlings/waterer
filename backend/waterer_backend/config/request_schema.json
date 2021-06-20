@@ -1,0 +1,30 @@
+{
+    "type": "object",
+    "version": "1.0.0",
+    "properties": {
+        "id": {
+            "type": "integer"
+        },
+        "channel": {
+            "type": "integer"
+        },
+        "instruction": {
+            "type": "string",
+            "enum": [
+                "get_state",
+                "turn_on",
+                "turn_off",
+                "get_voltage"
+            ]
+        },
+        "data": {
+            "type": "integer"
+        }
+    },
+    "required": [
+        "id",
+        "channel",
+        "instruction",
+        "data"
+    ]
+}

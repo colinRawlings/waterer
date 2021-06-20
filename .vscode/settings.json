@@ -1,8 +1,19 @@
 {
-    "python.testing.promptToConfigure": false,
-    "python.testing.pytestEnabled": false,
+    "python.testing.pytestEnabled": true,
     "python.testing.unittestEnabled": false,
     "python.testing.nosetestsEnabled": false,
-    "python.formatting.blackPath": "/Users/colin/waterer/backend/.venv/bin/black",
-    "python.sortImports.path": "/Users/colin/waterer/backend/.venv/bin/isort"
+    "python.formatting.blackPath": "${workspaceFolder}/backend/.venv/Scripts/black",
+    "python.sortImports.path": "${workspaceFolder}/backend/.venv/Scripts/isort",
+    "files.associations": {
+        "vector": "cpp",
+        "bitset": "cpp",
+        "deque": "cpp",
+        "iterator_base": "cpp",
+        "map": "cpp",
+        "valarray": "cpp"
+    },
+    "python.testing.pytestArgs": [
+        "-v", "-s", "backend/tests"
+    ],
+    "python.pythonPath": "backend\\.venv\\Scripts\\python.exe"
 }
