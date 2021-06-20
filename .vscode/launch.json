@@ -1,11 +1,17 @@
 {
     "configurations": [
-    {
-        "name": "Launch chrome",
-        "request": "launch",
-        "type": "pwa-chrome",
-        "url": "http://localhost:4200",
-        "webRoot": "${workspaceFolder}"
-    }
+        {
+            "name": "Python: waterer_backend.run_server",
+            "type": "python",
+            "request": "launch",
+            "module": "waterer_backend.run_server"
+        },
+        {
+            "name": "Launch chrome",
+            "request": "launch",
+            "type": "pwa-chrome",
+            "url": "http://localhost:4200",
+            "webRoot": "${workspaceFolder}"
+        }
     ]
 }

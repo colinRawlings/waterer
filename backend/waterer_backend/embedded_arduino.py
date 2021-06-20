@@ -123,6 +123,7 @@ class EmbeddedArduino:
 
             if self._device is None:
                 _LOGGER.warning("No device to disconnect")
+                return
 
             if not self._device.is_open:
                 _LOGGER.warning("Device not open - no need to disconnect")

@@ -8,6 +8,7 @@ import json
 import logging
 import pathlib as pt
 import typing as ty
+from dataclasses import asdict
 
 import jsonschema
 import pkg_resources as rc
@@ -43,6 +44,20 @@ def get_default_config_filepath() -> pt.Path:
 def get_config_schema_filepath() -> pt.Path:
 
     return get_config_dir() / "pump_config_schema.json"
+
+
+def save_user_pumps_config(settings_list: ty.List[SmartPumpSettings]) -> str:
+
+    pumps_config = []
+
+    for channel, settings in enumerate(settings_list):
+        pumps_config.append(dict(channel=channel, settings=asdict(settings)))
+
+    filepath = get_user_config_filepath()
+    with open(filepath, "w") as fh:
+        json.dump(pumps_config, fh, indent=4)
+
+    return str(filepath)
 
 
 def get_pumps_config(use_default: bool = False) -> ty.List[SmartPumpSettings]:
