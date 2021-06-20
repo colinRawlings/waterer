@@ -2,3 +2,4 @@ Flask
 python-socketio
 pyserial
 jsonschema
+dataclasses; python_version == '3.6'

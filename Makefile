@@ -37,6 +37,7 @@ ${BACKEND_VENV_DIR}:
 	${BACKEND_VENV_PYTHON} -m pip install -r ${BACKEND_DIR}/requirements/base.txt
 
 requirements: venv
+	${BACKEND_VENV_PYTHON} -m pip install pip-tools
 	${BACKEND_VENV_PYTHON} -m piptools compile ${BACKEND_DIR}/requirements/base.in
 	${BACKEND_VENV_PYTHON} -m piptools compile ${BACKEND_DIR}/requirements/dev.in
 
@@ -49,9 +50,21 @@ install: venv
 	${COMMENT_CHAR} Install Frontend
 	cd ${FRONTEND_DIR} && yarn install --production=true
 
-
-install-dev:
+install-host-tools:
 	${COMMENT_CHAR} TODO: Install Arduino IDE/CLI, downgrade board manager to 1.8.2 to allow arduino extension for STL
+ifdef OS
+	${COMMENT_CHAR} TODO: node, npm, yarn, angular
+else
+	# This probably only works on ubuntu
+	sudo apt-get install python3-dev
+	sudo apt-get install python3-venv
+	curl -fsSL https://deb.nodesource.com/setup_12.x | sudo -E bash -
+	sudo apt install -y nodejs
+	sudo npm install --global yarn
+	sudo npm install -g @angular/cli
+endif
+
+install-dev: venv
 	${COMMENT_CHAR} Python Tools
 	${BACKEND_VENV_PYTHON} -m pip install pip-tools
 	${BACKEND_VENV_PYTHON} -m pip install -r ${BACKEND_DIR}/requirements/dev.txt
@@ -65,8 +78,12 @@ install-dev:
 	cd ${FRONTEND_DIR} && yarn install --production=false
 	cd ${FRONTEND_DIR}/node_modules/@types && ${RENAME_CMD} plotly.js plotly.js-dist
 
-up-frontend:
+up-frontend-dev:
 	cd ${FRONTEND_DIR} && yarn start
+
+# useful for the rpi that lacks the power to build this
+up-frontend:
+	cd ${FRONTEND_DIR} && lite-server --baseDir="${FRONTEND_DIR}/dist/waterer/"
 
 push-frontend:
 	ng build

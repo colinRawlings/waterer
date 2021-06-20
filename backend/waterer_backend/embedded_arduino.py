@@ -64,8 +64,10 @@ class EmbeddedArduino:
         arduino_ports = [
             p.device
             for p in serial.tools.list_ports.comports()
-            if ARDUINO_DESCRIPTION
-            in str(p.description)  # may need tweaking to match new arduinos
+            if (
+                (ARDUINO_DESCRIPTION in str(p.description))
+                or (p.description.startswith("ttyACM"))
+            )  # type: ignore
         ]
         if not arduino_ports:
             raise IOError("No Arduino found")
