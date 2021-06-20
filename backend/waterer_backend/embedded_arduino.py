@@ -104,7 +104,9 @@ class EmbeddedArduino:
 
             _LOGGER.info(f"Opening serial port: {self._port}")
 
-            self._device = serial.Serial(port=self._port, baudrate=9600, timeout=5)
+            self._device = serial.Serial(
+                port=self._port, baudrate=config[BAUD_RATE_CONFIG_KEY], timeout=5
+            )
 
             _LOGGER.info(f"Starting to wait for startup message")
 

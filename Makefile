@@ -5,6 +5,8 @@ FRONTEND_DIR = ${makefile_dir}
 BACKEND_DIR = ${makefile_dir}/backend
 BACKEND_VENV_DIR = ${BACKEND_DIR}/.venv
 
+SERVER_IP = 192.168.0.18
+SERVER_USER = ubuntu
 
 ifdef OS
 	COMMENT_CHAR = REM
@@ -82,6 +84,10 @@ up-frontend-dev:
 # useful for the rpi that lacks the power to build this
 up-frontend:
 	cd ${FRONTEND_DIR} && lite-server --baseDir="${FRONTEND_DIR}/dist/waterer/"
+
+push-frontend:
+	ng build
+	# Run: wsl scp -r ./dist  $(SERVER_USER)@$(SERVER_IP):/home/ubuntu/waterer/
 
 make up-backend:
 	${BACKEND_VENV_PYTHON} -m waterer_backend.run_server

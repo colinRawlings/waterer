@@ -2,7 +2,7 @@
 
 // Values
 
-const unsigned long SERIAL_PORT_BAUD_RATE{9600};
+const unsigned long SERIAL_PORT_BAUD_RATE{115200};
 
 const int DT_WAIT_FOR_SERIAL_PORT_MS{2000};
 
