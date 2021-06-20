@@ -70,7 +70,11 @@ up-frontend:
 
 push-frontend:
 	ng build
-	# Run: wsl scp -r ./dist  $(SERVER_USER)@$(SERVER_IP):/home/ubuntu/waterer/
+ifdef OS
+	${COMMENT_CHAR} Run: wsl scp -r ./dist  $(SERVER_USER)@$(SERVER_IP):/home/ubuntu/waterer/
+else
+	scp -r ./dist  $(SERVER_USER)@$(SERVER_IP):/home/ubuntu/waterer/
+endif
 
 make up-backend:
 	${BACKEND_VENV_PYTHON} -m waterer_backend.run_server
