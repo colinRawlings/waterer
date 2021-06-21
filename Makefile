@@ -10,7 +10,7 @@ SERVER_USER = ubuntu
 
 ifdef OS
 	COMMENT_CHAR = REM
-	BASE_PYTHON = py -3.6
+	BASE_PYTHON = py -3.8
 	BACKEND_VENV_PYTHON = ${BACKEND_VENV_DIR}/Scripts/python.exe
 	RENAME_CMD = rename
 	ACTIVATE_CMD = ${BACKEND_VENV_DIR}/Scripts/activate
@@ -23,7 +23,7 @@ else
 endif
 
 
-.PHONY: info devenv
+.PHONY: info venv
 
 info:
 	echo makefile_dir: ${makefile_dir}

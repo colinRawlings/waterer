@@ -50,6 +50,11 @@ def create_app() -> Flask:
         status = get_pump_manager().get_status(channel=int(channel))
         return {"data": asdict(status)}
 
+    @app.route("/save_settings")
+    def save_settings():
+        saved_filepath = get_pump_manager().save_settings()
+        return {"data": saved_filepath}
+
     @app.route("/settings/<channel>")
     def get_settings(channel: str):
         settings = get_pump_manager().get_settings(channel=int(channel))

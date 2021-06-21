@@ -10,6 +10,7 @@ import pathlib as pt
 from typing import Dict, List, Optional, Union
 
 import waterer_backend.smart_pump as sp
+from waterer_backend.config import save_user_pumps_config
 from waterer_backend.embedded_arduino import EmbeddedArduino
 
 ###############################################################
@@ -103,6 +104,13 @@ class PumpManager:
     def get_settings(self, channel: int) -> sp.SmartPumpSettings:
         self._check_channel(channel)
         return self._pumps[channel].settings
+
+    def save_settings(self) -> str:
+        user_settings = list()
+        for channel in range(self._num_pumps):
+            user_settings.append(self._pumps[channel].settings)
+
+        return save_user_pumps_config(user_settings)
 
     def get_status(self, channel: int) -> sp.SmartPumpStatus:
         self._check_channel(channel)
