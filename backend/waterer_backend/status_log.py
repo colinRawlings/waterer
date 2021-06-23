@@ -90,6 +90,10 @@ class FloatStatusLog:
     def get_values(
         self, min_time_s: ty.Optional[float] = None
     ) -> ty.Tuple[ty.List[float], ty.List[float]]:
+        """
+        Returns:
+            times,  values
+        """
 
         all_times = list(self._low_res_times + self._high_res_times)
         all_values = list(self._low_res_values + self._high_res_values)
@@ -110,6 +114,17 @@ class FloatStatusLog:
             index -= 1
 
         return all_times[index:], all_values[index:]
+
+    def get_newest_value(self) -> ty.Tuple[ty.Optional[float], ty.Optional[float]]:
+        """
+        Returns:
+            times,  values
+        """
+
+        if len(self._high_res_times) == 0:
+            return None, None
+
+        return self._high_res_times[-1], self._high_res_values[-1]
 
 
 class BinaryStatusLog:
@@ -145,6 +160,10 @@ class BinaryStatusLog:
     def get_values(
         self, min_time_s: ty.Optional[float] = None
     ) -> ty.Tuple[ty.List[float], ty.List[bool]]:
+        """
+        Returns:
+            times,  values
+        """
 
         if min_time_s is None:
             return list(self._times), list(self._values)
@@ -162,3 +181,14 @@ class BinaryStatusLog:
             index -= 1
 
         return list(self._times)[index:], list(self._values)[index:]
+
+    def get_newest_value(self) -> ty.Tuple[ty.Optional[float], ty.Optional[bool]]:
+        """
+        Returns:
+            times,  values
+        """
+
+        if len(self._times) == 0:
+            return None, None
+
+        return self._times[-1], self._values[-1]
