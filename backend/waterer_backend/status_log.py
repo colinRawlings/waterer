@@ -14,7 +14,7 @@ from collections import deque
 ###############################################################
 
 
-class StatusLog:
+class FloatStatusLog:
 
     """
     Manages a log in which all samples younger than:
@@ -45,7 +45,7 @@ class StatusLog:
         self._low_res_values = deque()
         self._low_res_times = deque()
 
-    def add_sample(self, new_time: float, new_value: float):
+    def add_sample(self, new_time: float, new_value: float) -> None:
 
         assert len(self._high_res_times) == 0 or new_time > self._high_res_times[-1]
 
@@ -81,16 +81,84 @@ class StatusLog:
             if len(self._low_res_times) == 0:
                 break
 
-            if self._low_res_times[0] - new_time > self._low_res_max_age_s:
+            if new_time - self._low_res_times[0] > self._low_res_max_age_s:
                 self._low_res_times.popleft()
                 self._low_res_values.popleft()
+            else:
+                break
 
     def get_values(
-        self, max_age: ty.Optional[float] = None
-    ) -> ty.Tuple[ty.Iterable[float], ty.Iterable[float]]:
-        assert max_age is None
+        self, min_time_s: ty.Optional[float] = None
+    ) -> ty.Tuple[ty.List[float], ty.List[float]]:
 
-        return (
-            self._low_res_times + self._high_res_times,
-            self._low_res_values + self._high_res_values,
-        )
+        all_times = list(self._low_res_times + self._high_res_times)
+        all_values = list(self._low_res_values + self._high_res_values)
+
+        if min_time_s is None:
+            return all_times, all_values
+
+        if all_times[-1] < min_time_s:
+            return [], []
+
+        index = len(all_times) - 1
+
+        while index > 0:
+            if all_times[index] <= min_time_s:
+                index += 1
+                break
+
+            index -= 1
+
+        return all_times[index:], all_values[index:]
+
+
+class BinaryStatusLog:
+    def __init__(self, max_age_s: float = 3600 * 24 * 7) -> None:
+        self._max_age_s = max_age_s
+
+        self._times: deque[float] = deque()
+        self._values: deque[bool] = deque()
+
+    def add_sample(self, new_time: float, new_value: bool) -> None:
+
+        if len(self._times) <= 2:
+            self._times.append(new_time)
+            self._values.append(new_value)
+        elif self._values[-1] != new_value:
+            self._times.append(new_time)
+            self._values.append(new_value)
+        else:
+            self._times[-1] = new_time
+
+        # clean too-old samples
+
+        while True:
+            if len(self._times) == 0:
+                break
+
+            if new_time - self._times[0] > self._max_age_s:
+                self._times.popleft()
+                self._values.popleft()
+            else:
+                break
+
+    def get_values(
+        self, min_time_s: ty.Optional[float] = None
+    ) -> ty.Tuple[ty.List[float], ty.List[bool]]:
+
+        if min_time_s is None:
+            return list(self._times), list(self._values)
+
+        if self._times[-1] < min_time_s:
+            return [], []
+
+        index = len(self._times) - 1
+
+        while index > 0:
+            if self._times[index] <= min_time_s:
+                index += 1
+                break
+
+            index -= 1
+
+        return list(self._times)[index:], list(self._values)[index:]

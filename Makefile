@@ -5,7 +5,7 @@ FRONTEND_DIR = ${makefile_dir}
 BACKEND_DIR = ${makefile_dir}/backend
 BACKEND_VENV_DIR = ${BACKEND_DIR}/.venv
 
-SERVER_IP = 192.168.0.18
+SERVER_IP = 192.168.0.22
 SERVER_USER = ubuntu
 
 ifdef OS

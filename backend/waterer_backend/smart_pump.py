@@ -13,6 +13,7 @@ from time import time
 from waterer_backend.embedded_arduino import EmbeddedArduino
 from waterer_backend.request import Request
 from waterer_backend.response import Response
+from waterer_backend.status_log import BinaryStatusLog, FloatStatusLog
 
 ###############################################################
 # Logging
@@ -91,6 +92,9 @@ class SmartPump(Thread):
         self._sleep_event = Event()
         self._abort_running = False
 
+        self._rel_humidity_V_log = FloatStatusLog()
+        self._pump_status_log = BinaryStatusLog()
+
     @property
     def channel(self) -> int:
         return self._channel
@@ -155,8 +159,17 @@ class SmartPump(Thread):
             )
             self._check_response("get_pump_state", response)
 
+            pump_status = bool(response.data)
+
+            status_time = time()
+
+            # log
+
+            self._pump_status_log.add_sample(status_time, pump_status)
+            self._rel_humidity_V_log.add_sample(status_time, rel_humidity_V)
+
             return SmartPumpStatus(
-                rel_humidity_V, rel_humidity_pcnt, bool(response.data), time()
+                rel_humidity_V, rel_humidity_pcnt, pump_status, time()
             )
 
     # Stops the feedback loop (so a join() should execute quickly)
