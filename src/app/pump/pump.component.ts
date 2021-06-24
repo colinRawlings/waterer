@@ -12,18 +12,24 @@ interface keyable {
   styleUrls: ['./pump.component.css'],
 })
 export class PumpComponent implements OnInit {
-  public humidity_time: Date[] = [];
-  public pump_status_time: Date[] = [];
-
   public rel_humidity_V: number[] = [];
+  public rel_humidity_V_epoch_time: Date[] = [];
+
   public rel_humidity_pcnt: number[] = [];
+  public rel_humidity_pcnt_epoch_time: Date[] = [];
+
   public pump_running: number[] = [];
+  public pump_running_epoch_time: Date[] = [];
+
   public display_voltage: boolean;
   private kHumidityColor = 'rgb(0, 0, 200)';
   private kPumpColor = 'rgb(50, 200, 50)';
   private kHumidityMarker = {
     color: this.kHumidityColor,
   };
+
+  private resetGraphCounter = 0;
+  private resetGraphInterval = 1000;
 
   private kLayout = {
     autosize: true,
@@ -50,27 +56,7 @@ export class PumpComponent implements OnInit {
   };
 
   graph = {
-    data: [
-      {
-        x: this.humidity_time,
-        y: this.rel_humidity_V,
-        type: 'scatter',
-        name: 'humidity',
-        marker: {
-          color: this.kHumidityColor,
-        },
-      },
-      {
-        x: this.pump_status_time,
-        y: this.pump_running,
-        type: 'scatter',
-        yaxis: 'y2',
-        name: 'running',
-        marker: {
-          color: this.kPumpColor,
-        },
-      },
-    ],
+    data: [{}, {}],
     layout: this.kLayout,
     config: this.kConfig,
   };
@@ -101,7 +87,7 @@ export class PumpComponent implements OnInit {
 
     if (this.display_voltage) {
       data.push({
-        x: this.humidity_time.slice(),
+        x: this.rel_humidity_V_epoch_time.slice(),
         y: this.rel_humidity_V.slice(),
         type: 'scatter',
         name: 'humidity',
@@ -109,7 +95,7 @@ export class PumpComponent implements OnInit {
       });
     } else {
       data.push({
-        x: this.humidity_time.slice(),
+        x: this.rel_humidity_pcnt_epoch_time.slice(),
         y: this.rel_humidity_pcnt.slice(),
         type: 'scatter',
         name: 'humidity',
@@ -118,7 +104,7 @@ export class PumpComponent implements OnInit {
     }
 
     data.push({
-      x: this.pump_status_time.slice(),
+      x: this.pump_running_epoch_time.slice(),
       y: this.pump_running.slice(),
       type: 'scatter',
       yaxis: 'y2',
@@ -136,7 +122,7 @@ export class PumpComponent implements OnInit {
   }
 
   castPumpStatus(pump_status: boolean): number {
-    if(pump_status){
+    if (pump_status) {
       return 1;
     } else {
       return 0;
@@ -145,37 +131,83 @@ export class PumpComponent implements OnInit {
 
   appendPumpRunningSample(sample: boolean): void {
     this.pump_running.push(this.castPumpStatus(sample));
-    
-    // if (sample) {
-    //   this.pump_running.push(1);
-    // } else {
-    //   this.pump_running.push(0);
-    // }
+  }
+
+  castEpochTimesToDates(times: number[]): Date[]{
+    let dates=[];
+
+    for (const time of times) {
+      dates.push(new Date(time));
+    }
+
+    return dates;
+  }
+
+  onResetGraph():void{
+    this.rel_humidity_V = [];
+    this.rel_humidity_V_epoch_time = [];
+  
+    this.rel_humidity_pcnt = [];
+    this.rel_humidity_pcnt_epoch_time = [];
+  
+    this.pump_running = [];
+    this.pump_running_epoch_time = [];
+
+    this.resetGraphCounter=0;
+    this.statusService.lastUpdateTime[this.channel]=null;
   }
 
   onReceivedStatusData(data: keyable): void {
-    this.status = data.data;
 
-    this.humidity_time.push(new Date(this.status.epoch_time * 1000));
-    this.rel_humidity_V.push(this.status.rel_humidity_V);
-    this.rel_humidity_pcnt.push(this.status.rel_humidity_pcnt);
+    if (this.resetGraphCounter==this.resetGraphInterval){
+      this.onResetGraph();
+      return;
+    }
 
-    // this.pump_status_time.push(new Date(this.status.epoch_time * 1000));
-    // this.appendPumpRunningSample(this.status.pump_running);
+    this.resetGraphCounter += 1;
+
+    this.rel_humidity_V = this.rel_humidity_V.concat(data.data.rel_humidity_V);
+    this.rel_humidity_V_epoch_time = this.rel_humidity_V_epoch_time.concat(
+      this.castEpochTimesToDates(data.data.rel_humidity_V_epoch_time)
+    );
+
+    this.rel_humidity_pcnt = this.rel_humidity_pcnt.concat(
+      data.data.rel_humidity_pcnt
+    );
+    this.rel_humidity_pcnt_epoch_time =
+      this.rel_humidity_pcnt_epoch_time.concat(
+        this.castEpochTimesToDates(data.data.rel_humidity_pcnt_epoch_time)
+      );
 
     const lastIndex = this.pump_running.length - 1;
-    if (lastIndex < 2) {
-      this.pump_status_time.push(new Date(this.status.epoch_time * 1000));
-      this.appendPumpRunningSample(this.status.pump_running);
-    } else {
-      if (this.pump_running[lastIndex] == this.castPumpStatus(this.status.pump_status)) {
-        this.pump_status_time[lastIndex] = new Date(
-          this.status.epoch_time * 1000
-        );
+
+    const new_pump_times = this.castEpochTimesToDates(data.data.pump_running_epoch_time);
+
+
+    if (
+      lastIndex > 2 &&
+      this.pump_running[lastIndex - 1] == this.pump_running[lastIndex] &&
+      data.data.pump_running.length > 0 &&
+      this.pump_running[lastIndex] == data.data.pump_running[0]
+    ) {
+      if (data.data.pump_running.length == 1) {
+        this.pump_running_epoch_time[lastIndex] =
+          new_pump_times[0];
       } else {
-        this.pump_status_time.push(new Date(this.status.epoch_time * 1000));
-        this.appendPumpRunningSample(this.status.pump_running);
+        this.pump_running_epoch_time[lastIndex] =
+          new_pump_times[0];
+        this.pump_running = this.pump_running.concat(
+          data.data.pump_running.slice(1)
+        );
+        this.pump_running_epoch_time = this.pump_running_epoch_time.concat(
+          new_pump_times.slice(1)
+        );
       }
+    } else {
+      this.pump_running = this.pump_running.concat(data.data.pump_running);
+      this.pump_running_epoch_time = this.pump_running_epoch_time.concat(
+        new_pump_times
+      );
     }
 
     this.updateGraph();

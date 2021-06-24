@@ -48,10 +48,12 @@ class PumpManager:
         self,
         settings: pump_manager_settings_type,
         num_pumps: int,
+        status_update_interval_s: int = 5,
         port: Optional[str] = None,
         config_filepath: Optional[pt.Path] = None,
     ) -> None:
         self._num_pumps = num_pumps
+        self._status_update_interval_s = status_update_interval_s
 
         if isinstance(settings, sp.SmartPumpSettings):
             self._init_settings = [settings for _ in range(num_pumps)]
@@ -116,6 +118,12 @@ class PumpManager:
         self._check_channel(channel)
         return self._pumps[channel].status
 
+    def get_status_since(
+        self, channel: int, earliest_epoch_time_s: Optional[float]
+    ) -> sp.SmartPumpStatusHistory:
+        self._check_channel(channel)
+        return self._pumps[channel].get_status_since(earliest_epoch_time_s)
+
     def start(self):
 
         _LOGGER.info(f"Creating device")
@@ -142,6 +150,7 @@ class PumpManager:
                     channel=channel,
                     device=self._device,
                     settings=self._init_settings[channel],
+                    status_update_interval_s=self._status_update_interval_s,
                 )
             )
 
@@ -175,6 +184,7 @@ class PumpManager:
 def init_pump_manager(
     settings: pump_manager_settings_type,
     num_pumps: int,
+    status_update_interval_s: int = 5,
     port: Optional[str] = None,
     config_filepath: Optional[pt.Path] = None,
 ) -> PumpManager:
@@ -185,6 +195,7 @@ def init_pump_manager(
         num_pumps=num_pumps,
         port=port,
         config_filepath=config_filepath,
+        status_update_interval_s=status_update_interval_s,
     )
 
     _GLOBAL_pump_manager.start()
@@ -204,10 +215,12 @@ class PumpManagerContext:
         self,
         settings: pump_manager_settings_type,
         num_pumps: int,
+        status_update_interval_s: int = 5,
         port: Optional[str] = None,
         config_filepath: Optional[pt.Path] = None,
     ) -> None:
         self._num_pumps = num_pumps
+        self._status_update_interval_s = status_update_interval_s
         self._init_settings = settings
         self._port = port
         self._config_filepath = config_filepath
@@ -217,6 +230,7 @@ class PumpManagerContext:
         return init_pump_manager(
             settings=self._init_settings,
             num_pumps=self._num_pumps,
+            status_update_interval_s=self._status_update_interval_s,
             port=self._port,
             config_filepath=self._config_filepath,
         )

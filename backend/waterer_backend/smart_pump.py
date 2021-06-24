@@ -6,13 +6,15 @@
 
 import logging
 import typing as ty
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from threading import Event, Lock, Thread
 from time import time
 
+import numpy as np
 from waterer_backend.embedded_arduino import EmbeddedArduino
 from waterer_backend.request import Request
 from waterer_backend.response import Response
+from waterer_backend.status_log import BinaryStatusLog, FloatStatusLog
 
 ###############################################################
 # Logging
@@ -67,12 +69,40 @@ class SmartPumpStatus:
     epoch_time: float
 
 
+@dataclass
+class SmartPumpStatusHistory:
+    rel_humidity_V: ty.List[float]
+    rel_humidity_V_epoch_time: ty.List[float]
+
+    rel_humidity_pcnt: ty.List[float]
+    rel_humidity_pcnt_epoch_time: ty.List[float]
+
+    pump_running: ty.List[bool]
+    pump_running_epoch_time: ty.List[float]
+
+    def todict_with_ms(self) -> ty.Dict[str, ty.Union[float, bool]]:
+
+        dict_in_s = asdict(self)
+
+        dict_in_ms = dict()
+
+        for key in dict_in_s:
+
+            if key.endswith("epoch_time"):
+                dict_in_ms[key] = (np.asarray(dict_in_s[key]) * 1000).tolist()  # type: ignore
+            else:
+                dict_in_ms[key] = dict_in_s[key]
+
+        return dict_in_ms
+
+
 class SmartPump(Thread):
     def __init__(
         self,
         channel: int,
         device: ty.Optional[EmbeddedArduino],
         settings: SmartPumpSettings,
+        status_update_interval_s: float = 5,
     ) -> None:
 
         Thread.__init__(self)
@@ -90,6 +120,14 @@ class SmartPump(Thread):
 
         self._sleep_event = Event()
         self._abort_running = False
+
+        self._status_update_interval_s = status_update_interval_s
+
+        self._rel_humidity_V_log = FloatStatusLog()
+        self._rel_humidity_pcnt_log = FloatStatusLog()
+        self._pump_status_log = BinaryStatusLog()
+
+        self._last_feedback_update_time_s = time()
 
     @property
     def channel(self) -> int:
@@ -119,6 +157,11 @@ class SmartPump(Thread):
         )
 
     def turn_on(self):
+
+        if self._device is None:
+            _LOGGER.warning("No device connected")
+            return
+
         response = self._device.make_request(
             Request(
                 channel=self.channel,
@@ -129,6 +172,11 @@ class SmartPump(Thread):
         self._check_response("turn_on", response)
 
     def turn_off(self):
+
+        if self._device is None:
+            _LOGGER.warning("No device connected")
+            return
+
         response = self._device.make_request(
             Request(
                 channel=self.channel,
@@ -138,26 +186,83 @@ class SmartPump(Thread):
         )
         self._check_response("turn_off", response)
 
+    def _update_status(self) -> None:
+
+        if self._device is None:
+            _LOGGER.warning("No device connected")
+            return
+
+        _LOGGER.debug(f"Collecting status of pump: {self._channel}")
+
+        response = self._device.make_request(
+            Request(channel=self.channel, instruction="get_voltage", data=0)
+        )
+        self._check_response("get_humidity", response)
+
+        rel_humidity_V = response.data
+        rel_humidity_pcnt = self._pcnt_from_V_humidity(rel_humidity_V)
+
+        response = self._device.make_request(
+            Request(channel=self.channel, instruction="get_state", data=0)
+        )
+        self._check_response("get_pump_state", response)
+
+        pump_status = bool(response.data)
+
+        status_time = time()
+
+        # log
+
+        self._pump_status_log.add_sample(status_time, pump_status)
+        self._rel_humidity_V_log.add_sample(status_time, rel_humidity_V)
+        self._rel_humidity_pcnt_log.add_sample(status_time, rel_humidity_pcnt)
+
     @property
     def status(self) -> SmartPumpStatus:
 
         with self._settings_lock:
-            response = self._device.make_request(
-                Request(channel=self.channel, instruction="get_voltage", data=0)
-            )
-            self._check_response("get_humidity", response)
 
-            rel_humidity_V = response.data
-            rel_humidity_pcnt = self._pcnt_from_V_humidity(rel_humidity_V)
+            self._update_status()
 
-            response = self._device.make_request(
-                Request(channel=self.channel, instruction="get_state", data=0)
-            )
-            self._check_response("get_pump_state", response)
+            status_time, pump_status = self._pump_status_log.get_newest_value()
+            assert status_time is not None
+            assert pump_status is not None
+
+            _, rel_humidity_V = self._rel_humidity_V_log.get_newest_value()
+            assert rel_humidity_V is not None
+
+            _, rel_humidity_pcnt = self._rel_humidity_pcnt_log.get_newest_value()
+            assert rel_humidity_pcnt is not None
 
             return SmartPumpStatus(
-                rel_humidity_V, rel_humidity_pcnt, bool(response.data), time()
+                rel_humidity_V, rel_humidity_pcnt, pump_status, status_time
             )
+
+    def get_status_since(
+        self, earliest_epoch_time_s: ty.Optional[float]
+    ) -> SmartPumpStatusHistory:
+        """
+        if earliest time is None all samples are returned
+        """
+        rel_humidity_V_epoch_time, rel_humidity_V = self._rel_humidity_V_log.get_values(
+            earliest_epoch_time_s
+        )
+        (
+            rel_humidity_pcnt_epoch_time,
+            rel_humidity_pcnt,
+        ) = self._rel_humidity_pcnt_log.get_values(earliest_epoch_time_s)
+        pump_running_epoch_time, pump_running = self._pump_status_log.get_values(
+            earliest_epoch_time_s
+        )
+
+        return SmartPumpStatusHistory(
+            rel_humidity_V=rel_humidity_V,
+            rel_humidity_V_epoch_time=rel_humidity_V_epoch_time,
+            rel_humidity_pcnt=rel_humidity_pcnt,
+            rel_humidity_pcnt_epoch_time=rel_humidity_pcnt_epoch_time,
+            pump_running_epoch_time=pump_running_epoch_time,
+            pump_running=pump_running,
+        )
 
     # Stops the feedback loop (so a join() should execute quickly)
     def interrupt(self):
@@ -167,16 +272,23 @@ class SmartPump(Thread):
 
     def run(self):
 
+        if self._device is None:
+            _LOGGER.warning("No device connected")
+            return
+
         while not self._abort_running:
+
+            self._sleep_event.clear()
+            self._sleep_event.wait(timeout=self._status_update_interval_s)
+            self._update_status()
 
             with self._settings_lock:
                 wait_time_s = self._settings.pump_update_time_s
-
-            self._sleep_event.clear()
-            self._sleep_event.wait(timeout=wait_time_s)
-
-            with self._settings_lock:
-                if self._settings.feedback_active:
+                if (
+                    self._settings.feedback_active
+                    and (time() - self._last_feedback_update_time_s) > wait_time_s
+                ):
+                    self._last_feedback_update_time_s = time()
 
                     response = self._device.make_request(
                         Request(
