@@ -116,6 +116,12 @@ class PumpManager:
         self._check_channel(channel)
         return self._pumps[channel].status
 
+    def get_status_since(
+        self, channel: int, earliest_epoch_time_s: Optional[float]
+    ) -> sp.SmartPumpStatusHistory:
+        self._check_channel(channel)
+        return self._pumps[channel].get_status_since(earliest_epoch_time_s)
+
     def start(self):
 
         _LOGGER.info(f"Creating device")

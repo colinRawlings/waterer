@@ -145,12 +145,6 @@ export class PumpComponent implements OnInit {
 
   appendPumpRunningSample(sample: boolean): void {
     this.pump_running.push(this.castPumpStatus(sample));
-    
-    // if (sample) {
-    //   this.pump_running.push(1);
-    // } else {
-    //   this.pump_running.push(0);
-    // }
   }
 
   onReceivedStatusData(data: keyable): void {
@@ -159,9 +153,6 @@ export class PumpComponent implements OnInit {
     this.humidity_time.push(new Date(this.status.epoch_time * 1000));
     this.rel_humidity_V.push(this.status.rel_humidity_V);
     this.rel_humidity_pcnt.push(this.status.rel_humidity_pcnt);
-
-    // this.pump_status_time.push(new Date(this.status.epoch_time * 1000));
-    // this.appendPumpRunningSample(this.status.pump_running);
 
     const lastIndex = this.pump_running.length - 1;
     if (lastIndex < 2) {

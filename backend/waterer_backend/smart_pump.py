@@ -161,6 +161,9 @@ class SmartPump(Thread):
         self._check_response("turn_off", response)
 
     def _update_status(self) -> None:
+
+        _LOGGER.debug(f"Collecting status of pump: {self._channel}")
+
         response = self._device.make_request(
             Request(channel=self.channel, instruction="get_voltage", data=0)
         )
@@ -218,7 +221,9 @@ class SmartPump(Thread):
             rel_humidity_pcnt_epoch_time,
             rel_humidity_pcnt,
         ) = self._rel_humidity_pcnt_log.get_values(earliest_epoch_time_s)
-        pump_running_epoch_time, pump_running = self._pump_status_log.get_values(None)
+        pump_running_epoch_time, pump_running = self._pump_status_log.get_values(
+            earliest_epoch_time_s
+        )
 
         return SmartPumpStatusHistory(
             rel_humidity_V=rel_humidity_V,
@@ -241,6 +246,7 @@ class SmartPump(Thread):
 
             self._sleep_event.clear()
             self._sleep_event.wait(timeout=self._status_update_interval_s)
+            self._update_status()
 
             with self._settings_lock:
                 wait_time_s = self._settings.pump_update_time_s
@@ -248,6 +254,7 @@ class SmartPump(Thread):
                     self._settings.feedback_active
                     and (time() - self._last_feedback_update_time_s) > wait_time_s
                 ):
+                    self._last_feedback_update_time_s = time()
 
                     response = self._device.make_request(
                         Request(

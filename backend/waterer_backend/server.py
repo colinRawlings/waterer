@@ -50,6 +50,18 @@ def create_app() -> Flask:
         status = get_pump_manager().get_status(channel=int(channel))
         return {"data": asdict(status)}
 
+    @app.route("/get_status_since/<channel>", methods=["POST"])
+    def get_status_since(channel: str):
+        if not request.is_json:
+            raise RuntimeError("Settings should be provided as json")
+
+        # TODO: request.json["earliest_time"]
+
+        status_history = get_pump_manager().get_status_since(
+            channel=int(channel), earliest_epoch_time_s=None
+        )
+        return {"data": asdict(status_history)}
+
     @app.route("/save_settings")
     def save_settings():
         saved_filepath = get_pump_manager().save_settings()

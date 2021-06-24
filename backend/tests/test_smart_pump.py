@@ -4,9 +4,10 @@
 # Imports
 ###############################################################
 
-from time import perf_counter
+from time import perf_counter, sleep
 
 import matplotlib.pyplot as plt
+import numpy as np
 import waterer_backend.embedded_arduino as ae
 from waterer_backend._test_utils import arduino_fxt
 from waterer_backend.smart_pump import SmartPump, SmartPumpSettings
@@ -53,28 +54,67 @@ def test_smart_pump(arduino_fxt: ae.EmbeddedArduino):
         2,
         arduino_fxt,
         SmartPumpSettings(
-            pump_update_time_s=2,
-            pump_on_time_s=1,
+            pump_update_time_s=4,
+            pump_on_time_s=2,
             feedback_active=True,
             feedback_setpoint_pcnt=100,  # feedback should activate
         ),
+        status_update_interval_s=1,
     )
     smart_pump.start()
 
-    T0 = perf_counter()
-    while perf_counter() - T0 < 15:
-        status = smart_pump.status
+    pump_run_time_1_s = 10
+    sleep(pump_run_time_1_s)
 
-        time.append(status.epoch_time)
-        rel_humidity_pcnt.append(status.rel_humidity_pcnt)
-        pump_state.append(status.pump_running)
+    status_history_1 = smart_pump.get_status_since(None)
+    sampling_tolerance_s = 2
 
-        if DEBUG:
-            axs0.plot(time, rel_humidity_pcnt, ".-b")  # type: ignore #matplotlib
-            axs1.plot(time, pump_state, ".-r")  # type: ignore #matplotlib
-            plt.pause(0.001)  # type: ignore matplotlib
+    assert (
+        len(status_history_1.rel_humidity_V_epoch_time)
+        >= pump_run_time_1_s - sampling_tolerance_s
+    )
+    assert (
+        len(status_history_1.rel_humidity_V_epoch_time)
+        < pump_run_time_1_s + sampling_tolerance_s
+    )
+    assert len(status_history_1.rel_humidity_V_epoch_time) == len(
+        status_history_1.rel_humidity_V
+    )
+
+    assert any(status_history_1.pump_running)
+
+    if DEBUG:
+        axs0.plot(status_history_1.rel_humidity_V_epoch_time, status_history_1.rel_humidity_V, ".-b")  # type: ignore #matplotlib
+        axs1.plot(status_history_1.pump_running_epoch_time, status_history_1.pump_running, ".-r")  # type: ignore #matplotlib
+        plt.pause(0.001)  # type: ignore matplotlib
+
+    # get recent log
+
+    pump_run_time_2_s = 5
+    sleep(pump_run_time_2_s)
+
+    status_history_2 = smart_pump.get_status_since(
+        status_history_1.rel_humidity_V_epoch_time[-1]
+    )
+
+    assert (
+        len(status_history_2.rel_humidity_V_epoch_time)
+        >= pump_run_time_2_s - sampling_tolerance_s
+    )
+    assert (
+        len(status_history_2.rel_humidity_V_epoch_time)
+        < pump_run_time_2_s + sampling_tolerance_s
+    )
+
+    assert all(
+        np.array(status_history_2.rel_humidity_V_epoch_time)
+        > status_history_1.rel_humidity_V_epoch_time[-1]
+    )
 
     smart_pump.interrupt()
     smart_pump.join()
 
-    assert any(pump_state)
+    if DEBUG:
+        axs0.plot(status_history_2.rel_humidity_V_epoch_time, status_history_2.rel_humidity_V, "o-b")  # type: ignore #matplotlib
+        axs1.plot(status_history_2.pump_running_epoch_time, status_history_2.pump_running, "o-r")  # type: ignore #matplotlib
+        plt.show(block=True)  # type: ignore matplotlib
