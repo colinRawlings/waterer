@@ -5,7 +5,7 @@ import { Injectable } from '@angular/core';
 })
 export class ConstantsService {
 
-  public kBackendURL = "http://192.168.0.22:5000/"; // TODO!!!
+  public kBackendURL = "http://192.168.0.10:5000/"; // TODO!!!
   public kNumChannels = 3;
 
   constructor() { }

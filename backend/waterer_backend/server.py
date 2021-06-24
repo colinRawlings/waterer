@@ -60,7 +60,7 @@ def create_app() -> Flask:
         status_history = get_pump_manager().get_status_since(
             channel=int(channel), earliest_epoch_time_s=earliest_time
         )
-        return {"data": asdict(status_history)}
+        return {"data": status_history.todict_with_ms()}
 
     @app.route("/save_settings")
     def save_settings():

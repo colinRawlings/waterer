@@ -6,10 +6,11 @@
 
 import logging
 import typing as ty
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from threading import Event, Lock, Thread
 from time import time
 
+import numpy as np
 from waterer_backend.embedded_arduino import EmbeddedArduino
 from waterer_backend.request import Request
 from waterer_backend.response import Response
@@ -79,6 +80,21 @@ class SmartPumpStatusHistory:
     pump_running: ty.List[bool]
     pump_running_epoch_time: ty.List[float]
 
+    def todict_with_ms(self) -> ty.Dict[str, ty.Union[float, bool]]:
+
+        dict_in_s = asdict(self)
+
+        dict_in_ms = dict()
+
+        for key in dict_in_s:
+
+            if key.endswith("epoch_time"):
+                dict_in_ms[key] = (np.asarray(dict_in_s[key]) * 1000).tolist()  # type: ignore
+            else:
+                dict_in_ms[key] = dict_in_s[key]
+
+        return dict_in_ms
+
 
 class SmartPump(Thread):
     def __init__(
@@ -141,6 +157,11 @@ class SmartPump(Thread):
         )
 
     def turn_on(self):
+
+        if self._device is None:
+            _LOGGER.warning("No device connected")
+            return
+
         response = self._device.make_request(
             Request(
                 channel=self.channel,
@@ -151,6 +172,11 @@ class SmartPump(Thread):
         self._check_response("turn_on", response)
 
     def turn_off(self):
+
+        if self._device is None:
+            _LOGGER.warning("No device connected")
+            return
+
         response = self._device.make_request(
             Request(
                 channel=self.channel,
@@ -161,6 +187,10 @@ class SmartPump(Thread):
         self._check_response("turn_off", response)
 
     def _update_status(self) -> None:
+
+        if self._device is None:
+            _LOGGER.warning("No device connected")
+            return
 
         _LOGGER.debug(f"Collecting status of pump: {self._channel}")
 
@@ -241,6 +271,10 @@ class SmartPump(Thread):
         self._sleep_event.set()
 
     def run(self):
+
+        if self._device is None:
+            _LOGGER.warning("No device connected")
+            return
 
         while not self._abort_running:
 
