@@ -62,4 +62,13 @@ export class AppComponent implements OnInit, OnDestroy {
   onAutoSwitchGraphsChange(): void {
     this.notifierService.notify("error", "TODO");
   }
+
+  onSaveUserSettings(): void {
+    this.http.get(`${this.constantsService.kBackendURL}save_settings`).subscribe(
+      (data: keyable) => {
+        this.notifierService.notify('success', `Saved settings to ${data.data}`);
+      },
+      (err) => this.notifierService.notify('error', `HTTP Error:  ${err.message}`)
+    );
+  }
 }

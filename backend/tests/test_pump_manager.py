@@ -17,7 +17,7 @@ from waterer_backend._test_utils import arduino_fxt, turn_on_request_fxt
 # Definitions
 ###############################################################
 
-DEBUG = True  # display with matplotlib the results
+DEBUG = False  # display with matplotlib the results
 
 ###############################################################
 # Tests
