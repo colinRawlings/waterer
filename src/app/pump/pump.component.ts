@@ -29,7 +29,7 @@ export class PumpComponent implements OnInit {
   };
 
   private resetGraphCounter = 0;
-  private resetGraphInterval = 5;
+  private resetGraphInterval = 1000;
 
   private kLayout = {
     autosize: true,
@@ -159,10 +159,10 @@ export class PumpComponent implements OnInit {
 
   onReceivedStatusData(data: keyable): void {
 
-    // if (this.resetGraphCounter==this.resetGraphInterval){
-    //   this.onResetGraph();
-    //   return;
-    // }
+    if (this.resetGraphCounter==this.resetGraphInterval){
+      this.onResetGraph();
+      return;
+    }
 
     this.resetGraphCounter += 1;
 
