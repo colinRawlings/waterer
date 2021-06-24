@@ -50,15 +50,15 @@ def create_app() -> Flask:
         status = get_pump_manager().get_status(channel=int(channel))
         return {"data": asdict(status)}
 
-    @app.route("/get_status_since/<channel>", methods=["POST"])
+    @app.route("/get_status_since/<channel>", methods=["GET", "POST"])
     def get_status_since(channel: str):
         if not request.is_json:
             raise RuntimeError("Settings should be provided as json")
 
-        # TODO: request.json["earliest_time"]
+        earliest_time = request.json["earliest_time"]  # type: ignore
 
         status_history = get_pump_manager().get_status_since(
-            channel=int(channel), earliest_epoch_time_s=None
+            channel=int(channel), earliest_epoch_time_s=earliest_time
         )
         return {"data": asdict(status_history)}
 
@@ -78,7 +78,7 @@ def create_app() -> Flask:
         if not request.is_json:
             raise RuntimeError("Settings should be provided as json")
 
-        new_settings = SmartPumpSettings(**request.json)
+        new_settings = SmartPumpSettings(**request.json)  # type: ignore
         get_pump_manager().set_settings(channel=int(channel), settings=new_settings)
 
         settings = get_pump_manager().get_settings(channel=int(channel))

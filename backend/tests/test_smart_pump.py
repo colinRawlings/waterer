@@ -16,7 +16,7 @@ from waterer_backend.smart_pump import SmartPump, SmartPumpSettings
 # Definitions
 ###############################################################
 
-DEBUG = True  # display with matplotlib the results
+DEBUG = False  # display with matplotlib the results
 
 ###############################################################
 # Tests

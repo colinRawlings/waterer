@@ -7,6 +7,7 @@
 import json
 from copy import deepcopy
 from dataclasses import asdict
+from time import sleep
 from typing import List
 
 import pytest
@@ -14,7 +15,11 @@ from flask.testing import FlaskClient
 from waterer_backend.config import get_pumps_config
 from waterer_backend.pump_manager import PumpManagerContext
 from waterer_backend.server import create_app
-from waterer_backend.smart_pump import SmartPumpSettings, SmartPumpStatus
+from waterer_backend.smart_pump import (
+    SmartPumpSettings,
+    SmartPumpStatus,
+    SmartPumpStatusHistory,
+)
 
 ###############################################################
 # Fixtures
@@ -31,7 +36,7 @@ def server_client(pumps_config):
     app = create_app()
 
     with PumpManagerContext(
-        settings=pumps_config, num_pumps=len(pumps_config)
+        settings=pumps_config, num_pumps=len(pumps_config), status_update_interval_s=1
     ) as pump_manager:
         with app.test_client() as client:
             yield client
@@ -82,6 +87,48 @@ def test_status(server_client: FlaskClient):
     assert response.status_code == 200
 
     status = SmartPumpStatus(**json.loads(response.data.decode())["data"])
+
+
+def test_status_history(server_client: FlaskClient):
+
+    run_time_s = 5
+    sample_tolerance_s = 2
+
+    sleep(run_time_s)
+
+    response = server_client.get("/get_status_since/2", json=dict(earliest_time=None))
+    assert response.status_code == 200
+
+    status_history = SmartPumpStatusHistory(
+        **json.loads(response.data.decode())["data"]
+    )
+
+    assert (
+        abs(len(status_history.rel_humidity_V_epoch_time) - run_time_s)
+        <= sample_tolerance_s
+    )
+
+    sleep(run_time_s)
+
+    response = server_client.get(
+        "/get_status_since/2",
+        json=dict(earliest_time=status_history.rel_humidity_V_epoch_time[-1]),
+    )
+    assert response.status_code == 200
+
+    status_history_2 = SmartPumpStatusHistory(
+        **json.loads(response.data.decode())["data"]
+    )
+
+    assert (
+        abs(len(status_history_2.rel_humidity_V_epoch_time) - run_time_s)
+        <= sample_tolerance_s
+    )
+
+    assert (
+        status_history_2.rel_humidity_V_epoch_time[0]
+        >= status_history.rel_humidity_V_epoch_time[-1]
+    )
 
 
 def test_set_settings(server_client: FlaskClient):
