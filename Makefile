@@ -5,8 +5,14 @@ FRONTEND_DIR = ${makefile_dir}
 BACKEND_DIR = ${makefile_dir}/backend
 BACKEND_VENV_DIR = ${BACKEND_DIR}/.venv
 
-SERVER_IP = 192.168.0.18
+startup_script := $(makefile_dir)/launch.sh
+
+SERVER_IP = 192.168.0.22
 SERVER_USER = ubuntu
+
+ifndef
+THIS_IP = $(firstword $(shell hostname -I))
+endif
 
 ifdef OS
 	COMMENT_CHAR = REM
@@ -22,12 +28,12 @@ else
 	ACTIVATE_CMD = source ${BACKEND_VENV_DIR}/bin/activate
 endif
 
-
-.PHONY: info devenv
+.PHONY: info venv
 
 info:
-	echo makefile_dir: ${makefile_dir}
-	echo venv_python: ${BACKEND_VENV_PYTHON}
+	@echo makefile_dir: ${makefile_dir}
+	@echo venv_python: ${BACKEND_VENV_PYTHON}
+	@echo IP: ${THIS_IP}
 
 venv: ${BACKEND_VENV_DIR}
 
@@ -56,12 +62,15 @@ ifdef OS
 	${COMMENT_CHAR} TODO: node, npm, yarn, angular
 else
 	# This probably only works on ubuntu
-	sudo apt-get install python3-dev
-	sudo apt-get install python3-venv
+	sudo apt update
+	sudo apt install -y gcc make
+	sudo apt-get install -y python3-dev
+	sudo apt-get install -y python3-venv
 	curl -fsSL https://deb.nodesource.com/setup_12.x | sudo -E bash -
 	sudo apt install -y nodejs
 	sudo npm install --global yarn
 	sudo npm install -g @angular/cli
+	sudo npm install -g lite-server
 endif
 
 install-dev: venv
@@ -81,7 +90,7 @@ install-dev: venv
 up-frontend-dev:
 	cd ${FRONTEND_DIR} && yarn start
 
-# useful for the rpi that lacks the power to build this
+# useful for the rpi that lacks the power to build the frontend
 up-frontend:
 	cd ${FRONTEND_DIR} && lite-server --baseDir="${FRONTEND_DIR}/dist/waterer/"
 
@@ -96,9 +105,19 @@ endif
 make up-backend:
 	${BACKEND_VENV_PYTHON} -m waterer_backend.run_server
 
+
+
 tests-backend:
 	${BACKEND_VENV_PYTHON} -m pytest ${makefile_dir}/backend/tests
 	${ACTIVATE_CMD} && pyright --verbose
 
 pip-list:
 	${BACKEND_VENV_PYTHON} -m pip list
+
+
+startup_script: ${startup_script}
+
+${startup_script}:
+	echo "cd $(makefile_dir) && $(shell which make) -f $(makefile_dir)/Makefile up-backend &" > ${startup_script}
+	echo "cd $(makefile_dir) && $(shell which make) -f $(makefile_dir)/Makefile up-frontend &" >> ${startup_script}
+	chmod u+x ${startup_script}
