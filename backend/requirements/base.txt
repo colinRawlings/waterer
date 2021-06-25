@@ -10,8 +10,12 @@ bidict==0.21.2
     # via python-socketio
 click==8.0.1
     # via flask
-flask==2.0.1
+flask-cors==3.0.10
     # via -r /home/ubuntu/waterer/backend/requirements/base.in
+flask==2.0.1
+    # via
+    #   -r /home/ubuntu/waterer/backend/requirements/base.in
+    #   flask-cors
 itsdangerous==2.0.1
     # via flask
 jinja2==3.0.1
@@ -29,7 +33,9 @@ python-engineio==4.2.0
 python-socketio==5.3.0
     # via -r /home/ubuntu/waterer/backend/requirements/base.in
 six==1.16.0
-    # via jsonschema
+    # via
+    #   flask-cors
+    #   jsonschema
 werkzeug==2.0.1
     # via flask
 

@@ -7,6 +7,7 @@
 from dataclasses import asdict
 
 from flask import Flask, request
+from flask_cors import CORS
 from waterer_backend.config import get_pumps_config
 from waterer_backend.pump_manager import PumpManagerContext, get_pump_manager
 from waterer_backend.request import Request
@@ -19,17 +20,7 @@ from waterer_backend.smart_pump import SmartPumpSettings
 
 def create_app() -> Flask:
     app = Flask(__name__)
-
-    @app.after_request
-    def after_request(response):
-        response.headers.add("Access-Control-Allow-Origin", "*")
-        response.headers.add(
-            "Access-Control-Allow-Headers", "Content-Type,Authorization"
-        )
-        response.headers.add(
-            "Access-Control-Allow-Methods", "GET,PUT,POST,DELETE,OPTIONS"
-        )
-        return response
+    CORS(app)
 
     @app.route("/")
     def main():
@@ -50,7 +41,7 @@ def create_app() -> Flask:
         status = get_pump_manager().get_status(channel=int(channel))
         return {"data": asdict(status)}
 
-    @app.route("/get_status_since/<channel>", methods=["GET", "POST"])
+    @app.route("/get_status_since/<channel>", methods=["POST", "GET"])
     def get_status_since(channel: str):
         if not request.is_json:
             raise RuntimeError("Settings should be provided as json")

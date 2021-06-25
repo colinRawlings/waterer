@@ -107,7 +107,7 @@ class FloatStatusLog:
             if min_time_s is None:
                 return all_times, all_values
 
-            if all_times[-1] < min_time_s:
+            if len(all_times)==0 or all_times[-1] < min_time_s:
                 return [], []
 
             index = len(all_times) - 1
@@ -181,7 +181,7 @@ class BinaryStatusLog:
             if min_time_s is None:
                 return list(self._times), list(self._values)
 
-            if self._times[-1] < min_time_s:
+            if len(self._times)==0 or self._times[-1] < min_time_s:
                 return [], []
 
             index = len(self._times) - 1
