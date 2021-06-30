@@ -20,12 +20,14 @@ ifdef OS
 	COMMENT_CHAR = REM
 	BASE_PYTHON = py -3.8
 	BACKEND_VENV_PYTHON = ${BACKEND_VENV_DIR}/Scripts/python.exe
+	BACKEND_VENV_PIP_SYNC = ${BACKEND_VENV_DIR}/Scripts/pip-sync.exe
 	RENAME_CMD = rename
 	ACTIVATE_CMD = ${BACKEND_VENV_DIR}/Scripts/activate
 else
 	COMMENT_CHAR = \#
 	BASE_PYTHON = python3
 	BACKEND_VENV_PYTHON = ${BACKEND_VENV_DIR}/bin/python
+	BACKEND_VENV_PIP_SYNC = ${BACKEND_VENV_DIR}/bin/pip-sync
 	RENAME_CMD = mv
 	ACTIVATE_CMD = source ${BACKEND_VENV_DIR}/bin/activate
 endif
@@ -48,12 +50,13 @@ requirements: venv
 	${BACKEND_VENV_PYTHON} -m pip install pip-tools
 	${BACKEND_VENV_PYTHON} -m piptools compile ${BACKEND_DIR}/requirements/base.in
 	${BACKEND_VENV_PYTHON} -m piptools compile ${BACKEND_DIR}/requirements/dev.in
+	${COMMENT_CHAR} Call install(-dev) to update ...
 
 install: venv
 	${COMMENT_CHAR} TODO: Install node
 	${COMMENT_CHAR} TODO: Install yarn
 	${COMMENT_CHAR} Install Backend
-	${BACKEND_VENV_PYTHON} -m pip install -r ${BACKEND_DIR}/requirements/base.txt
+	${BACKEND_VENV_PIP_SYNC} ${BACKEND_DIR}/requirements/base.txt
 	${BACKEND_VENV_PYTHON} -m pip install ${BACKEND_DIR}
 	${COMMENT_CHAR} Install Frontend
 	cd ${FRONTEND_DIR} && yarn install --production=true
@@ -78,7 +81,7 @@ endif
 install-dev: venv
 	${COMMENT_CHAR} Python Tools
 	${BACKEND_VENV_PYTHON} -m pip install pip-tools
-	${BACKEND_VENV_PYTHON} -m pip install -r ${BACKEND_DIR}/requirements/dev.txt
+	${BACKEND_VENV_PIP_SYNC} ${BACKEND_DIR}/requirements/dev.txt
 	${COMMENT_CHAR} Formatting
 	${COMMENT_CHAR} TODO: Install clang-format
 	${BACKEND_VENV_PYTHON} -m pre_commit install --install-hooks
