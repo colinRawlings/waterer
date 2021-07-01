@@ -94,7 +94,7 @@ up-frontend-dev:
 
 # useful for the rpi that lacks the power to build the frontend
 up-frontend:
-	cd ${FRONTEND_DIR} && lite-server --baseDir="${FRONTEND_DIR}/dist/waterer/"
+	cd ${FRONTEND_DIR} && lite-server
 
 push-frontend:
 	ng build
@@ -107,7 +107,8 @@ endif
 make up-backend:
 	${BACKEND_VENV_PYTHON} -m waterer_backend.run_server
 
-
+up-status:
+	systemctl status waterer.service
 
 tests-backend:
 	${BACKEND_VENV_PYTHON} -m pytest ${makefile_dir}/backend/tests
