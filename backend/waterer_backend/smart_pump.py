@@ -29,8 +29,8 @@ _LOGGER = logging.getLogger(__name__)
 
 @dataclass
 class SmartPumpSettings:
-    dry_humidity_V: float = 0
-    wet_humidity_V: float = 3.3
+    dry_humidity_V: float = 3.3
+    wet_humidity_V: float = 0
     pump_on_time_s: int = 2
     pump_update_time_s: float = 600
     feedback_active: bool = False
@@ -40,9 +40,9 @@ class SmartPumpSettings:
         self.validate()
 
     def validate(self):
-        if self.wet_humidity_V < self.dry_humidity_V:
+        if self.wet_humidity_V > self.dry_humidity_V:
             raise ValueError(
-                f"Dry humidity: {self.dry_humidity_V} V cannot exceed wet: {self.wet_humidity_V} V"
+                f"Wet humidity: {self.dry_humidity_V} V cannot exceed dry: {self.wet_humidity_V} V"
             )
 
         if self.pump_on_time_s < 0:
@@ -79,21 +79,6 @@ class SmartPumpStatusHistory:
 
     pump_running: ty.List[bool]
     pump_running_epoch_time: ty.List[float]
-
-    def todict_with_ms(self) -> ty.Dict[str, ty.Union[float, bool]]:
-
-        dict_in_s = asdict(self)
-
-        dict_in_ms = dict()
-
-        for key in dict_in_s:
-
-            if key.endswith("epoch_time"):
-                dict_in_ms[key] = (np.asarray(dict_in_s[key]) * 1000).tolist()  # type: ignore
-            else:
-                dict_in_ms[key] = dict_in_s[key]
-
-        return dict_in_ms
 
 
 class SmartPump(Thread):
@@ -151,8 +136,8 @@ class SmartPump(Thread):
 
     def _pcnt_from_V_humidity(self, rel_humidity_V: float) -> float:
         return (
-            (rel_humidity_V - self._settings.dry_humidity_V)
-            / (self._settings.wet_humidity_V - self._settings.dry_humidity_V)
+            (self._settings.dry_humidity_V - rel_humidity_V)
+            / (self._settings.dry_humidity_V - self._settings.wet_humidity_V)
             * 100
         )
 

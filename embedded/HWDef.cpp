@@ -13,5 +13,5 @@ const float AIN_FULL_RANGE_V{5.0f};
 
 // Pin Allocations
 
-extern const pin_id_type PUMP_DIGITAL_PINS[]{11, 12, 13};
-extern const pin_id_type PUMP_ANALOGUE_PINS[]{A0, A1, A2};
+extern const pin_id_type PUMP_DIGITAL_PINS[]{7, 5, 3};
+extern const pin_id_type PUMP_ANALOGUE_PINS[]{A0, A2, A4};

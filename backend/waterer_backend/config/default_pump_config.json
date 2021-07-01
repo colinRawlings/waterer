@@ -2,9 +2,9 @@
     {
         "channel": 0,
         "settings": {
-            "dry_humidity_V": 0,
-            "wet_humidity_V": 3.3,
-            "pump_on_time_s": 2,
+            "dry_humidity_V": 3.3,
+            "wet_humidity_V": 0.0,
+            "pump_on_time_s": 20,
             "pump_update_time_s": 600,
             "feedback_active": false,
             "feedback_setpoint_pcnt": 50
@@ -13,9 +13,9 @@
     {
         "channel": 1,
         "settings": {
-            "dry_humidity_V": 0,
-            "wet_humidity_V": 3.3,
-            "pump_on_time_s": 2,
+            "dry_humidity_V": 3.3,
+            "wet_humidity_V": 0.0,
+            "pump_on_time_s": 20,
             "pump_update_time_s": 600,
             "feedback_active": false,
             "feedback_setpoint_pcnt": 50
@@ -24,9 +24,9 @@
     {
         "channel": 2,
         "settings": {
-            "dry_humidity_V": 0,
-            "wet_humidity_V": 3.3,
-            "pump_on_time_s": 2,
+            "dry_humidity_V": 3.3,
+            "wet_humidity_V": 0.0,
+            "pump_on_time_s": 20,
             "pump_update_time_s": 600,
             "feedback_active": false,
             "feedback_setpoint_pcnt": 50

@@ -121,23 +121,11 @@ export class PumpComponent implements OnInit {
     this.updateGraph();
   }
 
-  castPumpStatus(pump_status: boolean): number {
-    if (pump_status) {
-      return 1;
-    } else {
-      return 0;
-    }
-  }
-
-  appendPumpRunningSample(sample: boolean): void {
-    this.pump_running.push(this.castPumpStatus(sample));
-  }
-
   castEpochTimesToDates(times: number[]): Date[]{
     let dates=[];
 
     for (const time of times) {
-      dates.push(new Date(time));
+      dates.push(new Date(time*1000));
     }
 
     return dates;
