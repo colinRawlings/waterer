@@ -8,6 +8,7 @@ from dataclasses import asdict
 
 from flask import Flask, request
 from flask_cors import CORS
+from waterer_backend import __version__
 from waterer_backend.config import get_pumps_config
 from waterer_backend.pump_manager import PumpManagerContext, get_pump_manager
 from waterer_backend.request import Request
@@ -24,7 +25,12 @@ def create_app() -> Flask:
 
     @app.route("/")
     def main():
-        return {"data": get_pump_manager().connection_info}
+        return {
+            "data": {
+                "arduino_address": get_pump_manager().connection_info,
+                "version": __version__,
+            }
+        }
 
     @app.route("/turn_on/<channel>")
     def turn_on(channel: str):
