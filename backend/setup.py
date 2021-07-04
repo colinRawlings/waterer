@@ -1,14 +1,15 @@
+import pathlib as pt
+
 from setuptools import find_packages, setup
 
+base_filepath = pt.Path("requirements") / "base.in"
+with open(base_filepath) as fh:
+    install_reqs = fh.readlines()
+
 setup(
-    name="waterer_backend",
-    version="1.0.0",
-    author="Colin Rawlings",
-    author_email="colin.d.rawlings@gmail.com",
-    description="The waterer backend",
     packages=find_packages(),
     package_data={
         "waterer_backend": ["config/*.json"],
     },
-    install_requires=["flask", "pyserial"],
+    install_requires=install_reqs,
 )

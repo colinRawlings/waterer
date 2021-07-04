@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { ConstantsService } from './constants.service';
 import { NotifierService } from 'angular-notifier';
 import { PumpStatusService } from './pump-status.service';
+import packageInfo  from '../../package.json';
 
 interface keyable {
   [key: string]: any;
@@ -19,7 +20,9 @@ export class AppComponent implements OnInit, OnDestroy {
   public autoSwitchGraphs: boolean;
   public channels: number[];
 
-  connect_info: string;
+  public arduino_address: string;
+  public frontend_version: string = packageInfo.version;
+  public backend_version: string;
 
   constructor(
     private http: HttpClient,
@@ -27,14 +30,15 @@ export class AppComponent implements OnInit, OnDestroy {
     private statusService: PumpStatusService,
     private constantsService: ConstantsService
   ) {
-    this.connect_info = '';
+    this.arduino_address = '';
     this.autoUpdate = true;
   }
 
   ngOnInit(): void {
     this.http.get(this.constantsService.kBackendURL).subscribe(
       (data: keyable) => {
-        this.connect_info = `${data.data}`;
+        this.arduino_address = `${data.data.arduino_address}`;
+        this.backend_version = `${data.data.version}`;
       },
       (err) => this.notifierService.notify('error', `HTTP Error:  ${err.message}`)
     );

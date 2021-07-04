@@ -75,6 +75,16 @@ def test_turn_on_off(server_client: FlaskClient):
     assert not data["data"]["pump_running"]
 
 
+def test_default(server_client: FlaskClient):
+    response = server_client.get("/")
+    assert response.status_code == 200
+
+    data = json.loads(response.data.decode())["data"]
+
+    assert "arduino_address" in data
+    assert "version" in data
+
+
 def test_settings(server_client: FlaskClient):
     response = server_client.get("/settings/2")
     assert response.status_code == 200
