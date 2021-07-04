@@ -57,7 +57,7 @@ install: venv
 	${COMMENT_CHAR} TODO: Install yarn
 	${COMMENT_CHAR} Install Backend
 	${BACKEND_VENV_PIP_SYNC} ${BACKEND_DIR}/requirements/base.txt
-	${BACKEND_VENV_PYTHON} -m pip install ${BACKEND_DIR}
+	${BACKEND_VENV_PYTHON} -m pip install -e ${BACKEND_DIR}
 	${COMMENT_CHAR} Install Frontend
 	cd ${FRONTEND_DIR} && yarn install --production=true
 
@@ -110,9 +110,6 @@ endif
 make up-backend:
 	${BACKEND_VENV_PYTHON} -m waterer_backend.run_server
 
-up-status:
-	systemctl status waterer.service
-
 tests-backend:
 	${BACKEND_VENV_PYTHON} -m pytest ${makefile_dir}/backend/tests
 	${ACTIVATE_CMD} && pyright --verbose
@@ -127,3 +124,11 @@ ${startup_script}:
 	echo "cd $(makefile_dir) && $(shell which make) -f $(makefile_dir)/Makefile up-backend &" > ${startup_script}
 	echo "cd $(makefile_dir) && $(shell which make) -f $(makefile_dir)/Makefile up-frontend &" >> ${startup_script}
 	chmod u+x ${startup_script}
+
+# waterer service
+
+up-status:
+	systemctl status waterer.service
+
+restart-service:
+	systemctl restart waterer.service
