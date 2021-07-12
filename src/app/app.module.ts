@@ -22,6 +22,7 @@ import { PumpComponent } from './pump/pump.component';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { ManualPumpControlsComponent } from './manual-pump-controls/manual-pump-controls.component';
 import { PumpSettingsComponent } from './pump-settings/pump-settings.component';
+import { EnvServiceProvider } from './env.service.provider';
 
 PlotlyModule.plotlyjs = PlotlyJS;
 
@@ -48,7 +49,7 @@ PlotlyModule.plotlyjs = PlotlyJS;
       theme: "material"
     })
   ],
-  providers: [],
+  providers: [EnvServiceProvider],
   bootstrap: [AppComponent],
 })
 export class AppModule {}

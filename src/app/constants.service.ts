@@ -1,12 +1,15 @@
 import { Injectable } from '@angular/core';
+import { EnvService } from './env.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ConstantsService {
 
-  public kBackendURL = "http://192.168.0.10:5000/"; // TODO!!!
+  public kBackendURL: string;
   public kNumChannels = 3;
 
-  constructor() { }
+  constructor(private env: EnvService) {
+    this.kBackendURL = env.apiUrl;
+   }
 }
