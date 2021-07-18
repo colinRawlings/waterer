@@ -90,13 +90,15 @@ install-dev: venv
 	${COMMENT_CHAR} npm install -g pyright@1.1.138
 	${COMMENT_CHAR} Install Frontend
 	cd ${FRONTEND_DIR} && yarn install --production=false
-	cd ${FRONTEND_DIR}/node_modules/@types && ${RENAME_CMD} plotly.js plotly.js-dist
+	cd ${FRONTEND_DIR}/node_modules/@types && ${RENAME_CMD} plotly.js plotly.js-dist ; exit 0
 
-up-frontend-dev:
+up-frontend-dev: venv
+	${BACKEND_VENV_PYTHON} ${makefile_dir}/make_templates.py
 	cd ${FRONTEND_DIR} && yarn start
 
 # useful for the rpi that lacks the power to build the frontend
 up-frontend:
+	${BACKEND_VENV_PYTHON} ${makefile_dir}/make_templates.py
 	cd ${FRONTEND_DIR} && lite-server
 
 push-frontend:

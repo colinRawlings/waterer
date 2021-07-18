@@ -2,8 +2,8 @@
     "python.testing.pytestEnabled": true,
     "python.testing.unittestEnabled": false,
     "python.testing.nosetestsEnabled": false,
-    "python.formatting.blackPath": "${workspaceFolder}/backend/.venv/Scripts/black",
-    "python.sortImports.path": "${workspaceFolder}/backend/.venv/Scripts/isort",
+    "python.formatting.blackPath": "${workspaceFolder}/backend/.venv/bin/black",
+    "python.sortImports.path": "${workspaceFolder}/backend/.venv/bin/isort",
     "files.associations": {
         "vector": "cpp",
         "bitset": "cpp",
@@ -14,6 +14,5 @@
     },
     "python.testing.pytestArgs": [
         "-v", "-s", "backend/tests"
-    ],
-    "python.pythonPath": "backend/.venv/bin/python"
+    ]
 }

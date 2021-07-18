@@ -2,6 +2,8 @@ import { Component, Input, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { PumpStatusService } from '../pump-status.service';
 import { NotifierService } from 'angular-notifier';
+import { PumpSettingsService } from '../pump-settings.service';
+
 
 interface keyable {
   [key: string]: any;
@@ -30,10 +32,10 @@ export class PumpComponent implements OnInit {
 
   private resetGraphCounter = 0;
   private resetGraphInterval = 1000;
+  public name: string = "";
 
   private kLayout = {
     autosize: true,
-    title: 'pump',
     yaxis: {
       title: 'Humidity',
       titlefont: { color: this.kHumidityColor },
@@ -68,16 +70,26 @@ export class PumpComponent implements OnInit {
     this.statusService.statuses$[this.channel].subscribe((data: keyable) => {
       this.onReceivedStatusData(data);
     });
+
+    this.settingsService.getSettings(this.channel).subscribe(
+      (data: keyable) => {
+        this.name = data.data.name;
+      },
+      (error: keyable) => {
+        this.notifierService.notify('error', `getSettings Error:  ${error.message}`);
+      }
+    )
   }
 
-  status: keyable;
+  status: keyable = {};
+
 
   constructor(
     private http: HttpClient,
     private notifierService: NotifierService,
-    private statusService: PumpStatusService
+    private statusService: PumpStatusService,
+    private settingsService: PumpSettingsService,
   ) {
-    this.status = {};
   }
 
   // Graph
@@ -121,33 +133,33 @@ export class PumpComponent implements OnInit {
     this.updateGraph();
   }
 
-  castEpochTimesToDates(times: number[]): Date[]{
-    let dates=[];
+  castEpochTimesToDates(times: number[]): Date[] {
+    let dates = [];
 
     for (const time of times) {
-      dates.push(new Date(time*1000));
+      dates.push(new Date(time * 1000));
     }
 
     return dates;
   }
 
-  onResetGraph():void{
+  onResetGraph(): void {
     this.rel_humidity_V = [];
     this.rel_humidity_V_epoch_time = [];
-  
+
     this.rel_humidity_pcnt = [];
     this.rel_humidity_pcnt_epoch_time = [];
-  
+
     this.pump_running = [];
     this.pump_running_epoch_time = [];
 
-    this.resetGraphCounter=0;
-    this.statusService.lastUpdateTime[this.channel]=null;
+    this.resetGraphCounter = 0;
+    this.statusService.lastUpdateTime[this.channel] = null;
   }
 
   onReceivedStatusData(data: keyable): void {
 
-    if (this.resetGraphCounter==this.resetGraphInterval){
+    if (this.resetGraphCounter == this.resetGraphInterval) {
       this.onResetGraph();
       return;
     }

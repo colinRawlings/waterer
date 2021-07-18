@@ -10,6 +10,6 @@ export class ConstantsService {
   public kNumChannels = 3;
 
   constructor(private env: EnvService) {
-    this.kBackendURL = env.apiUrl;
+    this.kBackendURL = `http://${env.apiUrl}/`;
    }
 }

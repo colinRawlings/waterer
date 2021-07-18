@@ -35,6 +35,7 @@ class SmartPumpSettings:
     pump_update_time_s: float = 600
     feedback_active: bool = False
     feedback_setpoint_pcnt: float = 50
+    name: str = "Unamed pump"
 
     def __post_init__(self):
         self.validate()
