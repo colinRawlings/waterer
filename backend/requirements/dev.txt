@@ -75,8 +75,10 @@ mypy-extensions==0.4.3
     # via black
 nodeenv==1.6.0
     # via pre-commit
-numpy==1.19.5
-    # via matplotlib
+numpy==1.21.0
+    # via
+    #   -r /Users/colin/waterer/backend/requirements/base.txt
+    #   matplotlib
 packaging==20.9
     # via pytest
 pathspec==0.8.1

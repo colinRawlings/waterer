@@ -101,6 +101,12 @@ up-frontend:
 	${BACKEND_VENV_PYTHON} ${makefile_dir}/make_templates.py
 	cd ${FRONTEND_DIR} && lite-server
 
+up-service:
+	systemctl start waterer.service
+
+down-service:
+	systemctl stop waterer.service
+
 push-frontend:
 	ng build
 ifdef OS
