@@ -47,6 +47,11 @@ def create_app() -> Flask:
         status = get_pump_manager().get_status(channel=int(channel))
         return {"data": asdict(status)}
 
+    @app.route("/clear_status/<channel>")
+    def clear_status(channel: str):
+        status = get_pump_manager().clear_status_logs(channel=int(channel))
+        return {"data": ""}
+
     @app.route("/get_status_since/<channel>", methods=["POST", "GET"])
     def get_status_since(channel: str):
         if not request.is_json:

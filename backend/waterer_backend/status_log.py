@@ -5,6 +5,7 @@
 ###############################################################
 
 import typing as ty
+from abc import ABC, abstractmethod
 from collections import deque
 from threading import Lock
 
@@ -13,7 +14,27 @@ from threading import Lock
 ###############################################################
 
 
-class FloatStatusLog:
+class AbstractStatusLog(ABC):
+    @abstractmethod
+    def clear(self):
+        ...
+
+    @abstractmethod
+    def add_sample(self, new_time: float, new_value) -> None:
+        ...
+
+    @abstractmethod
+    def get_values(
+        self, min_time_s: ty.Optional[float] = None
+    ) -> ty.Tuple[ty.List[float], ty.List[ty.Any]]:
+        ...
+
+    @abstractmethod
+    def get_newest_value(self) -> ty.Tuple[ty.Optional[float], ty.Optional[ty.Any]]:
+        ...
+
+
+class FloatStatusLog(AbstractStatusLog):
 
     """
     Manages a log in which all samples younger than:
@@ -41,6 +62,12 @@ class FloatStatusLog:
             self._low_res_switchover_age_s = low_res_switchover_age_s
             self._low_res_interval_s = low_res_interval_s
             self._low_res_max_age_s = low_res_max_age_s
+
+        self.clear()
+
+    def clear(self) -> None:
+
+        with self._lock:
 
             self._high_res_values = deque()
             self._high_res_times = deque()
@@ -107,7 +134,7 @@ class FloatStatusLog:
             if min_time_s is None:
                 return all_times, all_values
 
-            if len(all_times)==0 or all_times[-1] < min_time_s:
+            if len(all_times) == 0 or all_times[-1] < min_time_s:
                 return [], []
 
             index = len(all_times) - 1
@@ -134,7 +161,7 @@ class FloatStatusLog:
             return self._high_res_times[-1], self._high_res_values[-1]
 
 
-class BinaryStatusLog:
+class BinaryStatusLog(AbstractStatusLog):
     def __init__(self, max_age_s: float = 3600 * 24 * 7) -> None:
 
         self._lock = Lock()
@@ -142,6 +169,10 @@ class BinaryStatusLog:
         with self._lock:
             self._max_age_s = max_age_s
 
+        self.clear()
+
+    def clear(self) -> None:
+        with self._lock:
             self._times: deque[float] = deque()
             self._values: deque[bool] = deque()
 
@@ -181,7 +212,7 @@ class BinaryStatusLog:
             if min_time_s is None:
                 return list(self._times), list(self._values)
 
-            if len(self._times)==0 or self._times[-1] < min_time_s:
+            if len(self._times) == 0 or self._times[-1] < min_time_s:
                 return [], []
 
             index = len(self._times) - 1
@@ -198,7 +229,7 @@ class BinaryStatusLog:
     def get_newest_value(self) -> ty.Tuple[ty.Optional[float], ty.Optional[bool]]:
         """
         Returns:
-            times,  values
+            time,  value
         """
 
         with self._lock:

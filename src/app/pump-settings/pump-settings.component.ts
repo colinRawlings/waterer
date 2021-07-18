@@ -13,7 +13,7 @@ interface keyable {
   styleUrls: ['./pump-settings.component.css']
 })
 export class PumpSettingsComponent implements OnInit {
-  
+
   @Input()
   channel: number;
 
@@ -32,8 +32,6 @@ export class PumpSettingsComponent implements OnInit {
       (error: keyable) => {
         this.notifierService.notify('error', `getSettings Error:  ${error.message}`);
       }
-
-
     )
 
     this.statusService.statuses$[this.channel].subscribe((data: keyable) => {
@@ -41,12 +39,12 @@ export class PumpSettingsComponent implements OnInit {
     });
   }
 
-  onTakeCurrentHumidityAsDry(): void{
+  onTakeCurrentHumidityAsDry(): void {
     this.settings.dry_humidity_V = this.status.rel_humidity_V;
     this.onSettingsChange();
   }
 
-  onTakeCurrentHumidityAsWet(): void{
+  onTakeCurrentHumidityAsWet(): void {
     this.settings.wet_humidity_V = this.status.rel_humidity_V;
     this.onSettingsChange();
   }

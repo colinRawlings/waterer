@@ -1,18 +1,26 @@
 <div class="app-pump">
   <mat-card>
+    <mat-card-title>History: {{ name }}</mat-card-title>
+    <mat-card
+      fxLayout
+      fxLayout="row"
+      fxLayoutGap="10px"
+      fxLayoutAlign="space-around"
+      fxLayout.xs="column"
+    >
+        <mat-slide-toggle
+          [(ngModel)]="display_voltage"
+          color="primary"
+          (change)="onDisplayVoltageChange()"
+        >
+          Display Voltage
+        </mat-slide-toggle>
+        <button mat-stroked-button (click)="onClearHistory()">
+          Clear
+        </button>
+    </mat-card>
     <mat-card>
-      <mat-card-title>Graph</mat-card-title>
       <mat-card-content>
-        <p>
-          <mat-slide-toggle
-            [(ngModel)]="display_voltage"
-            color="primary"
-            (change)="onDisplayVoltageChange()"
-          >
-            Display Voltage
-          </mat-slide-toggle>
-          <br />
-        </p>
         <plotly-plot
           [data]="graph.data"
           [layout]="graph.layout"
@@ -36,7 +44,7 @@
       <app-manual-pump-controls
         fxLayout="row"
         fxLayoutGap="10px"
-        fxLayout.xs="column"
+        fxLayout.s="column"
         [channel]="channel"
       ></app-manual-pump-controls>
     </mat-expansion-panel>

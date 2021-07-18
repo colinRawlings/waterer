@@ -49,6 +49,12 @@ export class PumpStatusService {
     );
   }
 
+  clearStatusHistory(channel: number): Observable<keyable> {
+    return this.http.get(
+      `${this.constantsService.kBackendURL}clear_status/${channel}`
+    );
+  }
+
   getStatusHistory(
     channel: number,
     earliest_time: number
@@ -86,9 +92,6 @@ export class PumpStatusService {
   getStatusStream(channel: number) {
     return interval(5000).pipe(
       map((index: number) => {
-        // return this.http.get(
-        //   `${this.constantsService.kBackendURL}status/${channel}`
-        // );
 
         const earliest_time = this.lastUpdateTime[channel];
         this.lastUpdateTime[channel] = Date.now() * 0.001;

@@ -28,6 +28,10 @@
                 "feedback_setpoint_pcnt": {
                     "title": "Feedback Setpoint Pcnt",
                     "type": "number"
+                },
+                "name": {
+                    "title": "name",
+                    "type": "string"
                 }
             }
         },

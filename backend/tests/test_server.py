@@ -140,6 +140,25 @@ def test_status_history(server_client: FlaskClient):
         >= status_history.rel_humidity_V_epoch_time[-1]
     )
 
+    # Clear
+
+    response = server_client.get(
+        "/clear_status/2",
+    )
+
+    assert response.status_code == 200
+
+    response = server_client.get("/get_status_since/2", json=dict(earliest_time=None))
+    assert response.status_code == 200
+
+    status_history = SmartPumpStatusHistory(
+        **json.loads(response.data.decode())["data"]
+    )
+
+    assert (
+        len(status_history.rel_humidity_V_epoch_time) <= 1
+    )  # perhaps one sample added
+
 
 def test_set_settings(server_client: FlaskClient):
     response = server_client.get("/settings/2")

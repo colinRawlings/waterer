@@ -12,6 +12,10 @@ interface keyable {
 })
 export class PumpSettingsService {
 
+  // TODO follow the pattern in the status service to have
+  // subscriptions to subjects not observables so that new
+  // values can be pushed to components ... 
+
   constructor(private http: HttpClient, private constantsService: ConstantsService) {}
 
   getSettings(channel: number): Observable<keyable> {
