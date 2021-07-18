@@ -19,6 +19,7 @@ void CAnalogueInput::Update() {
   if (m_AveragingTimeConstant_samples <= 1.0f || m_FirstSample) {
     m_AveragedVoltage = _GetVoltage();
     m_FirstSample = false;
+    return;
   }
 
   float alpha = 1.0f / m_AveragingTimeConstant_samples;
@@ -31,7 +32,7 @@ float CAnalogueInput::_GetVoltage() {
 
 float CAnalogueInput::GetVoltage() {
   if (m_FirstSample) {
-    return _GetVoltage();
+    Update();
   }
 
   return m_AveragedVoltage;
