@@ -224,6 +224,11 @@ class SmartPump(Thread):
                 rel_humidity_V, rel_humidity_pcnt, pump_status, status_time
             )
 
+    def clear_status_logs(self):
+        self._rel_humidity_pcnt_log.clear()
+        self._rel_humidity_V_log.clear()
+        self._pump_status_log.clear()
+
     def get_status_since(
         self, earliest_epoch_time_s: ty.Optional[float]
     ) -> SmartPumpStatusHistory:

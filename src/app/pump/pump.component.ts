@@ -143,6 +143,21 @@ export class PumpComponent implements OnInit {
     return dates;
   }
 
+  onClearHistory(): void{
+    this.statusService.clearStatusHistory(this.channel).subscribe(
+      (data: keyable) => {
+        this.notifierService.notify(
+          'success',
+          `Cleared history for channel ${this.channel}`
+        );
+        this.onResetGraph();
+      },
+      (error: keyable) => {
+        this.notifierService.notify('error', `Clear History Error:  ${error.message}`);
+      }
+    );
+  }
+
   onResetGraph(): void {
     this.rel_humidity_V = [];
     this.rel_humidity_V_epoch_time = [];

@@ -49,6 +49,12 @@ export class PumpStatusService {
     );
   }
 
+  clearStatusHistory(channel: number): Observable<keyable> {
+    return this.http.get(
+      `${this.constantsService.kBackendURL}clear_status/${channel}`
+    );
+  }
+
   getStatusHistory(
     channel: number,
     earliest_time: number

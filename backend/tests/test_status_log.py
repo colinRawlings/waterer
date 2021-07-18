@@ -24,6 +24,12 @@ def test_get_all_float_log_times():
     log_times, log_values = log.get_values()
     assert (log_times[1] - log_times[0]) - low_res_interval_s <= 1
 
+    # test clear
+
+    log.clear()
+    log_times, log_values = log.get_values()
+    assert len(log_times) == 0
+
 
 def test_get_new_float_log_times():
 
@@ -60,6 +66,27 @@ def test_get_all_binary_log_times_all_false():
     all_times, all_values = log.get_values()
 
     assert len(all_times) == 3
+
+
+def test_clear_all_binary_log_times():
+
+    log = BinaryStatusLog()
+
+    for p, val in enumerate([False, False, False, False, False]):
+        log.add_sample(p, val)
+        print(log.get_values()[0])
+
+    all_times, all_values = log.get_values()
+
+    assert len(all_times) == 3
+
+    #
+
+    log.clear()
+
+    all_times, all_values = log.get_values()
+
+    assert len(all_times) == 0
 
 
 def test_get_all_binary_log_times_one_true():

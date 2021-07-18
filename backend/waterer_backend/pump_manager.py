@@ -118,6 +118,10 @@ class PumpManager:
         self._check_channel(channel)
         return self._pumps[channel].status
 
+    def clear_status_logs(self, channel: int) -> None:
+        self._check_channel(channel)
+        return self._pumps[channel].clear_status_logs()
+
     def get_status_since(
         self, channel: int, earliest_epoch_time_s: Optional[float]
     ) -> sp.SmartPumpStatusHistory:
