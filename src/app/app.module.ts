@@ -8,6 +8,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatTabsModule } from '@angular/material/tabs';
+import { MatSliderModule } from '@angular/material/slider'
 import { MatGridListModule } from '@angular/material/grid-list';
 import {MatListModule} from '@angular/material/list';
 import {MatIconModule} from '@angular/material/icon';
@@ -41,6 +42,7 @@ PlotlyModule.plotlyjs = PlotlyJS;
     MatTabsModule,
     MatCardModule,
     MatIconModule,
+    MatSliderModule,
     MatGridListModule,
     MatExpansionModule,
     BrowserAnimationsModule,

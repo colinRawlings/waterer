@@ -5,20 +5,15 @@
   fxLayoutAlign="space-around"
   fxLayout.xs="column"
 >
-
-<mat-card fxLayout fxLayout="column">
-  <mat-card-title>Connection  {{channel}}</mat-card-title>
-  <div>
-    <mat-form-field (change)="onSettingsChange()" class="example-form-field">
-      <mat-label>Name</mat-label>
-      <input
-        matInput
-        type="string"
-        [(ngModel)]="settings.name"
-      />
-    </mat-form-field>
-  </div>
-</mat-card>
+  <mat-card fxLayout fxLayout="column">
+    <mat-card-title>Connection {{ channel }}</mat-card-title>
+    <div>
+      <mat-form-field (change)="onSettingsChange()" class="example-form-field">
+        <mat-label>Name</mat-label>
+        <input matInput type="string" [(ngModel)]="settings.name" />
+      </mat-form-field>
+    </div>
+  </mat-card>
   <mat-card fxLayout fxLayout="column">
     <mat-card-title>Feedback</mat-card-title>
     <div>
@@ -31,6 +26,13 @@
       </mat-slide-toggle>
     </div>
     <div>
+      <mat-slider
+        (change)="onSettingsChange()"
+        min="0"
+        max="100"
+        step="0.5"
+        [(ngModel)]="settings.feedback_setpoint_pcnt"
+      ></mat-slider>
       <mat-form-field (change)="onSettingsChange()" class="example-form-field">
         <mat-label>Target Humidity (%)</mat-label>
         <input

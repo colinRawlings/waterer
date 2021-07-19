@@ -25,14 +25,13 @@ export class PumpSettingsComponent implements OnInit {
   private status: keyable;
 
   ngOnInit(): void {
-    this.settingsService.getSettings(this.channel).subscribe(
+    this.settingsService.allSettings$[this.channel].subscribe(
       (data: keyable) => {
         this.settings = data.data;
-      },
-      (error: keyable) => {
-        this.notifierService.notify('error', `getSettings Error:  ${error.message}`);
       }
     )
+
+    this.settingsService.updateSettings(this.channel);
 
     this.statusService.statuses$[this.channel].subscribe((data: keyable) => {
       this.status = data.data;
@@ -53,10 +52,11 @@ export class PumpSettingsComponent implements OnInit {
     this.settingsService.setSettings(this.channel, this.settings).subscribe(
       (data: keyable) => {
         this.settings = data.data;
-        this.notifierService.notify('success', `${this.channel}: Settings updated`)
+        this.notifierService.notify('success', `${this.channel}: Settings updated`);
+        this.settingsService.updateSettings(this.channel);
       },
       (error: keyable) => {
-        this.notifierService.notify('error', `getSettings Error:  ${error.message}`);
+        this.notifierService.notify('error', `setSettings Error:  ${error.message}`);
       }
     )
   }

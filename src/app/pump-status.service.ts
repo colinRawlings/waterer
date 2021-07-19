@@ -3,10 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import {
   interval,
   Observable,
-  Observer,
   Subject,
-  Subscription,
-  throwError,
 } from 'rxjs';
 import { NotifierService } from 'angular-notifier';
 import { ConstantsService } from './constants.service';

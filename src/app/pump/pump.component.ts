@@ -32,7 +32,7 @@ export class PumpComponent implements OnInit {
 
   private resetGraphCounter = 0;
   private resetGraphInterval = 1000;
-  public name: string = "";
+  public settings: keyable = {name: "", feedback_setpoint_pcnt: undefined};
 
   private kLayout = {
     autosize: true,
@@ -51,6 +51,7 @@ export class PumpComponent implements OnInit {
     },
     font: { family: 'Roboto, "Helvetica Neue", sans-serif' },
     margin: { t: 50, b: 100, l: 40, r: 40 },
+    shapes: [] as any
   };
 
   private kConfig = {
@@ -66,19 +67,19 @@ export class PumpComponent implements OnInit {
   @Input()
   channel: number;
 
+
   ngOnInit(): void {
     this.statusService.statuses$[this.channel].subscribe((data: keyable) => {
       this.onReceivedStatusData(data);
     });
 
-    this.settingsService.getSettings(this.channel).subscribe(
+    this.settingsService.allSettings$[this.channel].subscribe(
       (data: keyable) => {
-        this.name = data.data.name;
-      },
-      (error: keyable) => {
-        this.notifierService.notify('error', `getSettings Error:  ${error.message}`);
+        this.settings = data.data;
       }
     )
+
+    this.settingsService.updateSettings(this.channel);
   }
 
   status: keyable = {};
@@ -118,13 +119,30 @@ export class PumpComponent implements OnInit {
     data.push({
       x: this.pump_running_epoch_time.slice(),
       y: this.pump_running.slice(),
-      type: 'scatter',
+      type: 'bar',
       yaxis: 'y2',
       name: 'running',
       marker: {
         color: this.kPumpColor,
       },
     });
+
+    let newLayout = this.kLayout;
+    newLayout.shapes = [
+      {
+          type: 'line',
+          xref: 'paper',
+          x0: 0,
+          y0: this.settings.feedback_setpoint_pcnt,
+          x1: 1,
+          y1: this.settings.feedback_setpoint_pcnt,
+          line:{
+              color: 'rgb(100, 100, 200)',
+              width: 4,
+              dash:'dot'
+          }
+      }
+      ]
 
     this.graph = { data: data, layout: this.kLayout, config: this.kConfig };
   }
