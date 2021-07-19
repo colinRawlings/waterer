@@ -136,7 +136,7 @@ ${startup_script}:
 # waterer service
 
 up-status:
-	systemctl status waterer.service
+	journalctl -u waterer.service -b
 
 restart-service:
 	systemctl restart waterer.service

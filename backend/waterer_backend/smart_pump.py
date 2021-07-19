@@ -223,7 +223,7 @@ class SmartPump(Thread):
         self._pump_status_log.add_sample(status_time, pump_status)
         self._rel_humidity_V_log.add_sample(status_time, rel_humidity_V)
         self._rel_humidity_pcnt_log.add_sample(status_time, rel_humidity_pcnt)
-        self._smoothed_rel_humidity_pcnt_log.add_sample(status_time, rel_humidity_pcnt)
+        self._smoothed_rel_humidity_pcnt_log.add_sample(status_time, smoothed_rel_humidity_pcnt)
 
     @property
     def status(self) -> SmartPumpStatus:

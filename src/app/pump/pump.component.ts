@@ -125,7 +125,7 @@ export class PumpComponent implements OnInit {
         x: this.smoothed_rel_humidity_pcnt_epoch_time.slice(),
         y: this.smoothed_rel_humidity_pcnt.slice(),
         type: 'scatter',
-        name: 'humidity',
+        name: 'humidity-smoothed',
         marker: this.kHumidityMarker,
       });
     }
