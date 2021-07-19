@@ -28,13 +28,14 @@ export class PumpComponent implements OnInit {
 
   public display_voltage: boolean;
   private kHumidityColor = 'rgb(0, 0, 200)';
+  private kHumidityColorFeint = 'rgb(210, 210, 230)';
   private kPumpColor = 'rgb(50, 200, 50)';
   private kHumidityMarker = {
     color: this.kHumidityColor,
   };
 
   private kHumidityMarkerFeint = {
-    color: 'rgb(150, 150, 220)',
+    color: this.kHumidityColorFeint,
   };
 
   private resetGraphCounter = 0;
@@ -142,21 +143,24 @@ export class PumpComponent implements OnInit {
     });
 
     let newLayout = this.kLayout;
-    newLayout.shapes = [
-      {
-        type: 'line',
-        xref: 'paper',
-        x0: 0,
-        y0: this.settings.feedback_setpoint_pcnt,
-        x1: 1,
-        y1: this.settings.feedback_setpoint_pcnt,
-        line: {
-          color: 'rgb(100, 100, 200)',
-          width: 4,
-          dash: 'dot'
+
+    if(!this.display_voltage){
+      newLayout.shapes = [
+        {
+          type: 'line',
+          xref: 'paper',
+          x0: 0,
+          y0: this.settings.feedback_setpoint_pcnt,
+          x1: 1,
+          y1: this.settings.feedback_setpoint_pcnt,
+          line: {
+            color: 'rgb(100, 100, 200)',
+            width: 4,
+            dash: 'dot'
+          }
         }
-      }
-    ]
+      ]
+    }
 
     this.graph = { data: data, layout: this.kLayout, config: this.kConfig };
   }

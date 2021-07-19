@@ -75,7 +75,7 @@ class FloatStatusLog(AbstractStatusLog):
             self._low_res_values = deque()
             self._low_res_times = deque()
 
-    def add_sample(self, new_time: float, new_value: float) -> None:
+    def add_sample(self, new_time: float, new_value: ty.Optional[float]) -> None:
 
         with self._lock:
 

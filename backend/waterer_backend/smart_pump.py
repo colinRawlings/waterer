@@ -73,7 +73,7 @@ class SmartPumpSettings:
 class SmartPumpStatus:
     rel_humidity_V: float
     rel_humidity_pcnt: float
-    smoothed_rel_humidity_pcnt: float
+    smoothed_rel_humidity_pcnt: ty.Optional[float]
     pump_running: bool
     epoch_time: float
 
@@ -154,9 +154,15 @@ class SmartPump(Thread):
             * 100
         )
 
-    def _smoothed_humidity(self, rel_humidity_pcnt: float) -> float:
+    def _smoothed_humidity(self, rel_humidity_pcnt: float) -> ty.Optional[float]:
         alpha = 1.0 / self._settings.num_smoothing_samples
         _, last_value = self._smoothed_rel_humidity_pcnt_log.get_newest_value()
+        _, last_status = self._pump_status_log.get_newest_value()
+
+        if last_status:
+            # value not reliable while pump is running
+            return None
+
         if last_value is None:
             return rel_humidity_pcnt
 
@@ -223,7 +229,9 @@ class SmartPump(Thread):
         self._pump_status_log.add_sample(status_time, pump_status)
         self._rel_humidity_V_log.add_sample(status_time, rel_humidity_V)
         self._rel_humidity_pcnt_log.add_sample(status_time, rel_humidity_pcnt)
-        self._smoothed_rel_humidity_pcnt_log.add_sample(status_time, smoothed_rel_humidity_pcnt)
+        self._smoothed_rel_humidity_pcnt_log.add_sample(
+            status_time, smoothed_rel_humidity_pcnt
+        )
 
     @property
     def status(self) -> SmartPumpStatus:
@@ -246,7 +254,6 @@ class SmartPump(Thread):
                 _,
                 smoothed_rel_humidity_pcnt,
             ) = self._smoothed_rel_humidity_pcnt_log.get_newest_value()
-            assert smoothed_rel_humidity_pcnt is not None
 
             return SmartPumpStatus(
                 rel_humidity_V,
