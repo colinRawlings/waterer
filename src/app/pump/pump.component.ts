@@ -20,6 +20,9 @@ export class PumpComponent implements OnInit {
   public rel_humidity_pcnt: number[] = [];
   public rel_humidity_pcnt_epoch_time: Date[] = [];
 
+  public smoothed_rel_humidity_pcnt: number[] = [];
+  public smoothed_rel_humidity_pcnt_epoch_time: Date[] = [];
+
   public pump_running: number[] = [];
   public pump_running_epoch_time: Date[] = [];
 
@@ -30,9 +33,13 @@ export class PumpComponent implements OnInit {
     color: this.kHumidityColor,
   };
 
+  private kHumidityMarkerFeint = {
+    color: 'rgb(150, 150, 220)',
+  };
+
   private resetGraphCounter = 0;
   private resetGraphInterval = 1000;
-  public settings: keyable = {name: "", feedback_setpoint_pcnt: undefined};
+  public settings: keyable = { name: "", feedback_setpoint_pcnt: undefined };
 
   private kLayout = {
     autosize: true,
@@ -112,6 +119,13 @@ export class PumpComponent implements OnInit {
         y: this.rel_humidity_pcnt.slice(),
         type: 'scatter',
         name: 'humidity',
+        marker: this.kHumidityMarkerFeint,
+      });
+      data.push({
+        x: this.smoothed_rel_humidity_pcnt_epoch_time.slice(),
+        y: this.smoothed_rel_humidity_pcnt.slice(),
+        type: 'scatter',
+        name: 'humidity',
         marker: this.kHumidityMarker,
       });
     }
@@ -130,19 +144,19 @@ export class PumpComponent implements OnInit {
     let newLayout = this.kLayout;
     newLayout.shapes = [
       {
-          type: 'line',
-          xref: 'paper',
-          x0: 0,
-          y0: this.settings.feedback_setpoint_pcnt,
-          x1: 1,
-          y1: this.settings.feedback_setpoint_pcnt,
-          line:{
-              color: 'rgb(100, 100, 200)',
-              width: 4,
-              dash:'dot'
-          }
+        type: 'line',
+        xref: 'paper',
+        x0: 0,
+        y0: this.settings.feedback_setpoint_pcnt,
+        x1: 1,
+        y1: this.settings.feedback_setpoint_pcnt,
+        line: {
+          color: 'rgb(100, 100, 200)',
+          width: 4,
+          dash: 'dot'
+        }
       }
-      ]
+    ]
 
     this.graph = { data: data, layout: this.kLayout, config: this.kConfig };
   }
@@ -161,7 +175,7 @@ export class PumpComponent implements OnInit {
     return dates;
   }
 
-  onClearHistory(): void{
+  onClearHistory(): void {
     this.statusService.clearStatusHistory(this.channel).subscribe(
       (data: keyable) => {
         this.notifierService.notify(
@@ -182,6 +196,9 @@ export class PumpComponent implements OnInit {
 
     this.rel_humidity_pcnt = [];
     this.rel_humidity_pcnt_epoch_time = [];
+
+    this.smoothed_rel_humidity_pcnt = [];
+    this.smoothed_rel_humidity_pcnt_epoch_time = [];
 
     this.pump_running = [];
     this.pump_running_epoch_time = [];
@@ -211,6 +228,14 @@ export class PumpComponent implements OnInit {
       this.rel_humidity_pcnt_epoch_time.concat(
         this.castEpochTimesToDates(data.data.rel_humidity_pcnt_epoch_time)
       );
+
+      this.smoothed_rel_humidity_pcnt = this.smoothed_rel_humidity_pcnt.concat(
+        data.data.smoothed_rel_humidity_pcnt
+      );
+      this.smoothed_rel_humidity_pcnt_epoch_time =
+        this.smoothed_rel_humidity_pcnt_epoch_time.concat(
+          this.castEpochTimesToDates(data.data.smoothed_rel_humidity_pcnt_epoch_time)
+        );
 
     const lastIndex = this.pump_running.length - 1;
 

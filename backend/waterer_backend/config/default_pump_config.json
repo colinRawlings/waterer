@@ -8,7 +8,8 @@
             "pump_update_time_s": 600,
             "feedback_active": false,
             "feedback_setpoint_pcnt": 50,
-            "name": "pump 0"
+            "name": "pump 0",
+            "num_smoothing_samples": 10
         }
     },
     {
@@ -20,7 +21,8 @@
             "pump_update_time_s": 600,
             "feedback_active": false,
             "feedback_setpoint_pcnt": 50,
-            "name": "pump 1"
+            "name": "pump 1",
+            "num_smoothing_samples": 10
         }
     },
     {
@@ -32,7 +34,8 @@
             "pump_update_time_s": 600,
             "feedback_active": false,
             "feedback_setpoint_pcnt": 50,
-            "name": "pump 2"
+            "name": "pump 2",
+            "num_smoothing_samples":  10
         }
     }
 ]
