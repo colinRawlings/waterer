@@ -144,7 +144,8 @@ export class PumpComponent implements OnInit {
 
     let newLayout = this.kLayout;
 
-    if(!this.display_voltage){
+    if (this.display_voltage) { newLayout.shapes = [] }
+    else {
       newLayout.shapes = [
         {
           type: 'line',
@@ -233,13 +234,13 @@ export class PumpComponent implements OnInit {
         this.castEpochTimesToDates(data.data.rel_humidity_pcnt_epoch_time)
       );
 
-      this.smoothed_rel_humidity_pcnt = this.smoothed_rel_humidity_pcnt.concat(
-        data.data.smoothed_rel_humidity_pcnt
+    this.smoothed_rel_humidity_pcnt = this.smoothed_rel_humidity_pcnt.concat(
+      data.data.smoothed_rel_humidity_pcnt
+    );
+    this.smoothed_rel_humidity_pcnt_epoch_time =
+      this.smoothed_rel_humidity_pcnt_epoch_time.concat(
+        this.castEpochTimesToDates(data.data.smoothed_rel_humidity_pcnt_epoch_time)
       );
-      this.smoothed_rel_humidity_pcnt_epoch_time =
-        this.smoothed_rel_humidity_pcnt_epoch_time.concat(
-          this.castEpochTimesToDates(data.data.smoothed_rel_humidity_pcnt_epoch_time)
-        );
 
     const lastIndex = this.pump_running.length - 1;
 
