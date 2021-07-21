@@ -162,7 +162,7 @@ export class PumpComponent implements OnInit {
       ]
     }
 
-    this.graph = { data: data, layout: this.kLayout, config: this.kConfig };
+    this.graph = { data: data, layout: newLayout, config: this.kConfig };
   }
 
   onDisplayVoltageChange(): void {
