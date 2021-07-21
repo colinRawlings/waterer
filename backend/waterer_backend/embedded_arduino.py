@@ -59,15 +59,15 @@ class EmbeddedArduino:
 
         return f"Device on port: {self._port}"
 
-    def _scan_for_ports(self) -> int:
+    def _scan_for_ports(self) -> str:
 
         arduino_ports = [
             p.device
             for p in serial.tools.list_ports.comports()
             if (
                 (ARDUINO_DESCRIPTION in str(p.description))
-                or (p.description.startswith("ttyACM"))
-            )  # type: ignore
+                or (p.description.startswith("ttyACM"))  # type: ignore
+            )
         ]
         if not arduino_ports:
             raise IOError("No Arduino found")
@@ -132,8 +132,12 @@ class EmbeddedArduino:
 
             _LOGGER.info("Closed device")
 
-    def send_str(self, request_str) -> str:
-        """Low level method useful for testing"""
+    def send_str(self, request_str) -> ty.Tuple[str, str]:
+        """
+        Low level method useful for testing
+
+        returns response_str, tx_info
+        """
 
         with self._lock:
 
@@ -151,18 +155,21 @@ class EmbeddedArduino:
 
             response_str = self._device.readline().decode()
 
-            _LOGGER.debug(f"{self._tx_idx} <{request_str}>: {response_str}")
+            tx_info = f"{self._tx_idx} <{request_str}>: {response_str}"
+            _LOGGER.debug(tx_info)
             self._tx_idx += 1
 
-            return response_str
+            return response_str, tx_info
 
     def make_request(self, request: Request) -> Response:
 
-        response_str = self.send_str(request_str=request.serialize())
+        response_str, tx_info = self.send_str(request_str=request.serialize())
 
         response = Response.create(response_str=response_str)
 
         if not response.id == request.id:
-            raise RuntimeError("Request/Reponse id's do not match")
+            raise RuntimeError(
+                f"Request ({request.id})/Reponse ({response.id}) id's do not match\n{tx_info}"
+            )
 
         return response

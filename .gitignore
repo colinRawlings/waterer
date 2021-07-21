@@ -51,3 +51,4 @@ launch.sh
 .DS_Store
 Thumbs.db
 src/env.js
+waterer_log

@@ -10,14 +10,13 @@ from waterer_backend.config import get_pumps_config
 from waterer_backend.pump_manager import PumpManagerContext
 from waterer_backend.server import create_app
 
-logging.basicConfig(level=logging.INFO)
-
 ###############################################################
 # Main
 ###############################################################
 
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO)
 
     pumps_config = get_pumps_config()
     app = create_app()

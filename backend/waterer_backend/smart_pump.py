@@ -5,6 +5,7 @@
 ###############################################################
 
 import logging
+import traceback as tb
 import typing as ty
 from dataclasses import asdict, dataclass
 from threading import Event, Lock, Thread
@@ -309,6 +310,36 @@ class SmartPump(Thread):
         self._abort_running = True
         self._sleep_event.set()
 
+    def _make_request_safe(
+        self, request: Request
+    ) -> ty.Tuple[bool, ty.Optional[Response]]:
+        """Catch exceptions during request
+
+        Args:
+            request (Request): [description]
+
+        Returns:
+            bool: ok
+        """
+
+        task_desc = f"{request.instruction} on channel {self.channel}"
+
+        assert self._device is not None
+
+        try:
+            response = self._device.make_request(request)
+        except Exception as e:
+            _LOGGER.error(
+                f"Encountered exception {e} at {tb.format_exc()} \nwhile trying: {task_desc}"
+            )
+            return False, None
+
+        if not response.success:
+            _LOGGER.warning(f"Failed to: {task_desc}")
+            return False, None
+
+        return True, response
+
     def run(self):
 
         if self._device is None:
@@ -329,19 +360,17 @@ class SmartPump(Thread):
                 ):
                     self._last_feedback_update_time_s = time()
 
-                    response = self._device.make_request(
-                        Request(
-                            channel=self.channel,
-                            instruction="get_voltage",
-                            data=0,
-                        )
+                    voltage_request = Request(
+                        channel=self.channel,
+                        instruction="get_voltage",
+                        data=0,
                     )
 
-                    if not response.success:
-                        _LOGGER.warning(
-                            f"Failed to get humidity for feedback: {response.message}"
-                        )
+                    ok, response = self._make_request_safe(voltage_request)
+                    if not ok:
                         continue
+
+                    assert response is not None
 
                     rel_humidity_pcnt = self._pcnt_from_V_humidity(response.data)
 
@@ -354,18 +383,14 @@ class SmartPump(Thread):
                             f"Activating pump for {self._settings.pump_on_time_s} s"
                         )
 
-                        response = self._device.make_request(
-                            Request(
-                                channel=self.channel,
-                                instruction="turn_on",
-                                data=self._settings.pump_on_time_s,
-                            )
-                        )
+                    turn_on_request = Request(
+                        channel=self.channel,
+                        instruction="turn_on",
+                        data=self._settings.pump_on_time_s,
+                    )
 
-                        if not response.success:
-                            _LOGGER.warning(
-                                f"Failed to activate pump: {response.message}"
-                            )
-                            continue
+                    ok, response = self._make_request_safe(turn_on_request)
+                    if not ok:
+                        continue
 
         _LOGGER.info(f"Smart pump for channel: {self._channel} finished")
