@@ -199,30 +199,35 @@ class SmartPump(Thread):
         )
         self._check_response("turn_off", response)
 
-    def _update_status(self) -> None:
+    def _update_status(self) -> bool:
 
         if self._device is None:
             _LOGGER.warning("No device connected")
-            return
+            return False
 
         _LOGGER.debug(f"Collecting status of pump: {self._channel}")
 
-        response = self._device.make_request(
+        ok, response = self._make_request_safe(
             Request(channel=self.channel, instruction="get_voltage", data=0)
         )
-        self._check_response("get_humidity", response)
+        if not ok:
+            return False
+
+        assert response is not None
 
         rel_humidity_V = response.data
         rel_humidity_pcnt = self._pcnt_from_V_humidity(rel_humidity_V)
         smoothed_rel_humidity_pcnt = self._smoothed_humidity(rel_humidity_pcnt)
 
-        response = self._device.make_request(
+        ok, response = self._make_request_safe(
             Request(channel=self.channel, instruction="get_state", data=0)
         )
-        self._check_response("get_pump_state", response)
+        if not ok:
+            return False
+
+        assert response is not None
 
         pump_status = bool(response.data)
-
         status_time = time()
 
         # log
@@ -233,6 +238,8 @@ class SmartPump(Thread):
         self._smoothed_rel_humidity_pcnt_log.add_sample(
             status_time, smoothed_rel_humidity_pcnt
         )
+
+        return True
 
     @property
     def status(self) -> SmartPumpStatus:
@@ -335,7 +342,7 @@ class SmartPump(Thread):
             return False, None
 
         if not response.success:
-            _LOGGER.warning(f"Failed to: {task_desc}")
+            _LOGGER.error(f"Failed to: {task_desc}")
             return False, None
 
         return True, response
@@ -350,7 +357,9 @@ class SmartPump(Thread):
 
             self._sleep_event.clear()
             self._sleep_event.wait(timeout=self._status_update_interval_s)
-            self._update_status()
+            ok = self._update_status()
+            if not ok:
+                continue
 
             with self._settings_lock:
                 wait_time_s = self._settings.pump_update_time_s

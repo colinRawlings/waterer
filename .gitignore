@@ -52,3 +52,4 @@ launch.sh
 Thumbs.db
 src/env.js
 waterer_log
+waterer_log_v2.log
