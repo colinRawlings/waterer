@@ -122,8 +122,7 @@ class SmartPump(Thread):
         self._status_update_interval_s = status_update_interval_s
 
         self._rel_humidity_V_log = FloatStatusLog()
-        self._rel_humidity_pcnt_log = FloatStatusLog()
-        self._smoothed_rel_humidity_pcnt_log = FloatStatusLog()
+        self._smoothed_rel_humidity_V_log = FloatStatusLog()
         self._pump_status_log = BinaryStatusLog()
 
         self._last_feedback_update_time_s = time()
@@ -148,16 +147,30 @@ class SmartPump(Thread):
         if not response.success:
             raise RuntimeError(f"Failed to {desc}: {response.message}")
 
-    def _pcnt_from_V_humidity(self, rel_humidity_V: float) -> float:
-        return (
-            (self._settings.dry_humidity_V - rel_humidity_V)
-            / (self._settings.dry_humidity_V - self._settings.wet_humidity_V)
-            * 100
-        )
+    def _pcnt_from_V_humidity(
+        self, rel_humidity_V: ty.Union[None, float, ty.List[float]]
+    ) -> ty.Union[None, float, ty.List[float]]:
 
-    def _smoothed_humidity(self, rel_humidity_pcnt: float) -> ty.Optional[float]:
+        if rel_humidity_V is None:
+            return None
+
+        if isinstance(rel_humidity_V, list):
+            return (
+                (self._settings.dry_humidity_V - np.asarray(rel_humidity_V))
+                / (self._settings.dry_humidity_V - self._settings.wet_humidity_V)
+                * 100
+            ).tolist()
+
+        else:
+            return (
+                (self._settings.dry_humidity_V - rel_humidity_V)
+                / (self._settings.dry_humidity_V - self._settings.wet_humidity_V)
+                * 100
+            )
+
+    def _smoothed_humidity(self, rel_humidity_V: float) -> ty.Optional[float]:
         alpha = 1.0 / self._settings.num_smoothing_samples
-        _, last_value = self._smoothed_rel_humidity_pcnt_log.get_newest_value()
+        _, last_value = self._smoothed_rel_humidity_V_log.get_newest_value()
         _, last_status = self._pump_status_log.get_newest_value()
 
         if last_status:
@@ -165,9 +178,9 @@ class SmartPump(Thread):
             return None
 
         if last_value is None:
-            return rel_humidity_pcnt
+            return rel_humidity_V
 
-        return alpha * rel_humidity_pcnt + (1 - alpha) * last_value
+        return alpha * rel_humidity_V + (1 - alpha) * last_value
 
     def turn_on(self):
 
@@ -217,7 +230,7 @@ class SmartPump(Thread):
 
         rel_humidity_V = response.data
         rel_humidity_pcnt = self._pcnt_from_V_humidity(rel_humidity_V)
-        smoothed_rel_humidity_pcnt = self._smoothed_humidity(rel_humidity_pcnt)
+        smoothed_rel_humidity_V = self._smoothed_humidity(rel_humidity_V)
 
         ok, response = self._make_request_safe(
             Request(channel=self.channel, instruction="get_state", data=0)
@@ -234,9 +247,8 @@ class SmartPump(Thread):
 
         self._pump_status_log.add_sample(status_time, pump_status)
         self._rel_humidity_V_log.add_sample(status_time, rel_humidity_V)
-        self._rel_humidity_pcnt_log.add_sample(status_time, rel_humidity_pcnt)
-        self._smoothed_rel_humidity_pcnt_log.add_sample(
-            status_time, smoothed_rel_humidity_pcnt
+        self._smoothed_rel_humidity_V_log.add_sample(
+            status_time, smoothed_rel_humidity_V
         )
 
         return True
@@ -255,13 +267,18 @@ class SmartPump(Thread):
             _, rel_humidity_V = self._rel_humidity_V_log.get_newest_value()
             assert rel_humidity_V is not None
 
-            _, rel_humidity_pcnt = self._rel_humidity_pcnt_log.get_newest_value()
-            assert rel_humidity_pcnt is not None
+            rel_humidity_pcnt = self._pcnt_from_V_humidity(rel_humidity_V)
+            assert isinstance(rel_humidity_pcnt, float)
 
             (
                 _,
-                smoothed_rel_humidity_pcnt,
-            ) = self._smoothed_rel_humidity_pcnt_log.get_newest_value()
+                smoothed_rel_humidity_V,
+            ) = self._smoothed_rel_humidity_V_log.get_newest_value()
+
+            smoothed_rel_humidity_pcnt = self._pcnt_from_V_humidity(
+                smoothed_rel_humidity_V
+            )
+            assert isinstance(smoothed_rel_humidity_pcnt, float)
 
             return SmartPumpStatus(
                 rel_humidity_V,
@@ -273,8 +290,7 @@ class SmartPump(Thread):
 
     def clear_status_logs(self):
         self._rel_humidity_V_log.clear()
-        self._rel_humidity_pcnt_log.clear()
-        self._smoothed_rel_humidity_pcnt_log.clear()
+        self._smoothed_rel_humidity_V_log.clear()
         self._pump_status_log.clear()
 
     def get_status_since(
@@ -286,15 +302,17 @@ class SmartPump(Thread):
         rel_humidity_V_epoch_time, rel_humidity_V = self._rel_humidity_V_log.get_values(
             earliest_epoch_time_s
         )
-        (
-            rel_humidity_pcnt_epoch_time,
-            rel_humidity_pcnt,
-        ) = self._rel_humidity_pcnt_log.get_values(earliest_epoch_time_s)
+
+        rel_humidity_pcnt = self._pcnt_from_V_humidity(rel_humidity_V)
+        assert isinstance(rel_humidity_pcnt, list)
 
         (
-            smoothed_rel_humidity_pcnt_epoch_time,
-            smoothed_rel_humidity_pcnt,
-        ) = self._smoothed_rel_humidity_pcnt_log.get_values(earliest_epoch_time_s)
+            smoothed_rel_humidity_V_epoch_time,
+            smoothed_rel_humidity_V,
+        ) = self._smoothed_rel_humidity_V_log.get_values(earliest_epoch_time_s)
+
+        smoothed_rel_humidity_pcnt = self._pcnt_from_V_humidity(smoothed_rel_humidity_V)
+        assert isinstance(smoothed_rel_humidity_pcnt, list)
 
         pump_running_epoch_time, pump_running = self._pump_status_log.get_values(
             earliest_epoch_time_s
@@ -304,9 +322,9 @@ class SmartPump(Thread):
             rel_humidity_V=rel_humidity_V,
             rel_humidity_V_epoch_time=rel_humidity_V_epoch_time,
             rel_humidity_pcnt=rel_humidity_pcnt,
-            rel_humidity_pcnt_epoch_time=rel_humidity_pcnt_epoch_time,
+            rel_humidity_pcnt_epoch_time=rel_humidity_V_epoch_time,
             smoothed_rel_humidity_pcnt=smoothed_rel_humidity_pcnt,
-            smoothed_rel_humidity_pcnt_epoch_time=smoothed_rel_humidity_pcnt_epoch_time,
+            smoothed_rel_humidity_pcnt_epoch_time=smoothed_rel_humidity_V_epoch_time,
             pump_running_epoch_time=pump_running_epoch_time,
             pump_running=pump_running,
         )
@@ -382,6 +400,7 @@ class SmartPump(Thread):
                     assert response is not None
 
                     rel_humidity_pcnt = self._pcnt_from_V_humidity(response.data)
+                    assert isinstance(rel_humidity_pcnt, float)
 
                     _LOGGER.info(
                         f"Measured relative humidity of {rel_humidity_pcnt} % (set point: {self._settings.feedback_setpoint_pcnt} %)"
