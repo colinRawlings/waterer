@@ -138,9 +138,13 @@ ${startup_script}:
 	chmod u+x ${startup_script}
 
 # waterer service
+.PHONY: waterer-shell restart-service up-status
 
 up-status:
 	journalctl -u waterer.service -b -e
 
 restart-service:
 	systemctl restart waterer.service
+
+waterer-shell:
+	ssh $(SERVER_USER)@$(SERVER_IP)
