@@ -1,3 +1,7 @@
   <button mat-stroked-button (click)="onTurnOn()">Turn On</button>
+  <mat-form-field class="example-form-field">
+    <mat-label>On Duration (s)</mat-label>
+    <input matInput type="number" [(ngModel)]="onDuration_s" />
+  </mat-form-field>
   <button mat-stroked-button (click)="onTurnOff()">Turn Off</button>
   <button mat-stroked-button (click)="onGetStatus()">Status</button>

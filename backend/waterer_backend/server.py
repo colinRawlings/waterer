@@ -37,6 +37,16 @@ def create_app() -> Flask:
         get_pump_manager().turn_on(channel=int(channel))
         return {"data": ""}
 
+    @app.route("/turn_on_for/<channel>", methods=["POST", "GET"])
+    def turn_on_for(channel: str):
+        if not request.is_json:
+            raise RuntimeError("Settings should be provided as json")
+
+        duration_s = int(request.json["duration_s"])  # type: ignore
+
+        get_pump_manager().turn_on(channel=int(channel), duration_s=duration_s)
+        return {"data": ""}
+
     @app.route("/turn_off/<channel>")
     def turn_off(channel: str):
         get_pump_manager().turn_off(channel=int(channel))

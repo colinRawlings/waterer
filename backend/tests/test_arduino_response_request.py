@@ -89,7 +89,7 @@ def test_bad_channel(arduino_fxt: ae.EmbeddedArduino):
 
 def test_bad_json(arduino_fxt: ae.EmbeddedArduino):
 
-    response_str, _ = arduino_fxt.send_str('{"channel": 1')
+    response_str = arduino_fxt.send_str('{"channel": 1')
 
     response = Response.create(response_str)
 
@@ -99,7 +99,7 @@ def test_bad_json(arduino_fxt: ae.EmbeddedArduino):
 
 def test_incomplete_request(arduino_fxt: ae.EmbeddedArduino):
 
-    response_str, _ = arduino_fxt.send_str('{"channel": 1, "data": 100, "id": 9860}')
+    response_str = arduino_fxt.send_str('{"channel": 1, "data": 100, "id": 9860}')
 
     response = Response.create(response_str)
 
@@ -109,7 +109,7 @@ def test_incomplete_request(arduino_fxt: ae.EmbeddedArduino):
 
 def test_bad_instruction(arduino_fxt: ae.EmbeddedArduino):
 
-    response_str, _ = arduino_fxt.send_str(
+    response_str = arduino_fxt.send_str(
         '{"channel": 1, "instruction": "foo", "data": 100, "id": 9860}'
     )
 

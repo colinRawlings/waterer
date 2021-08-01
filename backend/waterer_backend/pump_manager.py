@@ -91,9 +91,9 @@ class PumpManager:
                 f"Channel ({channel}) cannot be greater than {self._num_pumps}"
             )
 
-    def turn_on(self, channel: int) -> None:
+    def turn_on(self, channel: int, duration_s: int = 0) -> None:
         self._check_channel(channel)
-        self._pumps[channel].turn_on()
+        self._pumps[channel].turn_on(duration_s=duration_s)
 
     def turn_off(self, channel: int) -> None:
         self._check_channel(channel)

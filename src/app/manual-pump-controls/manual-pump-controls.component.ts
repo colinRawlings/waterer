@@ -18,6 +18,8 @@ export class ManualPumpControlsComponent implements OnInit {
   @Input()
   channel: number;
 
+  public onDuration_s: number = 10;
+
   ngOnInit(): void {}
 
   constructor(
@@ -28,7 +30,7 @@ export class ManualPumpControlsComponent implements OnInit {
   ) {}
 
   onTurnOn(): void {
-    this.http.get(`${this.constantsService.kBackendURL}turn_on/${this.channel}`).subscribe(
+    this.http.post(`${this.constantsService.kBackendURL}turn_on_for/${this.channel}`, {duration_s: this.onDuration_s}).subscribe(
       (data: keyable) => {
         this.notifierService.notify('success', `Turned on pump ${this.channel}`);
       },

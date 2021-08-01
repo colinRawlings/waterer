@@ -4,7 +4,6 @@ import { PumpStatusService } from '../pump-status.service';
 import { NotifierService } from 'angular-notifier';
 import { PumpSettingsService } from '../pump-settings.service';
 
-
 interface keyable {
   [key: string]: any;
 }
@@ -40,9 +39,10 @@ export class PumpComponent implements OnInit {
 
   private resetGraphCounter = 0;
   private resetGraphInterval = 1000;
-  public settings: keyable = { name: "", feedback_setpoint_pcnt: undefined };
+  public settings: keyable = { name: '', feedback_setpoint_pcnt: undefined };
 
   private kLayout = {
+    showlegend: false,
     autosize: true,
     yaxis: {
       title: 'Humidity',
@@ -59,7 +59,7 @@ export class PumpComponent implements OnInit {
     },
     font: { family: 'Roboto, "Helvetica Neue", sans-serif' },
     margin: { t: 50, b: 100, l: 40, r: 40 },
-    shapes: [] as any
+    shapes: [] as any,
   };
 
   private kConfig = {
@@ -75,7 +75,6 @@ export class PumpComponent implements OnInit {
   @Input()
   channel: number;
 
-
   ngOnInit(): void {
     this.statusService.statuses$[this.channel].subscribe((data: keyable) => {
       this.onReceivedStatusData(data);
@@ -83,23 +82,22 @@ export class PumpComponent implements OnInit {
 
     this.settingsService.allSettings$[this.channel].subscribe(
       (data: keyable) => {
-        this.settings = data.data;
+        this.onResetGraph();
+        this.settings = data.data; 
       }
-    )
+    );
 
     this.settingsService.updateSettings(this.channel);
   }
 
   status: keyable = {};
 
-
   constructor(
     private http: HttpClient,
     private notifierService: NotifierService,
     private statusService: PumpStatusService,
-    private settingsService: PumpSettingsService,
-  ) {
-  }
+    private settingsService: PumpSettingsService
+  ) {}
 
   // Graph
 
@@ -144,8 +142,9 @@ export class PumpComponent implements OnInit {
 
     let newLayout = this.kLayout;
 
-    if (this.display_voltage) { newLayout.shapes = [] }
-    else {
+    if (this.display_voltage) {
+      newLayout.shapes = [];
+    } else {
       newLayout.shapes = [
         {
           type: 'line',
@@ -157,10 +156,10 @@ export class PumpComponent implements OnInit {
           line: {
             color: 'rgb(100, 100, 200)',
             width: 4,
-            dash: 'dot'
-          }
-        }
-      ]
+            dash: 'dot',
+          },
+        },
+      ];
     }
 
     this.graph = { data: data, layout: newLayout, config: this.kConfig };
@@ -190,7 +189,10 @@ export class PumpComponent implements OnInit {
         this.onResetGraph();
       },
       (error: keyable) => {
-        this.notifierService.notify('error', `Clear History Error:  ${error.message}`);
+        this.notifierService.notify(
+          'error',
+          `Clear History Error:  ${error.message}`
+        );
       }
     );
   }
@@ -213,7 +215,6 @@ export class PumpComponent implements OnInit {
   }
 
   onReceivedStatusData(data: keyable): void {
-
     if (this.resetGraphCounter == this.resetGraphInterval) {
       this.onResetGraph();
       return;
@@ -239,13 +240,16 @@ export class PumpComponent implements OnInit {
     );
     this.smoothed_rel_humidity_pcnt_epoch_time =
       this.smoothed_rel_humidity_pcnt_epoch_time.concat(
-        this.castEpochTimesToDates(data.data.smoothed_rel_humidity_pcnt_epoch_time)
+        this.castEpochTimesToDates(
+          data.data.smoothed_rel_humidity_pcnt_epoch_time
+        )
       );
 
     const lastIndex = this.pump_running.length - 1;
 
-    const new_pump_times = this.castEpochTimesToDates(data.data.pump_running_epoch_time);
-
+    const new_pump_times = this.castEpochTimesToDates(
+      data.data.pump_running_epoch_time
+    );
 
     if (
       lastIndex > 2 &&
@@ -254,11 +258,9 @@ export class PumpComponent implements OnInit {
       this.pump_running[lastIndex] == data.data.pump_running[0]
     ) {
       if (data.data.pump_running.length == 1) {
-        this.pump_running_epoch_time[lastIndex] =
-          new_pump_times[0];
+        this.pump_running_epoch_time[lastIndex] = new_pump_times[0];
       } else {
-        this.pump_running_epoch_time[lastIndex] =
-          new_pump_times[0];
+        this.pump_running_epoch_time[lastIndex] = new_pump_times[0];
         this.pump_running = this.pump_running.concat(
           data.data.pump_running.slice(1)
         );
@@ -268,9 +270,8 @@ export class PumpComponent implements OnInit {
       }
     } else {
       this.pump_running = this.pump_running.concat(data.data.pump_running);
-      this.pump_running_epoch_time = this.pump_running_epoch_time.concat(
-        new_pump_times
-      );
+      this.pump_running_epoch_time =
+        this.pump_running_epoch_time.concat(new_pump_times);
     }
 
     this.updateGraph();

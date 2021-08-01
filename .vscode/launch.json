@@ -1,10 +1,19 @@
 {
     "configurations": [
         {
+            "name": "Python: Attach using Process Id",
+            "type": "python",
+            "request": "attach",
+            "processId": "${command:pickProcess}"
+        },
+        {
             "name": "Python: waterer_backend.run_server",
             "type": "python",
             "request": "launch",
-            "module": "waterer_backend.run_server"
+            "module": "waterer_backend.run_server",
+            "env": {
+                "WATERER_FAKE_DATA": "1"
+            }
         },
         {
             "name": "Launch chrome",

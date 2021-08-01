@@ -155,11 +155,20 @@ class SmartPump(Thread):
             return None
 
         if isinstance(rel_humidity_V, list):
-            return (
-                (self._settings.dry_humidity_V - np.asarray(rel_humidity_V))
+
+            arr = np.asarray(rel_humidity_V)
+            none_vals = arr == None
+            arr[none_vals] = 0
+
+            scaled_arr = (
+                (self._settings.dry_humidity_V - arr)
                 / (self._settings.dry_humidity_V - self._settings.wet_humidity_V)
                 * 100
-            ).tolist()
+            )
+
+            scaled_optional_arr = scaled_arr
+            scaled_optional_arr[none_vals] = None
+            return scaled_optional_arr.tolist()
 
         else:
             return (
@@ -182,7 +191,7 @@ class SmartPump(Thread):
 
         return alpha * rel_humidity_V + (1 - alpha) * last_value
 
-    def turn_on(self):
+    def turn_on(self, duration_s: int = 0):
 
         if self._device is None:
             _LOGGER.warning("No device connected")
@@ -192,7 +201,7 @@ class SmartPump(Thread):
             Request(
                 channel=self.channel,
                 instruction="turn_on",
-                data=0,
+                data=duration_s,
             )
         )
         self._check_response("turn_on", response)
@@ -385,7 +394,6 @@ class SmartPump(Thread):
                     self._settings.feedback_active
                     and (time() - self._last_feedback_update_time_s) > wait_time_s
                 ):
-                    self._last_feedback_update_time_s = time()
 
                     voltage_request = Request(
                         channel=self.channel,
@@ -400,11 +408,16 @@ class SmartPump(Thread):
                     assert response is not None
 
                     rel_humidity_pcnt = self._pcnt_from_V_humidity(response.data)
+                    if rel_humidity_pcnt is None:
+                        continue
+
                     assert isinstance(rel_humidity_pcnt, float)
 
                     _LOGGER.info(
                         f"Measured relative humidity of {rel_humidity_pcnt} % (set point: {self._settings.feedback_setpoint_pcnt} %)"
                     )
+
+                    self._last_feedback_update_time_s = time()
 
                     if rel_humidity_pcnt < self._settings.feedback_setpoint_pcnt:
                         _LOGGER.info(
