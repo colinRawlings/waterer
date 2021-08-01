@@ -60,7 +60,7 @@ export class PumpComponent implements OnInit {
     font: { family: 'Roboto, "Helvetica Neue", sans-serif' },
     margin: { t: 50, b: 100, l: 40, r: 40 },
     shapes: [] as any,
-  };
+  } as any;
 
   private kConfig = {
     responsive: false,
@@ -144,6 +144,8 @@ export class PumpComponent implements OnInit {
 
     if (this.display_voltage) {
       newLayout.shapes = [];
+      newLayout.yaxis.autorange = true;
+      newLayout.yaxis.range = undefined;
     } else {
       newLayout.shapes = [
         {
@@ -160,6 +162,8 @@ export class PumpComponent implements OnInit {
           },
         },
       ];
+      newLayout.yaxis.autorange = false;
+      newLayout.yaxis.range = [0, 100];
     }
 
     this.graph = { data: data, layout: newLayout, config: this.kConfig };
@@ -251,28 +255,9 @@ export class PumpComponent implements OnInit {
       data.data.pump_running_epoch_time
     );
 
-    if (
-      lastIndex > 2 &&
-      this.pump_running[lastIndex - 1] == this.pump_running[lastIndex] &&
-      data.data.pump_running.length > 0 &&
-      this.pump_running[lastIndex] == data.data.pump_running[0]
-    ) {
-      if (data.data.pump_running.length == 1) {
-        this.pump_running_epoch_time[lastIndex] = new_pump_times[0];
-      } else {
-        this.pump_running_epoch_time[lastIndex] = new_pump_times[0];
-        this.pump_running = this.pump_running.concat(
-          data.data.pump_running.slice(1)
-        );
-        this.pump_running_epoch_time = this.pump_running_epoch_time.concat(
-          new_pump_times.slice(1)
-        );
-      }
-    } else {
       this.pump_running = this.pump_running.concat(data.data.pump_running);
       this.pump_running_epoch_time =
         this.pump_running_epoch_time.concat(new_pump_times);
-    }
 
     this.updateGraph();
   }

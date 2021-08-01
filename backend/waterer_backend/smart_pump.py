@@ -75,7 +75,7 @@ class SmartPumpStatus:
     rel_humidity_V: float
     rel_humidity_pcnt: float
     smoothed_rel_humidity_pcnt: ty.Optional[float]
-    pump_running: bool
+    pump_running: int
     epoch_time: float
 
 
@@ -90,7 +90,7 @@ class SmartPumpStatusHistory:
     smoothed_rel_humidity_pcnt: ty.List[float]
     smoothed_rel_humidity_pcnt_epoch_time: ty.List[float]
 
-    pump_running: ty.List[bool]
+    pump_running: ty.List[int]
     pump_running_epoch_time: ty.List[float]
 
 

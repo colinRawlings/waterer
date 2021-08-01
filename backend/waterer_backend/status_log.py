@@ -9,6 +9,8 @@ from abc import ABC, abstractmethod
 from collections import deque
 from threading import Lock
 
+import numpy as np
+
 ###############################################################
 # Classes
 ###############################################################
@@ -183,14 +185,14 @@ class BinaryStatusLog(AbstractStatusLog):
             if new_value:  # hold on to all true values
                 self._times.append(new_time)
                 self._values.append(new_value)
-            if len(self._times) <= 2:
+            elif len(self._times) <= 2:
                 self._times.append(new_time)
                 self._values.append(new_value)
-            elif self._values[-1] != new_value:
-                self._times.append(new_time)
-                self._values.append(new_value)
-            else:
+            elif self._values[-1] == new_value and self._values[-2] == new_value:
                 self._times[-1] = new_time
+            else:
+                self._times.append(new_time)
+                self._values.append(new_value)
 
             # clean too-old samples
 
@@ -206,14 +208,17 @@ class BinaryStatusLog(AbstractStatusLog):
 
     def get_values(
         self, min_time_s: ty.Optional[float] = None
-    ) -> ty.Tuple[ty.List[float], ty.List[bool]]:
+    ) -> ty.Tuple[ty.List[float], ty.List[int]]:
         """
         Returns:
             times,  values
         """
         with self._lock:
             if min_time_s is None:
-                return list(self._times), list(self._values)
+                return (
+                    list(self._times),
+                    np.asarray(list(self._values), dtype=np.int_).tolist(),
+                )
 
             if len(self._times) == 0 or self._times[-1] < min_time_s:
                 return [], []
@@ -227,9 +232,12 @@ class BinaryStatusLog(AbstractStatusLog):
 
                 index -= 1
 
-            return list(self._times)[index:], list(self._values)[index:]
+            return (
+                list(self._times)[index:],
+                (np.asarray(self._values, dtype=np.int_)[index:]).tolist(),
+            )
 
-    def get_newest_value(self) -> ty.Tuple[ty.Optional[float], ty.Optional[bool]]:
+    def get_newest_value(self) -> ty.Tuple[ty.Optional[float], ty.Optional[int]]:
         """
         Returns:
             time,  value
@@ -240,4 +248,4 @@ class BinaryStatusLog(AbstractStatusLog):
             if len(self._times) == 0:
                 return None, None
 
-            return self._times[-1], self._values[-1]
+            return self._times[-1], int(self._values[-1])

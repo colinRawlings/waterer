@@ -8,6 +8,7 @@ Wrapper for the arduino implementation of the embedded device
 # Imports
 ###############################################################
 
+import datetime
 import json
 import logging
 import os
@@ -158,7 +159,8 @@ class EmbeddedArduino:
         if request.instruction == "get_voltage":
             response.data = 5 * random()
         elif request.instruction == "get_state":
-            response.data = float(random() > 0.95)
+            a = datetime.datetime.now()
+            response.data = float(a.second < 30)
 
         return response.serialize()
 
