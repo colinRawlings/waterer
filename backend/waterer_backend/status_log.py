@@ -180,6 +180,9 @@ class BinaryStatusLog(AbstractStatusLog):
 
         with self._lock:
 
+            if new_value:  # hold on to all true values
+                self._times.append(new_time)
+                self._values.append(new_value)
             if len(self._times) <= 2:
                 self._times.append(new_time)
                 self._values.append(new_value)
