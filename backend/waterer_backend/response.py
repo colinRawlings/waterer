@@ -21,14 +21,14 @@ MAX_LENGTH = 200  # Must stay in sync with value in HwDefs.h
 # Classes
 ###############################################################
 
-
+# TODO: This should be a pydantic.BaseModel
 @dataclass
 class Response:
     id: int
     channel: int
     instruction: str
     success: bool
-    data: int
+    data: float
     message: str
 
     ###############################################################

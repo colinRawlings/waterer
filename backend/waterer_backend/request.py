@@ -23,7 +23,7 @@ MAX_LENGTH = 200  # Must stay in sync with value in HwDefs.h
 # Classes
 ###############################################################
 
-
+# TODO: This should be a pydantic.BaseModel
 @dataclass
 class Request:
     channel: int

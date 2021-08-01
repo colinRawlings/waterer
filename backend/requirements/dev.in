@@ -4,6 +4,7 @@
 pytest
 matplotlib
 pydantic # for schema generation
+pytest-env
 
 #
 pre-commit

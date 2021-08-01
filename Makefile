@@ -115,7 +115,11 @@ else
 	scp -r ./dist  $(SERVER_USER)@$(SERVER_IP):/home/ubuntu/waterer/
 endif
 
-make up-backend:
+up-backend-dev: export WATERER_FAKE_DATA=1
+up-backend-dev:
+	${BACKEND_VENV_PYTHON} -m waterer_backend.run_server
+
+up-backend:
 	${BACKEND_VENV_PYTHON} -m waterer_backend.run_server
 
 tests-backend:
