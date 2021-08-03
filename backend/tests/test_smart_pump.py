@@ -54,7 +54,7 @@ def test_smart_pump(arduino_fxt: ae.EmbeddedArduino):
         2,
         arduino_fxt,
         SmartPumpSettings(
-            pump_update_time_s=4,
+            pump_activation_time="4:00 AM",
             pump_on_time_s=2,
             feedback_active=True,
             feedback_setpoint_pcnt=100,  # feedback should activate

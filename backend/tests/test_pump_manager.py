@@ -61,7 +61,7 @@ def test_pump_manager():
 
     with pm.PumpManagerContext(
         settings=sp.SmartPumpSettings(
-            pump_update_time_s=10,
+            pump_activation_time="10:00 AM",
             pump_on_time_s=5,
             feedback_active=True,
             feedback_setpoint_pcnt=100,  # feedback should activate

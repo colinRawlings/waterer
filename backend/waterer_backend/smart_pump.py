@@ -8,6 +8,7 @@ import logging
 import traceback as tb
 import typing as ty
 from dataclasses import asdict, dataclass
+from datetime import datetime
 from threading import Event, Lock, Thread
 from time import time
 
@@ -23,6 +24,8 @@ from waterer_backend.status_log import BinaryStatusLog, FloatStatusLog
 
 _LOGGER = logging.getLogger(__name__)
 
+PUMP_UPDATE_TIME_FMT = "%I:%M %p"
+
 ###############################################################
 # Class
 ###############################################################
@@ -33,7 +36,7 @@ class SmartPumpSettings:
     dry_humidity_V: float = 3.3
     wet_humidity_V: float = 0
     pump_on_time_s: int = 2
-    pump_update_time_s: float = 600
+    pump_activation_time: str = "8:00 AM"
     feedback_active: bool = False
     feedback_setpoint_pcnt: float = 50
     num_smoothing_samples: float = 10
@@ -41,6 +44,10 @@ class SmartPumpSettings:
 
     def __post_init__(self):
         self.validate()
+
+    @property
+    def pump_activation_time_as_date(self) -> datetime:
+        return datetime.strptime(self.pump_activation_time, PUMP_UPDATE_TIME_FMT)
 
     def validate(self):
 
@@ -54,15 +61,7 @@ class SmartPumpSettings:
                 f"pump_on_time_s: {self.pump_on_time_s} s cannot be negative"
             )
 
-        if self.pump_update_time_s < 0:
-            raise ValueError(
-                f"pump_on_time_s: {self.pump_update_time_s} s cannot be negative"
-            )
-
-        if self.pump_on_time_s > self.pump_update_time_s:
-            raise ValueError(
-                f"pump_on_time_s: {self.pump_on_time_s} s cannot exceed pump_update_time_s: {self.pump_update_time_s} s"
-            )
+        dt = self.pump_activation_time_as_date
 
         if self.num_smoothing_samples <= 1:
             raise ValueError(
@@ -389,7 +388,7 @@ class SmartPump(Thread):
                 continue
 
             with self._settings_lock:
-                wait_time_s = self._settings.pump_update_time_s
+                wait_time_s = self._settings.pump_activation_time
                 if (
                     self._settings.feedback_active
                     and (time() - self._last_feedback_update_time_s) > wait_time_s

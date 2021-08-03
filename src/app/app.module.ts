@@ -8,12 +8,14 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatTabsModule } from '@angular/material/tabs';
-import { MatSliderModule } from '@angular/material/slider'
+import { MatSliderModule } from '@angular/material/slider';
 import { MatGridListModule } from '@angular/material/grid-list';
-import {MatListModule} from '@angular/material/list';
-import {MatIconModule} from '@angular/material/icon';
+import { MatListModule } from '@angular/material/list';
+import { MatIconModule } from '@angular/material/icon';
+import { NgxMaterialTimepickerModule } from 'ngx-material-timepicker';
+
 import { NotifierModule } from 'angular-notifier';
-import { FlexLayoutModule } from "@angular/flex-layout";
+import { FlexLayoutModule } from '@angular/flex-layout';
 
 import * as PlotlyJS from 'plotly.js-dist';
 import { PlotlyModule } from 'angular-plotly.js';
@@ -28,7 +30,12 @@ import { EnvServiceProvider } from './env.service.provider';
 PlotlyModule.plotlyjs = PlotlyJS;
 
 @NgModule({
-  declarations: [AppComponent, PumpComponent, ManualPumpControlsComponent, PumpSettingsComponent],
+  declarations: [
+    AppComponent,
+    PumpComponent,
+    ManualPumpControlsComponent,
+    PumpSettingsComponent,
+  ],
   imports: [
     FormsModule,
     BrowserModule,
@@ -45,11 +52,12 @@ PlotlyModule.plotlyjs = PlotlyJS;
     MatSliderModule,
     MatGridListModule,
     MatExpansionModule,
+    NgxMaterialTimepickerModule,
     BrowserAnimationsModule,
     NotifierModule.withConfig({
       // Custom options in here
-      theme: "material"
-    })
+      theme: 'material',
+    }),
   ],
   providers: [EnvServiceProvider],
   bootstrap: [AppComponent],

@@ -17,9 +17,9 @@
                     "title": "Pump On Time S",
                     "type": "integer"
                 },
-                "pump_update_time_s": {
-                    "title": "Pump Update Time S",
-                    "type": "number"
+                "pump_activation_time": {
+                    "title": "Pump Activation Time",
+                    "type": "string"
                 },
                 "feedback_active": {
                     "title": "Feedback Active",
