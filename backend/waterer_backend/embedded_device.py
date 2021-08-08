@@ -77,5 +77,7 @@ class EmbeddedDeviceContext:
 
     def __exit__(self, exc_type, exc_value, exc_traceback):
         global _GLOBAL_ard
-        _GLOBAL_ard.disconnect()
-        _GLOBAL_ard = None
+
+        if _GLOBAL_ard is not None:
+            _GLOBAL_ard.disconnect()
+            _GLOBAL_ard = None

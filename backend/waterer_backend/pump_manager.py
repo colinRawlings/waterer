@@ -51,6 +51,7 @@ class PumpManager:
         status_update_interval_s: int = 5,
         port: Optional[str] = None,
         config_filepath: Optional[pt.Path] = None,
+        allow_load_history: bool = False,
     ) -> None:
         self._num_pumps = num_pumps
         self._status_update_interval_s = status_update_interval_s
@@ -68,6 +69,8 @@ class PumpManager:
 
         self._port = port
         self._config_filepath = config_filepath
+        self._allow_load_history = allow_load_history
+
         self._device = None  # type: Optional[EmbeddedArduino]
 
     @property
@@ -155,6 +158,7 @@ class PumpManager:
                     device=self._device,
                     settings=self._init_settings[channel],
                     status_update_interval_s=self._status_update_interval_s,
+                    allow_load_history=self._allow_load_history,
                 )
             )
 
@@ -176,6 +180,11 @@ class PumpManager:
 
         _LOGGER.info(f"Stopped {self._num_pumps} pumps")
 
+        _LOGGER.info(f"Saving history for {self._num_pumps} pumps")
+
+        for pump in self._pumps:
+            pump.save_history()
+
         assert self._device is not None
         self._device.disconnect()
 
@@ -191,6 +200,7 @@ def init_pump_manager(
     status_update_interval_s: int = 5,
     port: Optional[str] = None,
     config_filepath: Optional[pt.Path] = None,
+    allow_load_history: bool = False,
 ) -> PumpManager:
 
     global _GLOBAL_pump_manager
@@ -200,6 +210,7 @@ def init_pump_manager(
         port=port,
         config_filepath=config_filepath,
         status_update_interval_s=status_update_interval_s,
+        allow_load_history=allow_load_history,
     )
 
     _GLOBAL_pump_manager.start()
@@ -222,12 +233,14 @@ class PumpManagerContext:
         status_update_interval_s: int = 5,
         port: Optional[str] = None,
         config_filepath: Optional[pt.Path] = None,
+        allow_load_history: bool = False,
     ) -> None:
         self._num_pumps = num_pumps
         self._status_update_interval_s = status_update_interval_s
         self._init_settings = settings
         self._port = port
         self._config_filepath = config_filepath
+        self._allow_load_history = allow_load_history
 
     def __enter__(self) -> PumpManager:
 
@@ -237,6 +250,7 @@ class PumpManagerContext:
             status_update_interval_s=self._status_update_interval_s,
             port=self._port,
             config_filepath=self._config_filepath,
+            allow_load_history=self._allow_load_history,
         )
 
     def __exit__(self, exc_type, exc_value, exc_traceback):

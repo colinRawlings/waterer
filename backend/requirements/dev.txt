@@ -90,7 +90,9 @@ pre-commit==2.13.0
 py==1.10.0
     # via pytest
 pydantic==1.8.2
-    # via -r C:/Users/colin/Documents/waterer/backend/requirements/dev.in
+    # via
+    #   -r C:/Users/colin/Documents/waterer/backend/requirements/dev.in
+    #   -r C:/Users/colin/Documents/waterer/backend/requirements\base.txt
 pyparsing==2.4.7
     # via
     #   matplotlib
@@ -133,7 +135,9 @@ toml==0.10.2
     #   pre-commit
     #   pytest
 typing-extensions==3.10.0.0
-    # via pydantic
+    # via
+    #   -r C:/Users/colin/Documents/waterer/backend/requirements\base.txt
+    #   pydantic
 virtualenv==20.4.7
     # via pre-commit
 werkzeug==2.0.1

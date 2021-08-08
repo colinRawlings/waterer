@@ -22,7 +22,7 @@ if __name__ == "__main__":
     app = create_app()
 
     with PumpManagerContext(
-        settings=pumps_config, num_pumps=len(pumps_config)
+        settings=pumps_config, num_pumps=len(pumps_config), allow_load_history=True
     ) as pump_manager:
 
         app.run(debug=False, host="0.0.0.0")

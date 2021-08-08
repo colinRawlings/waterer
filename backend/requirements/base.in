@@ -6,3 +6,4 @@ jsonschema
 dataclasses; python_version == '3.6'
 Jinja2
 numpy
+pydantic

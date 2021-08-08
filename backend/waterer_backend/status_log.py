@@ -4,12 +4,24 @@
 # Imports
 ###############################################################
 
+import json
 import typing as ty
 from abc import ABC, abstractmethod
 from collections import deque
 from threading import Lock
 
 import numpy as np
+from waterer_backend.models import (
+    BinaryStatusLogData,
+    BinaryStatusLogSettings,
+    FloatStatusLogData,
+    FloatStatusLogSettings,
+)
+
+###############################################################
+# Definitions
+###############################################################
+
 
 ###############################################################
 # Classes
@@ -17,6 +29,15 @@ import numpy as np
 
 
 class AbstractStatusLog(ABC):
+    @staticmethod
+    @abstractmethod
+    def from_data(serialized_log: str) -> "AbstractStatusLog":
+        ...
+
+    @abstractmethod
+    def to_data(self) -> str:
+        ...
+
     @abstractmethod
     def clear(self):
         ...
@@ -52,30 +73,50 @@ class FloatStatusLog(AbstractStatusLog):
 
     def __init__(
         self,
-        low_res_switchover_age_s: float = 3600,
-        low_res_interval_s: float = 300,
-        low_res_max_age_s: float = 3600 * 24 * 7,
+        settings: FloatStatusLogSettings = FloatStatusLogSettings(),
     ) -> None:
 
         self._lock = Lock()
 
         with self._lock:
 
-            self._low_res_switchover_age_s = low_res_switchover_age_s
-            self._low_res_interval_s = low_res_interval_s
-            self._low_res_max_age_s = low_res_max_age_s
+            self._low_res_switchover_age_s = settings.low_res_switchover_age_s
+            self._low_res_interval_s = settings.low_res_interval_s
+            self._low_res_max_age_s = settings.low_res_max_age_s
 
         self.clear()
+
+    @staticmethod
+    def from_data(
+        log_data: FloatStatusLogData,
+        settings: FloatStatusLogSettings = FloatStatusLogSettings(),
+    ) -> "FloatStatusLog":
+
+        log = FloatStatusLog(settings)
+
+        for index, time in enumerate(log_data.times):
+            log.add_sample(time, log_data.values[index])
+
+        return log
+
+    def to_data(self) -> FloatStatusLogData:
+        """
+        Convert data to json string
+        """
+
+        times, values = self.get_values(None)
+
+        return FloatStatusLogData(times=times, values=values)
 
     def clear(self) -> None:
 
         with self._lock:
 
-            self._high_res_values = deque()
-            self._high_res_times = deque()
+            self._high_res_values: ty.Deque[ty.Optional[float]] = deque()
+            self._high_res_times: ty.Deque[float] = deque()
 
-            self._low_res_values = deque()
-            self._low_res_times = deque()
+            self._low_res_values: ty.Deque[ty.Optional[float]] = deque()
+            self._low_res_times: ty.Deque[float] = deque()
 
     def add_sample(self, new_time: float, new_value: ty.Optional[float]) -> None:
 
@@ -123,7 +164,7 @@ class FloatStatusLog(AbstractStatusLog):
 
     def get_values(
         self, min_time_s: ty.Optional[float] = None
-    ) -> ty.Tuple[ty.List[float], ty.List[float]]:
+    ) -> ty.Tuple[ty.List[float], ty.List[ty.Optional[float]]]:
         """
         Returns:
             times,  values
@@ -164,14 +205,38 @@ class FloatStatusLog(AbstractStatusLog):
 
 
 class BinaryStatusLog(AbstractStatusLog):
-    def __init__(self, max_age_s: float = 3600 * 24 * 7) -> None:
+    def __init__(
+        self, settings: BinaryStatusLogSettings = BinaryStatusLogSettings()
+    ) -> None:
 
         self._lock = Lock()
 
         with self._lock:
-            self._max_age_s = max_age_s
+            self._max_age_s = settings.max_age_s
 
         self.clear()
+
+    @staticmethod
+    def from_data(
+        log_data=BinaryStatusLogData,
+        settings: BinaryStatusLogSettings = BinaryStatusLogSettings(),
+    ) -> "BinaryStatusLog":
+
+        log = BinaryStatusLog(settings)
+
+        for index, time in enumerate(log_data.times):
+            log.add_sample(time, log_data.values[index])
+
+        return log
+
+    def to_data(self) -> BinaryStatusLogData:
+        """
+        Convert data to json string
+        """
+
+        times, values = self.get_values(None)
+
+        return BinaryStatusLogData(times=times, values=values)
 
     def clear(self) -> None:
         with self._lock:

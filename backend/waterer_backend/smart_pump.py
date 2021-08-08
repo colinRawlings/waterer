@@ -4,16 +4,23 @@
 # Imports
 ###############################################################
 
+import json
 import logging
+import os
 import traceback as tb
 import typing as ty
-from dataclasses import asdict, dataclass
-from datetime import datetime
 from threading import Event, Lock, Thread
 from time import time
 
 import numpy as np
+from waterer_backend.config import get_history_filepath
 from waterer_backend.embedded_arduino import EmbeddedArduino
+from waterer_backend.models import (
+    SmartPumpSettings,
+    SmartPumpStatus,
+    SmartPumpStatusData,
+    SmartPumpStatusHistory,
+)
 from waterer_backend.request import Request
 from waterer_backend.response import Response
 from waterer_backend.status_log import BinaryStatusLog, FloatStatusLog
@@ -24,73 +31,10 @@ from waterer_backend.status_log import BinaryStatusLog, FloatStatusLog
 
 _LOGGER = logging.getLogger(__name__)
 
-PUMP_UPDATE_TIME_FMT = "%I:%M %p"
 
 ###############################################################
-# Class
+# Classes
 ###############################################################
-
-
-@dataclass
-class SmartPumpSettings:
-    dry_humidity_V: float = 3.3
-    wet_humidity_V: float = 0
-    pump_on_time_s: int = 2
-    pump_activation_time: str = "8:00 AM"
-    feedback_active: bool = False
-    feedback_setpoint_pcnt: float = 50
-    num_smoothing_samples: float = 10
-    name: str = "Unamed pump"
-
-    def __post_init__(self):
-        self.validate()
-
-    @property
-    def pump_activation_time_as_date(self) -> datetime:
-        return datetime.strptime(self.pump_activation_time, PUMP_UPDATE_TIME_FMT)
-
-    def validate(self):
-
-        if self.wet_humidity_V > self.dry_humidity_V:
-            raise ValueError(
-                f"Wet humidity: {self.dry_humidity_V} V cannot exceed dry: {self.wet_humidity_V} V"
-            )
-
-        if self.pump_on_time_s < 0:
-            raise ValueError(
-                f"pump_on_time_s: {self.pump_on_time_s} s cannot be negative"
-            )
-
-        dt = self.pump_activation_time_as_date
-
-        if self.num_smoothing_samples <= 1:
-            raise ValueError(
-                f"Number of smoothing samples must be at least 1 (got: {self.num_smoothing_samples})"
-            )
-
-
-@dataclass
-class SmartPumpStatus:
-    rel_humidity_V: float
-    rel_humidity_pcnt: float
-    smoothed_rel_humidity_pcnt: ty.Optional[float]
-    pump_running: int
-    epoch_time: float
-
-
-@dataclass
-class SmartPumpStatusHistory:
-    rel_humidity_V: ty.List[float]
-    rel_humidity_V_epoch_time: ty.List[float]
-
-    rel_humidity_pcnt: ty.List[float]
-    rel_humidity_pcnt_epoch_time: ty.List[float]
-
-    smoothed_rel_humidity_pcnt: ty.List[float]
-    smoothed_rel_humidity_pcnt_epoch_time: ty.List[float]
-
-    pump_running: ty.List[int]
-    pump_running_epoch_time: ty.List[float]
 
 
 class SmartPump(Thread):
@@ -100,6 +44,7 @@ class SmartPump(Thread):
         device: ty.Optional[EmbeddedArduino],
         settings: SmartPumpSettings,
         status_update_interval_s: float = 5,
+        allow_load_history: bool = False,
     ) -> None:
 
         Thread.__init__(self)
@@ -120,11 +65,17 @@ class SmartPump(Thread):
 
         self._status_update_interval_s = status_update_interval_s
 
+        if allow_load_history:
+            self.load_history()
+        else:
+            self._init_logs()
+
+        self._last_feedback_update_time_s = time()
+
+    def _init_logs(self):
         self._rel_humidity_V_log = FloatStatusLog()
         self._smoothed_rel_humidity_V_log = FloatStatusLog()
         self._pump_status_log = BinaryStatusLog()
-
-        self._last_feedback_update_time_s = time()
 
     @property
     def channel(self) -> int:
@@ -142,12 +93,57 @@ class SmartPump(Thread):
             _LOGGER.info(f"New setting for channel {self._channel}: {self._settings}")
             self._sleep_event.set()
 
+    def save_history(self) -> None:
+
+        history = SmartPumpStatusData(
+            rel_humidity_V_log=self._rel_humidity_V_log.to_data(),
+            smoothed_rel_humidity_V_log=self._smoothed_rel_humidity_V_log.to_data(),
+            pump_status_log=self._pump_status_log.to_data(),
+        )
+
+        filepath = get_history_filepath(self._channel)
+
+        os.makedirs(filepath.parent, exist_ok=True)
+
+        with open(filepath, "w") as fh:
+            json.dump(history.dict(), fh)
+
+        _LOGGER.info(f"Saved history for pump {self._channel} to {filepath}")
+
+    def load_history(self) -> None:
+        filepath = get_history_filepath(self._channel)
+
+        if not filepath.is_file():
+            _LOGGER.info(
+                f"Failed to find history file to load for pump {self._channel}: {filepath}"
+            )
+            self._init_logs()
+            return
+
+        with open(filepath, "r") as fh:
+            history_dict = json.load(fh)
+
+        try:
+            history = SmartPumpStatusData(**history_dict)
+        except Exception as e:
+            _LOGGER.error(f"Failed to parse history file: {filepath} with exception{e}")
+            self._init_logs()
+            return
+
+        _LOGGER.info(f"Loaded history for pump {self._channel} from {filepath}")
+
+        self._rel_humidity_V_log = FloatStatusLog.from_data(history.rel_humidity_V_log)
+        self._smoothed_rel_humidity_V_log = FloatStatusLog.from_data(
+            history.smoothed_rel_humidity_V_log
+        )
+        self._pump_status_log = BinaryStatusLog.from_data(history.pump_status_log)
+
     def _check_response(self, desc: str, response: Response) -> None:
         if not response.success:
             raise RuntimeError(f"Failed to {desc}: {response.message}")
 
     def _pcnt_from_V_humidity(
-        self, rel_humidity_V: ty.Union[None, float, ty.List[float]]
+        self, rel_humidity_V: ty.Union[None, float, ty.List[ty.Optional[float]]]
     ) -> ty.Union[None, float, ty.List[float]]:
 
         if rel_humidity_V is None:
@@ -388,49 +384,50 @@ class SmartPump(Thread):
                 continue
 
             with self._settings_lock:
-                wait_time_s = self._settings.pump_activation_time
-                if (
-                    self._settings.feedback_active
-                    and (time() - self._last_feedback_update_time_s) > wait_time_s
-                ):
+                pass
+                # wait_time_s = self._settings.pump_activation_time
+                # if (
+                #     self._settings.feedback_active
+                #     and (time() - self._last_feedback_update_time_s) > wait_time_s
+                # ):
 
-                    voltage_request = Request(
-                        channel=self.channel,
-                        instruction="get_voltage",
-                        data=0,
-                    )
+                #     voltage_request = Request(
+                #         channel=self.channel,
+                #         instruction="get_voltage",
+                #         data=0,
+                #     )
 
-                    ok, response = self._make_request_safe(voltage_request)
-                    if not ok:
-                        continue
+                #     ok, response = self._make_request_safe(voltage_request)
+                #     if not ok:
+                #         continue
 
-                    assert response is not None
+                #     assert response is not None
 
-                    rel_humidity_pcnt = self._pcnt_from_V_humidity(response.data)
-                    if rel_humidity_pcnt is None:
-                        continue
+                #     rel_humidity_pcnt = self._pcnt_from_V_humidity(response.data)
+                #     if rel_humidity_pcnt is None:
+                #         continue
 
-                    assert isinstance(rel_humidity_pcnt, float)
+                #     assert isinstance(rel_humidity_pcnt, float)
 
-                    _LOGGER.info(
-                        f"Measured relative humidity of {rel_humidity_pcnt} % (set point: {self._settings.feedback_setpoint_pcnt} %)"
-                    )
+                #     _LOGGER.info(
+                #         f"Measured relative humidity of {rel_humidity_pcnt} % (set point: {self._settings.feedback_setpoint_pcnt} %)"
+                #     )
 
-                    self._last_feedback_update_time_s = time()
+                #     self._last_feedback_update_time_s = time()
 
-                    if rel_humidity_pcnt < self._settings.feedback_setpoint_pcnt:
-                        _LOGGER.info(
-                            f"Activating pump for {self._settings.pump_on_time_s} s"
-                        )
+                #     if rel_humidity_pcnt < self._settings.feedback_setpoint_pcnt:
+                #         _LOGGER.info(
+                #             f"Activating pump for {self._settings.pump_on_time_s} s"
+                #         )
 
-                    turn_on_request = Request(
-                        channel=self.channel,
-                        instruction="turn_on",
-                        data=self._settings.pump_on_time_s,
-                    )
+                #     turn_on_request = Request(
+                #         channel=self.channel,
+                #         instruction="turn_on",
+                #         data=self._settings.pump_on_time_s,
+                #     )
 
-                    ok, response = self._make_request_safe(turn_on_request)
-                    if not ok:
-                        continue
+                #     ok, response = self._make_request_safe(turn_on_request)
+                #     if not ok:
+                #         continue
 
         _LOGGER.info(f"Smart pump for channel: {self._channel} finished")
