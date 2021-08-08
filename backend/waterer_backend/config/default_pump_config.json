@@ -4,7 +4,7 @@
         "settings": {
             "dry_humidity_V": 3.3,
             "wet_humidity_V": 0.0,
-            "pump_on_time_s": 20,
+            "pump_on_time_s": 200,
             "pump_activation_time": "8:00 AM",
             "feedback_active": false,
             "feedback_setpoint_pcnt": 50,
@@ -17,8 +17,8 @@
         "settings": {
             "dry_humidity_V": 3.3,
             "wet_humidity_V": 0.0,
-            "pump_on_time_s": 20,
-            "pump_activation_time": "8:00 AM",
+            "pump_on_time_s": 200,
+            "pump_activation_time": "8:10 AM",
             "feedback_active": false,
             "feedback_setpoint_pcnt": 50,
             "name": "pump 1",
@@ -30,8 +30,8 @@
         "settings": {
             "dry_humidity_V": 3.3,
             "wet_humidity_V": 0.0,
-            "pump_on_time_s": 20,
-            "pump_activation_time": "8:00 AM",
+            "pump_on_time_s": 200,
+            "pump_activation_time": "8:20 AM",
             "feedback_active": false,
             "feedback_setpoint_pcnt": 50,
             "name": "pump 2",
