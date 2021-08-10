@@ -16,7 +16,7 @@ from waterer_backend.server import create_app
 
 
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.DEBUG)
+    logging.basicConfig(level=logging.INFO)
     werkzeug_logger = logging.getLogger("werkzeug")
     werkzeug_logger.setLevel(logging.ERROR)
 

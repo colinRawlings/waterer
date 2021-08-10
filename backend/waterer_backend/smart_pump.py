@@ -379,8 +379,8 @@ class SmartPump(Thread):
         ) = self._smoothed_rel_humidity_V_log.get_newest_value()
         current_humidity_pcnt = self._pcnt_from_V_humidity(current_humidity_V)
 
-        _LOGGER.debug(
-            f"{self.channel}: Humidity: Current: {current_humidity_pcnt} %, Target: {self._settings.feedback_setpoint_pcnt} "
+        _LOGGER.info(
+            f"{self.channel}: Humidity: Current: {current_humidity_pcnt} %, Target: {self._settings.feedback_setpoint_pcnt} %"
         )
 
         if (
@@ -418,7 +418,7 @@ class SmartPump(Thread):
                     self._settings.pump_activation_time,
                 )
             ):
-                _LOGGER.debug(f"Performing feedback event: {self.channel}")
+                _LOGGER.info(f"{self.channel}: Performing feedback event: ")
                 self._do_activate_closed_loop_pump()
             else:
                 self._last_feedback_update_time = next_update_time
