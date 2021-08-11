@@ -395,7 +395,7 @@ class SmartPump(Thread):
                 data=self._settings.pump_on_time_s,
             )
 
-            ok, response = self._make_request_safe(turn_on_request)
+            ok, _ = self._make_request_safe(turn_on_request)
             if not ok:
                 return
 
@@ -410,18 +410,20 @@ class SmartPump(Thread):
 
             next_update_time = datetime.now()
 
-            if (
+            should_activate = (
                 self._last_feedback_update_time is not None
                 and update_spans_activation_time(
                     self._last_feedback_update_time,
                     next_update_time,
                     self._settings.pump_activation_time,
                 )
-            ):
+            )
+
+            self._last_feedback_update_time = next_update_time
+
+            if should_activate:
                 _LOGGER.info(f"{self.channel}: Performing feedback event: ")
                 self._do_activate_closed_loop_pump()
-            else:
-                self._last_feedback_update_time = next_update_time
 
     def run(self):
 

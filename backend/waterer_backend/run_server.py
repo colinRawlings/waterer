@@ -11,14 +11,25 @@ from waterer_backend.pump_manager import PumpManagerContext
 from waterer_backend.server import create_app
 
 ###############################################################
+# Functions
+###############################################################
+
+
+def init_logging() -> None:
+
+    logging.basicConfig(level=logging.INFO)
+    werkzeug_logger = logging.getLogger("werkzeug")
+    werkzeug_logger.setLevel(logging.ERROR)
+
+
+###############################################################
 # Main
 ###############################################################
 
 
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO)
-    werkzeug_logger = logging.getLogger("werkzeug")
-    werkzeug_logger.setLevel(logging.ERROR)
+
+    init_logging()
 
     pumps_config = get_pumps_config()
     app = create_app()
