@@ -15,7 +15,8 @@
                 "get_state",
                 "turn_on",
                 "turn_off",
-                "get_voltage"
+                "get_voltage",
+                "get_version"
             ]
         },
         "success": {

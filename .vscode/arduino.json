@@ -1,6 +1,6 @@
 {
-    "board": "arduino:avr:uno",
     "sketch": "embedded/embedded.ino",
-    "port": "COM3",
-    "output": "./ArduinoOutput"
+    "board": "arduino:avr:micro",
+    "output": "./ArduinoOutput",
+    "port": "/dev/ttyACM0"
 }

@@ -80,7 +80,7 @@ class EmbeddedArduino:
 
         return arduino_ports[0]
 
-    def connect(self):
+    def _open_serial_port(self):
 
         with self._lock:
             if self._config_filepath is None:
@@ -119,8 +119,8 @@ class EmbeddedArduino:
 
                 _LOGGER.info(f"Recieved: {startup_message}")
 
-                if not startup_message.startswith(STARTUP_MESSAGE):
-                    raise RuntimeError("Failed to properly start device")
+                # if not startup_message.startswith(STARTUP_MESSAGE):
+                # raise RuntimeError("Failed to properly start device")
             except Exception as e:
                 if ALLOW_FAKE_DATA_KEY in os.environ:
                     self._device = None
@@ -129,6 +129,21 @@ class EmbeddedArduino:
                     )
                 else:
                     raise e
+
+    def check_version(self):
+
+        response = self.make_request(Request(0, "get_version", 0))
+
+        if response.success:
+            _LOGGER.info(f"Embedded version: {response.data:.1f}")
+        else:
+            _LOGGER.error(f"Failed to check version: {response.message}")
+
+    def connect(self):
+
+        self._open_serial_port()
+
+        self.check_version()
 
     def disconnect(self):
 

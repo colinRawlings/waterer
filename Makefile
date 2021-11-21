@@ -64,18 +64,24 @@ install: venv
 install-host-tools:
 	${COMMENT_CHAR} TODO: Install Arduino IDE/CLI, downgrade board manager to 1.8.2 to allow arduino extension for STL
 ifdef OS
-	${COMMENT_CHAR} TODO: node, npm, yarn, angular
+	${COMMENT_CHAR} TODO: node, npm, yarn, angular, arduino
 else
 	# This probably only works on ubuntu
 	sudo apt update
-	sudo apt install -y gcc make
+	# installing arduino IDE
+	sudo snap install arduino
+	sudo usermod -aG dialout test
+	#
+	sudo apt install -y gcc make clang-format-10
+	#
 	sudo apt-get install -y python3-dev
 	sudo apt-get install -y python3-venv
+	# node
 	curl -fsSL https://deb.nodesource.com/setup_12.x | sudo -E bash -
 	sudo apt install -y nodejs
-	sudo npm install --global yarn
-	sudo npm install -g @angular/cli
-	sudo npm install -g lite-server
+	sudo npm install -g -y yarn
+	sudo npm install -g -y @angular/cli
+	sudo npm install -g -y lite-server
 endif
 
 install-dev: venv
