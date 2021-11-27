@@ -10,7 +10,7 @@ import pathlib as pt
 from typing import Dict, List, Optional, Union
 
 import waterer_backend.smart_pump as sp
-from waterer_backend.config import save_user_pumps_config
+from waterer_backend.config import get_history_dir, save_user_pumps_config
 from waterer_backend.embedded_arduino import EmbeddedArduino
 
 ###############################################################
@@ -117,6 +117,13 @@ class PumpManager:
 
         return save_user_pumps_config(user_settings)
 
+    def save_history(self) -> str:
+
+        for pump in self._pumps:
+            pump.save_history()
+
+        return str(get_history_dir())
+
     def get_status(self, channel: int) -> sp.SmartPumpStatus:
         self._check_channel(channel)
         return self._pumps[channel].status
@@ -175,8 +182,7 @@ class PumpManager:
 
         _LOGGER.info(f"Joining {self._num_pumps} pumps")
 
-        for pump in self._pumps:
-            pump.join()
+        self.save_history()
 
         _LOGGER.info(f"Stopped {self._num_pumps} pumps")
 

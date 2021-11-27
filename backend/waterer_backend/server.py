@@ -79,6 +79,11 @@ def create_app() -> Flask:
         saved_filepath = get_pump_manager().save_settings()
         return {"data": saved_filepath}
 
+    @app.route("/save_history")
+    def save_history():
+        saved_history_dir = get_pump_manager().save_history()
+        return {"data": saved_history_dir}
+
     @app.route("/settings/<channel>")
     def get_settings(channel: str):
         settings = get_pump_manager().get_settings(channel=int(channel))

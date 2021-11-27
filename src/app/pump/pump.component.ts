@@ -10,7 +10,7 @@ interface keyable {
 @Component({
   selector: 'app-pump',
   templateUrl: './pump.component.html',
-  styleUrls: ['./pump.component.css'],
+  styleUrls: ['./pump.component.css', '../app.component.css'],
 })
 export class PumpComponent implements OnInit {
   public rel_humidity_V: number[] = [];
