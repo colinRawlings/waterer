@@ -147,7 +147,7 @@ ${startup_script}:
 .PHONY: waterer-shell restart-service up-status
 
 up-status:
-	journalctl -u waterer.service -b -e
+	journalctl -u waterer.service -f
 
 restart-service:
 	systemctl restart waterer.service
