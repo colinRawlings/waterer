@@ -61,7 +61,9 @@ class EmbeddedArduino:
         if self._device is None:
             return "Not connected"
 
-        return f"Device on port: {self._port}"
+        version_str = self.get_version()
+
+        return f"Device on port: {self._port}, Embedded S/W Version: {version_str}"
 
     def _scan_for_ports(self) -> str:
 
@@ -119,8 +121,6 @@ class EmbeddedArduino:
 
                 _LOGGER.info(f"Recieved: {startup_message}")
 
-                # if not startup_message.startswith(STARTUP_MESSAGE):
-                # raise RuntimeError("Failed to properly start device")
             except Exception as e:
                 if ALLOW_FAKE_DATA_KEY in os.environ:
                     self._device = None
@@ -130,20 +130,26 @@ class EmbeddedArduino:
                 else:
                     raise e
 
-    def check_version(self):
+    def get_version(self) -> str:
 
         response = self.make_request(Request(0, "get_version", 0))
-
         if response.success:
-            _LOGGER.info(f"Embedded version: {response.data:.1f}")
+            return f"{response.data:.1f}"
         else:
             _LOGGER.error(f"Failed to check version: {response.message}")
+            return "UNKNOWN"
+
+    def log_version(self):
+
+        version_str = self.get_version()
+
+        _LOGGER.info(f"Embedded version: {version_str}")
 
     def connect(self):
 
         self._open_serial_port()
 
-        self.check_version()
+        self.log_version()
 
     def disconnect(self):
 

@@ -71,7 +71,7 @@ class PumpManager:
         self._config_filepath = config_filepath
         self._allow_load_history = allow_load_history
 
-        self._device = None  # type: Optional[EmbeddedArduino]
+        self._device: Optional[EmbeddedArduino] = None
 
     @property
     def num_pumps(self) -> int:

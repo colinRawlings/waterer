@@ -7,7 +7,7 @@ BACKEND_VENV_DIR = ${BACKEND_DIR}/.venv
 
 startup_script := $(makefile_dir)/launch.sh
 
-SERVER_IP = 192.168.8.117
+SERVER_IP = 192.168.8.119
 SERVER_USER = ubuntu
 
 ip_config_filepath = $(makefile_dir)/ip_config.json
