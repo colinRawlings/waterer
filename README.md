@@ -9,7 +9,7 @@ https://vimeo.com/587434753
 # Hardware
 
 * Web Server: Raspberry Pi 3B, Ubuntu Server 20.04
-* Embedded Device: Arduino Uno
+* Embedded Device: Arduino Micro
 * Pump/Sensor: https://shop.m5stack.com/products/watering-unit-with-mositure-sensor-and-pump
-
+* PCB: https://www.dropbox.com/s/6vnflskju6vw4ks/waterer.fzz?dl=0
 
