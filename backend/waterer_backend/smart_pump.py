@@ -47,6 +47,7 @@ class SmartPump(Thread):
         settings: SmartPumpSettings,
         status_update_interval_s: float = 5,
         allow_load_history: bool = False,
+        auto_save_interval_s: ty.Optional[int] = 3600,
     ) -> None:
 
         Thread.__init__(self)
@@ -66,13 +67,15 @@ class SmartPump(Thread):
         self._abort_running = False
 
         self._status_update_interval_s = status_update_interval_s
+        self._auto_save_interval_s = auto_save_interval_s
 
         if allow_load_history:
             self.load_history()
         else:
             self._init_logs()
 
-        self._last_feedback_update_time = None  # type: ty.Optional[datetime]
+        self._last_feedback_update_time: ty.Optional[datetime] = None
+        self._last_auto_save_time: float = time()
 
     def _init_logs(self):
         self._rel_humidity_V_log = FloatStatusLog()
@@ -256,6 +259,14 @@ class SmartPump(Thread):
         self._smoothed_rel_humidity_V_log.add_sample(
             status_time, smoothed_rel_humidity_V
         )
+
+        # save
+
+        if self._auto_save_interval_s is not None and (
+            (time() - self._last_auto_save_time) > self._auto_save_interval_s
+        ):
+            self.save_history()
+            self._last_auto_save_time = time()
 
         return True
 
