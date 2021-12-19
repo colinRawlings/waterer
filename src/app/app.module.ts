@@ -26,6 +26,7 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { ManualPumpControlsComponent } from './manual-pump-controls/manual-pump-controls.component';
 import { PumpSettingsComponent } from './pump-settings/pump-settings.component';
 import { EnvServiceProvider } from './env.service.provider';
+import { LogsComponent } from './logs/logs.component';
 
 PlotlyModule.plotlyjs = PlotlyJS;
 
@@ -35,6 +36,7 @@ PlotlyModule.plotlyjs = PlotlyJS;
     PumpComponent,
     ManualPumpControlsComponent,
     PumpSettingsComponent,
+    LogsComponent,
   ],
   imports: [
     FormsModule,

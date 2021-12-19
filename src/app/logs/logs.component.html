@@ -1,0 +1,19 @@
+<div
+  fxLayout
+  fxLayout="row"
+  fxLayoutGap="10px"
+  fxLayoutAlign="space-around"
+  fxLayout.xs="column"
+>
+
+<mat-card fxLayout>
+  <button mat-button (click)="onGetLogs()">Update</button>
+  <mat-form-field class="example-form-field">
+    <mat-label>Number Log Lines</mat-label>
+    <input matInput type="number" [(ngModel)]="numberLogLines" />
+  </mat-form-field>
+</mat-card>
+<mat-card>
+    <p>{{serviceLogs}}</p>
+</mat-card>
+</div>

@@ -105,6 +105,7 @@ class PumpManager:
     def set_settings(self, channel: int, settings: sp.SmartPumpSettings) -> None:
         self._check_channel(channel)
         self._pumps[channel].settings = settings
+        self.save_settings()
 
     def get_settings(self, channel: int) -> sp.SmartPumpSettings:
         self._check_channel(channel)
