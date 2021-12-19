@@ -120,6 +120,7 @@ ifdef OS
 else
 	scp -r ./dist  $(SERVER_USER)@$(SERVER_IP):/home/ubuntu/waterer/
 endif
+	@echo don't forget to make waterer-shell && git pull && make restart-service
 
 up-backend-dev: export WATERER_FAKE_DATA=1
 up-backend-dev:
