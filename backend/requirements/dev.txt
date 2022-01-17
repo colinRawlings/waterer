@@ -21,6 +21,12 @@ bidict==0.21.2
     #   python-socketio
 black==21.5b2
     # via -r C:/Users/colin/Documents/waterer/backend/requirements/dev.in
+bleak-winrt==1.1.0
+    # via
+    #   -r C:/Users/colin/Documents/waterer/backend/requirements\base.txt
+    #   bleak
+bleak==0.14.1
+    # via -r C:/Users/colin/Documents/waterer/backend/requirements\base.txt
 cfgv==3.3.0
     # via pre-commit
 click==8.0.1

@@ -8,6 +8,10 @@ attrs==21.2.0
     # via jsonschema
 bidict==0.21.2
     # via python-socketio
+bleak-winrt==1.1.0
+    # via bleak
+bleak==0.14.1
+    # via -r C:/Users/colin/Documents/waterer/backend/requirements/base.in
 click==8.0.1
     # via flask
 colorama==0.4.4

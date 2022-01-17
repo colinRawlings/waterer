@@ -1,6 +1,6 @@
 {
-    "board": "arduino:avr:uno",
-    "sketch": "embedded/embedded.ino",
-    "port": "COM3",
+    "board": "arduino:samd:nano_33_iot",
+    "sketch": "BLEembedded/BLEembedded.ino",
+    "port": "COM5",
     "output": "./ArduinoOutput"
 }
