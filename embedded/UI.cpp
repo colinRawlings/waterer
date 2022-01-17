@@ -7,6 +7,8 @@
 
 #include "HWDef.h"
 
+#include "Version.h"
+
 static const String kRequestKey{"request"};
 static const String kResponsePrefix{"response{"};
 static const String kErrorPrefix{"ERROR"};
@@ -106,6 +108,9 @@ CResponse CUI::HandleRequest(const CRequest &request) {
     auto output = sensor.GetVoltage();
     response.m_Success = true;
     response.m_Data = output;
+  } else if (request.m_Instruction == "get_version") {
+    response.m_Success = true;
+    response.m_Data = GetVersion();
   } else {
     response.m_Success = false;
     response.m_Instruction = "";

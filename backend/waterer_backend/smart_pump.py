@@ -9,6 +9,7 @@ import logging
 import os
 import traceback as tb
 import typing as ty
+from datetime import datetime
 from threading import Event, Lock, Thread
 from time import time
 
@@ -24,6 +25,7 @@ from waterer_backend.models import (
 from waterer_backend.request import Request
 from waterer_backend.response import Response
 from waterer_backend.status_log import BinaryStatusLog, FloatStatusLog
+from waterer_backend.utils import update_spans_activation_time
 
 ###############################################################
 # Logging
@@ -45,6 +47,7 @@ class SmartPump(Thread):
         settings: SmartPumpSettings,
         status_update_interval_s: float = 5,
         allow_load_history: bool = False,
+        auto_save_interval_s: ty.Optional[int] = 3600,
     ) -> None:
 
         Thread.__init__(self)
@@ -64,13 +67,15 @@ class SmartPump(Thread):
         self._abort_running = False
 
         self._status_update_interval_s = status_update_interval_s
+        self._auto_save_interval_s = auto_save_interval_s
 
         if allow_load_history:
             self.load_history()
         else:
             self._init_logs()
 
-        self._last_feedback_update_time_s = time()
+        self._last_feedback_update_time: ty.Optional[datetime] = None
+        self._last_auto_save_time: float = time()
 
     def _init_logs(self):
         self._rel_humidity_V_log = FloatStatusLog()
@@ -255,6 +260,14 @@ class SmartPump(Thread):
             status_time, smoothed_rel_humidity_V
         )
 
+        # save
+
+        if self._auto_save_interval_s is not None and (
+            (time() - self._last_auto_save_time) > self._auto_save_interval_s
+        ):
+            self.save_history()
+            self._last_auto_save_time = time()
+
         return True
 
     @property
@@ -369,65 +382,63 @@ class SmartPump(Thread):
 
         return True, response
 
-    def run(self):
+    def _do_activate_closed_loop_pump(self):
 
-        if self._device is None:
-            _LOGGER.warning("No device connected")
+        (
+            _,
+            current_humidity_V,
+        ) = self._smoothed_rel_humidity_V_log.get_newest_value()
+        current_humidity_pcnt = self._pcnt_from_V_humidity(current_humidity_V)
+
+        _LOGGER.info(
+            f"{self.channel}: Humidity: Current: {current_humidity_pcnt} %, Target: {self._settings.feedback_setpoint_pcnt} %"
+        )
+
+        if (
+            isinstance(current_humidity_pcnt, float)
+            and self._settings.feedback_setpoint_pcnt > current_humidity_pcnt
+        ):
+            _LOGGER.info(f"Activating pump for {self._settings.pump_on_time_s} s")
+
+            turn_on_request = Request(
+                channel=self.channel,
+                instruction="turn_on",
+                data=self._settings.pump_on_time_s,
+            )
+
+            ok, _ = self._make_request_safe(turn_on_request)
+            if not ok:
+                return
+
+    def _do_run_loop(self):
+        self._sleep_event.clear()
+        self._sleep_event.wait(timeout=self._status_update_interval_s)
+        ok = self._update_status()
+        if not ok:
             return
 
+        with self._settings_lock:
+
+            next_update_time = datetime.now()
+
+            should_activate = (
+                self._last_feedback_update_time is not None
+                and update_spans_activation_time(
+                    self._last_feedback_update_time,
+                    next_update_time,
+                    self._settings.pump_activation_time,
+                )
+            )
+
+            self._last_feedback_update_time = next_update_time
+
+            if should_activate:
+                _LOGGER.info(f"{self.channel}: Performing feedback event: ")
+                self._do_activate_closed_loop_pump()
+
+    def run(self):
+
         while not self._abort_running:
-
-            self._sleep_event.clear()
-            self._sleep_event.wait(timeout=self._status_update_interval_s)
-            ok = self._update_status()
-            if not ok:
-                continue
-
-            with self._settings_lock:
-                pass
-                # wait_time_s = self._settings.pump_activation_time
-                # if (
-                #     self._settings.feedback_active
-                #     and (time() - self._last_feedback_update_time_s) > wait_time_s
-                # ):
-
-                #     voltage_request = Request(
-                #         channel=self.channel,
-                #         instruction="get_voltage",
-                #         data=0,
-                #     )
-
-                #     ok, response = self._make_request_safe(voltage_request)
-                #     if not ok:
-                #         continue
-
-                #     assert response is not None
-
-                #     rel_humidity_pcnt = self._pcnt_from_V_humidity(response.data)
-                #     if rel_humidity_pcnt is None:
-                #         continue
-
-                #     assert isinstance(rel_humidity_pcnt, float)
-
-                #     _LOGGER.info(
-                #         f"Measured relative humidity of {rel_humidity_pcnt} % (set point: {self._settings.feedback_setpoint_pcnt} %)"
-                #     )
-
-                #     self._last_feedback_update_time_s = time()
-
-                #     if rel_humidity_pcnt < self._settings.feedback_setpoint_pcnt:
-                #         _LOGGER.info(
-                #             f"Activating pump for {self._settings.pump_on_time_s} s"
-                #         )
-
-                #     turn_on_request = Request(
-                #         channel=self.channel,
-                #         instruction="turn_on",
-                #         data=self._settings.pump_on_time_s,
-                #     )
-
-                #     ok, response = self._make_request_safe(turn_on_request)
-                #     if not ok:
-                #         continue
+            self._do_run_loop()
 
         _LOGGER.info(f"Smart pump for channel: {self._channel} finished")

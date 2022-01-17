@@ -10,7 +10,7 @@ import pathlib as pt
 from typing import Dict, List, Optional, Union
 
 import waterer_backend.smart_pump as sp
-from waterer_backend.config import save_user_pumps_config
+from waterer_backend.config import get_history_dir, save_user_pumps_config
 from waterer_backend.embedded_arduino import EmbeddedArduino
 
 ###############################################################
@@ -71,7 +71,7 @@ class PumpManager:
         self._config_filepath = config_filepath
         self._allow_load_history = allow_load_history
 
-        self._device = None  # type: Optional[EmbeddedArduino]
+        self._device: Optional[EmbeddedArduino] = None
 
     @property
     def num_pumps(self) -> int:
@@ -105,6 +105,7 @@ class PumpManager:
     def set_settings(self, channel: int, settings: sp.SmartPumpSettings) -> None:
         self._check_channel(channel)
         self._pumps[channel].settings = settings
+        self.save_settings()
 
     def get_settings(self, channel: int) -> sp.SmartPumpSettings:
         self._check_channel(channel)
@@ -116,6 +117,13 @@ class PumpManager:
             user_settings.append(self._pumps[channel].settings)
 
         return save_user_pumps_config(user_settings)
+
+    def save_history(self) -> str:
+
+        for pump in self._pumps:
+            pump.save_history()
+
+        return str(get_history_dir())
 
     def get_status(self, channel: int) -> sp.SmartPumpStatus:
         self._check_channel(channel)
@@ -175,8 +183,7 @@ class PumpManager:
 
         _LOGGER.info(f"Joining {self._num_pumps} pumps")
 
-        for pump in self._pumps:
-            pump.join()
+        self.save_history()
 
         _LOGGER.info(f"Stopped {self._num_pumps} pumps")
 

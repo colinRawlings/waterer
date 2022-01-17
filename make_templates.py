@@ -4,6 +4,7 @@
 # Imports
 ###############################################################
 
+import os
 import pathlib as pt
 import socket
 
@@ -49,5 +50,6 @@ if __name__ == "__main__":
     output_files = (_DIR / "dist" / "waterer" / "env.js", _DIR / "src" / "env.js")
 
     for output_file in output_files:
+        os.makedirs(str(output_file.parent), exist_ok=True)
         with open(output_file, "w") as fh:
             fh.write(template.render(current_ip=str(get_ip())))

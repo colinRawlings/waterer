@@ -71,4 +71,13 @@ export class AppComponent implements OnInit, OnDestroy {
       (err) => this.notifierService.notify('error', `HTTP Error:  ${err.message}`)
     );
   }
+
+  onSaveHistory(): void {
+    this.http.get(`${this.constantsService.kBackendURL}save_history`).subscribe(
+      (data: keyable) => {
+        this.notifierService.notify('success', `Saved history to ${data.data}`);
+      },
+      (err) => this.notifierService.notify('error', `HTTP Error:  ${err.message}`)
+    );
+  }
 }

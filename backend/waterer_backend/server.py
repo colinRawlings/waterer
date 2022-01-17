@@ -12,6 +12,7 @@ from waterer_backend import __version__
 from waterer_backend.config import get_pumps_config
 from waterer_backend.pump_manager import PumpManagerContext, get_pump_manager
 from waterer_backend.request import Request
+from waterer_backend.service_logs import get_service_logs
 from waterer_backend.smart_pump import SmartPumpSettings
 
 ###############################################################
@@ -79,6 +80,11 @@ def create_app() -> Flask:
         saved_filepath = get_pump_manager().save_settings()
         return {"data": saved_filepath}
 
+    @app.route("/save_history")
+    def save_history():
+        saved_history_dir = get_pump_manager().save_history()
+        return {"data": saved_history_dir}
+
     @app.route("/settings/<channel>")
     def get_settings(channel: str):
         settings = get_pump_manager().get_settings(channel=int(channel))
@@ -95,5 +101,10 @@ def create_app() -> Flask:
 
         settings = get_pump_manager().get_settings(channel=int(channel))
         return {"data": asdict(settings)}
+
+    @app.route("/service_logs/<number_log_lines>")
+    def service_logs(number_log_lines: str):
+        logs = get_service_logs(int(number_log_lines))
+        return {"data": logs}
 
     return app

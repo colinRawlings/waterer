@@ -5,8 +5,14 @@ body {
   height: 100%;
 }
 body {
-  margin: 5;
+  margin: 5px;
   font-family: Roboto, "Helvetica Neue", sans-serif;
+}
+
+@media (max-width: 550px) {
+  body {
+    margin: 1px;
+  }
 }
 
 mat-card {
