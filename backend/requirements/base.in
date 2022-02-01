@@ -8,3 +8,4 @@ Jinja2
 numpy
 pydantic
 bleak
+aiohttp

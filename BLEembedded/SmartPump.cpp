@@ -16,6 +16,11 @@ void CSmartPump::TurnOn()
     m_Pump.TurnOn();
 }
 
+bool CSmartPump::IsOn()
+{
+    return m_Pump.GetOutputState() == OutputStates::ON;
+}
+
 void CSmartPump::TurnOff()
 {
     m_Pump.TurnOff();

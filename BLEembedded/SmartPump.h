@@ -21,6 +21,8 @@ class CSmartPump : public IEventLoopEntity
     void TurnOff();
     void TurnOn();
 
+    bool IsOn();
+
     void TurnOnFor(time_ms_type activation_ms);
     float GetHumidityVoltage();
 

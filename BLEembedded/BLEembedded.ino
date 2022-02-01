@@ -7,19 +7,35 @@ long previousMillis = 0;
 int interval = 0;
 int ledState = LOW;
 
-BLEService pump_service("180A"); // BLE LED Service
+BLEService pump_service(PUMP_SERVICE_ATTR_ID);
 
-// BLE LED Switch Characteristic - custom 128-bit UUID, read and writable by
-// central
-BLELongCharacteristic pump_attr("2A67", BLERead | BLEWrite);
-BLEFloatCharacteristic humidity_attr("2A68", BLERead | BLEWrite);
+BLELongCharacteristic pump_attr(PUMP_ATTR_ID, BLERead | BLEWrite);
+BLEBoolCharacteristic pump_status_attr(PUMP_STATUS_ATTR_ID, BLERead);
+BLEFloatCharacteristic humidity_attr(HUMIDITY_ATTR_ID, BLERead | BLEWrite);
 
 CSmartPump smart_pump(PUMP_DIGITAL_PIN, PUMP_ANALOGUE_PIN);
+
+template <typename T>
+void safe_println(T msg)
+{
+    if (!Serial)
+        return;
+
+    Serial.println(msg);
+}
+
+template <typename T>
+void safe_print(T msg)
+{
+    if (!Serial)
+        return;
+
+    Serial.print(msg);
+}
 
 void setup()
 {
     Serial.begin(9600);
-    //  while (!Serial);
 
     // set built in LED pin to output mode
     pinMode(10, OUTPUT);
@@ -28,8 +44,7 @@ void setup()
     // begin initialization
     if (!BLE.begin())
     {
-        if (Serial)
-            Serial.println("starting BLE failed!");
+        safe_println("starting BLE failed!");
 
         while (1)
             ;
@@ -41,6 +56,7 @@ void setup()
 
     // add the characteristic to the service
     pump_service.addCharacteristic(pump_attr);
+    pump_service.addCharacteristic(pump_status_attr);
     pump_service.addCharacteristic(humidity_attr);
 
     // add service
@@ -48,12 +64,12 @@ void setup()
 
     // set the initial value for the characteristic:
     pump_attr.writeValue(0);
+    pump_status_attr.writeValue(false);
 
     // start advertising
     BLE.advertise();
 
-    if (Serial)
-        Serial.println("BLE Ard Pump Lo");
+    safe_println("BLE Ard Pump Lo");
 }
 
 void loop()
@@ -65,11 +81,9 @@ void loop()
     if (central)
     {
 
-        if (Serial)
-            Serial.print("Connected to central: ");
+        safe_print("Connected to central: ");
         // print the central's MAC address:
-        if (Serial)
-            Serial.println(central.address());
+        safe_println(central.address());
 
         digitalWrite(LED_BUILTIN, HIGH); // will turn the LED off
 
@@ -79,59 +93,45 @@ void loop()
             smart_pump.Update();
 
             auto humidity_V = smart_pump.GetHumidityVoltage();
-            // if (Serial)
-            //     Serial.println(humidity_V);
             humidity_attr.writeValue(humidity_V);
+            pump_status_attr.writeValue(smart_pump.IsOn());
 
             if (pump_attr.written())
             {
                 auto written_val = pump_attr.value();
-                if (Serial)
-                {
-                    Serial.print("Recieved instruction: ");
-                    Serial.println(written_val);
-                }
+                safe_print("Recieved instruction: ");
+                safe_println(written_val);
 
                 if (written_val == -1)
                 {
-                    if (Serial)
-                        Serial.println("Pump on");
+                    safe_println("Pump on");
 
                     smart_pump.TurnOn();
                 }
                 else if (written_val == 0)
                 {
-                    if (Serial)
-                        Serial.println("Pump off");
+                    safe_println("Pump off");
 
                     smart_pump.TurnOff();
                 }
                 else if (written_val > 0)
                 {
-                    if (Serial)
-                    {
-                        Serial.print("Turn on for (ms): ");
-                        Serial.println(written_val);
-                    }
+                    safe_print("Turn on for (ms): ");
+                    safe_println(written_val);
 
                     smart_pump.TurnOnFor(written_val);
                 }
                 else
                 {
-                    if (Serial)
-                    {
-                        Serial.print("Pump unhandled instruction: ");
-                        Serial.println(written_val);
-                    }
+                    safe_print("Pump unhandled instruction: ");
+                    safe_println(written_val);
                 }
             }
         }
 
         // when the central disconnects, print it out:
-        if (Serial)
-            Serial.print(F("Disconnected from central: "));
-        if (Serial)
-            Serial.println(central.address());
+        safe_print("Disconnected from central: ");
+        safe_println(central.address());
         digitalWrite(LED_BUILTIN, LOW); // will turn the LED off
     }
 }

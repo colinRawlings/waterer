@@ -4,14 +4,24 @@
 #
 #    pip-compile C:/Users/colin/Documents/waterer/backend/requirements/base.in
 #
+aiohttp==3.8.1
+    # via -r C:/Users/colin/Documents/waterer/backend/requirements/base.in
+aiosignal==1.2.0
+    # via aiohttp
+async-timeout==4.0.2
+    # via aiohttp
 attrs==21.2.0
-    # via jsonschema
+    # via
+    #   aiohttp
+    #   jsonschema
 bidict==0.21.2
     # via python-socketio
 bleak-winrt==1.1.0
     # via bleak
 bleak==0.14.1
     # via -r C:/Users/colin/Documents/waterer/backend/requirements/base.in
+charset-normalizer==2.0.10
+    # via aiohttp
 click==8.0.1
     # via flask
 colorama==0.4.4
@@ -22,6 +32,12 @@ flask==2.0.1
     # via
     #   -r C:/Users/colin/Documents/waterer/backend/requirements/base.in
     #   flask-cors
+frozenlist==1.2.0
+    # via
+    #   aiohttp
+    #   aiosignal
+idna==3.3
+    # via yarl
 itsdangerous==2.0.1
     # via flask
 jinja2==3.0.1
@@ -32,6 +48,10 @@ jsonschema==3.2.0
     # via -r C:/Users/colin/Documents/waterer/backend/requirements/base.in
 markupsafe==2.0.1
     # via jinja2
+multidict==5.2.0
+    # via
+    #   aiohttp
+    #   yarl
 numpy==1.21.0
     # via -r C:/Users/colin/Documents/waterer/backend/requirements/base.in
 pydantic==1.8.2
@@ -52,6 +72,8 @@ typing-extensions==3.10.0.0
     # via pydantic
 werkzeug==2.0.1
     # via flask
+yarl==1.7.2
+    # via aiohttp
 
 # The following packages are considered to be unsafe in a requirements file:
 # setuptools

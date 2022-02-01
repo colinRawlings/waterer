@@ -4,15 +4,26 @@
 #
 #    pip-compile C:/Users/colin/Documents/waterer/backend/requirements/dev.in
 #
+aiohttp==3.8.1
+    # via -r C:/Users/colin/Documents/waterer/backend/requirements\base.txt
+aiosignal==1.2.0
+    # via
+    #   -r C:/Users/colin/Documents/waterer/backend/requirements\base.txt
+    #   aiohttp
 appdirs==1.4.4
     # via
     #   black
     #   virtualenv
+async-timeout==4.0.2
+    # via
+    #   -r C:/Users/colin/Documents/waterer/backend/requirements\base.txt
+    #   aiohttp
 atomicwrites==1.4.0
     # via pytest
 attrs==21.2.0
     # via
     #   -r C:/Users/colin/Documents/waterer/backend/requirements\base.txt
+    #   aiohttp
     #   jsonschema
     #   pytest
 bidict==0.21.2
@@ -29,6 +40,10 @@ bleak==0.14.1
     # via -r C:/Users/colin/Documents/waterer/backend/requirements\base.txt
 cfgv==3.3.0
     # via pre-commit
+charset-normalizer==2.0.10
+    # via
+    #   -r C:/Users/colin/Documents/waterer/backend/requirements\base.txt
+    #   aiohttp
 click==8.0.1
     # via
     #   -r C:/Users/colin/Documents/waterer/backend/requirements\base.txt
@@ -51,8 +66,17 @@ flask==2.0.1
     # via
     #   -r C:/Users/colin/Documents/waterer/backend/requirements\base.txt
     #   flask-cors
+frozenlist==1.2.0
+    # via
+    #   -r C:/Users/colin/Documents/waterer/backend/requirements\base.txt
+    #   aiohttp
+    #   aiosignal
 identify==2.2.9
     # via pre-commit
+idna==3.3
+    # via
+    #   -r C:/Users/colin/Documents/waterer/backend/requirements\base.txt
+    #   yarl
 iniconfig==1.1.1
     # via pytest
 isort==5.8.0
@@ -75,6 +99,11 @@ markupsafe==2.0.1
     #   jinja2
 matplotlib==3.3.4
     # via -r C:/Users/colin/Documents/waterer/backend/requirements/dev.in
+multidict==5.2.0
+    # via
+    #   -r C:/Users/colin/Documents/waterer/backend/requirements\base.txt
+    #   aiohttp
+    #   yarl
 mypy-extensions==0.4.3
     # via black
 nodeenv==1.6.0
@@ -150,6 +179,10 @@ werkzeug==2.0.1
     # via
     #   -r C:/Users/colin/Documents/waterer/backend/requirements\base.txt
     #   flask
+yarl==1.7.2
+    # via
+    #   -r C:/Users/colin/Documents/waterer/backend/requirements\base.txt
+    #   aiohttp
 
 # The following packages are considered to be unsafe in a requirements file:
 # setuptools

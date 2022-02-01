@@ -15,3 +15,11 @@ const float AIN_FULL_RANGE_V{3.3f};
 
 extern const pin_id_type PUMP_DIGITAL_PIN{10};
 extern const pin_id_type PUMP_ANALOGUE_PIN{A6};
+
+// Id's
+
+extern const char PUMP_SERVICE_ATTR_ID[]{'1', '8', '0', 'A', '\0'};
+
+extern const char PUMP_ATTR_ID[]{'2', 'A', '6', '7', '\0'};
+extern const char PUMP_STATUS_ATTR_ID[]{'2', 'A', '6', '8', '\0'};
+extern const char HUMIDITY_ATTR_ID[]{'2', 'A', '6', '9', '\0'};

@@ -25,5 +25,8 @@ extern const pin_id_type PUMP_ANALOGUE_PIN;
 
 // Attr Id's
 
+extern const char PUMP_SERVICE_ATTR_ID[];
+
 extern const char PUMP_ATTR_ID[];
-extern const char PUMP_ATTR_ID[];
+extern const char PUMP_STATUS_ATTR_ID[];
+extern const char HUMIDITY_ATTR_ID[];
