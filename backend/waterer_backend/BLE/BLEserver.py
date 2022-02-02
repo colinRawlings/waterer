@@ -8,6 +8,7 @@
 import logging
 from dataclasses import asdict
 
+import aiohttp_cors
 from aiohttp import web
 from waterer_backend import __version__
 from waterer_backend.BLE.BLEpump_manager import BLEPumpManager
@@ -55,6 +56,11 @@ def create_app(manager: BLEPumpManager) -> web.Application:
                 "version": __version__,
             }
         )
+
+    @routes.get("/num_pumps")
+    async def num_pumps(request: web.Request):
+        num_pumps = get_pump_manager(request).num_pumps
+        return web.json_response({"data": num_pumps})
 
     @routes.get("/status/{channel}")
     async def get_pump_status(request: web.Request):
@@ -120,6 +126,22 @@ def create_app(manager: BLEPumpManager) -> web.Application:
         return web.json_response({"data": logs})
 
     app.add_routes(routes)
+
+    # Configure default CORS settings.
+    cors = aiohttp_cors.setup(
+        app,
+        defaults={
+            "*": aiohttp_cors.ResourceOptions(
+                allow_credentials=True,
+                expose_headers="*",
+                allow_headers="*",
+            )
+        },
+    )
+
+    # Configure CORS on all routes.
+    for route in list(app.router.routes()):
+        cors.add(route)
 
     return app
 

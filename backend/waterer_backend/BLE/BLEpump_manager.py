@@ -71,7 +71,10 @@ class BLEPumpManager:
 
     @property
     def connection_info(self) -> str:
-        return "TODO"
+        info = ""
+        for idx, pump in enumerate(self._pumps):
+            info += f"pump {idx}: {pump.info}\n"
+        return info
 
     @property
     def num_pumps(self) -> int:

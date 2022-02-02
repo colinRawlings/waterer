@@ -83,6 +83,11 @@ class BLESmartPump:
         self._pump_status_log = BinaryStatusLog()
 
     @property
+    def info(self) -> str:
+        assert self._client is not None
+        return self._client.address
+
+    @property
     def channel(self) -> int:
         return self._channel
 
