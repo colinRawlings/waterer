@@ -13,7 +13,7 @@ async def main():
 
     async with PumpManagerContext(settings=pumps_config[0]) as manager:
         manager.start()
-        await manager.turn_on(1, 1)
+        # await manager.turn_on(1, 1)
         await asyncio.sleep(20)
 
         # await manager.turn_on(0, 1000)

@@ -19,6 +19,7 @@ from waterer_backend.config import get_history_dir, save_user_pumps_config
 
 logger = logging.getLogger(__name__)
 
+SCAN_DURATION_S = 15
 
 ###############################################################
 # Class
@@ -67,6 +68,10 @@ class BLEPumpManager:
                     allow_load_history=self._allow_load_history,
                 )
             )
+
+    @property
+    def connection_info(self) -> str:
+        return "TODO"
 
     @property
     def num_pumps(self) -> int:
@@ -145,12 +150,14 @@ class PumpManagerContext:
         status_update_interval_s: int = 5,
         config_filepath: Optional[pt.Path] = None,
         allow_load_history: bool = False,
+        scan_duration_s: float = SCAN_DURATION_S,
     ) -> None:
 
         self._status_update_interval_s = status_update_interval_s
         self._init_settings = settings
         self._config_filepath = config_filepath
         self._allow_load_history = allow_load_history
+        self._scan_duration_s = scan_duration_s
 
         #
 
@@ -160,8 +167,8 @@ class PumpManagerContext:
 
     async def __aenter__(self) -> BLEPumpManager:
 
-        logger.info("Scanning for devices for 10s ... ")
-        devices = await BleakScanner.discover()
+        logger.info(f"Scanning for devices for {self._scan_duration_s}s ... ")
+        devices = await BleakScanner.discover(timeout=self._scan_duration_s)
         for d in devices:
             logger.info(d)
 
@@ -172,7 +179,8 @@ class PumpManagerContext:
         for pump_device in pump_devices:
             logger.info(pump_device)
 
-        assert len(pump_devices) > 0, "No pumps found"
+        if len(pump_devices) == 0:
+            logger.warning("No pumps found")
 
         logger.info(f"Creating {len(pump_devices)} clients")
         self._clients = [BleakClient(pump.address) for pump in pump_devices]
@@ -195,6 +203,8 @@ class PumpManagerContext:
         return self._pump_manager
 
     async def __aexit__(self, exc_type, exc_value, exc_traceback):
+
+        logger.info("Pump manager context shutting down ... ")
         if self._pump_manager:
             await self._pump_manager.interrupt()
 
@@ -204,3 +214,5 @@ class PumpManagerContext:
                 logger.info("ok")
             else:
                 logger.info("FAIL")
+
+        logger.info("Pump manager completed shut down ... ")
