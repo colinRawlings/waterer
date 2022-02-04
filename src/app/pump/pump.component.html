@@ -1,7 +1,15 @@
 <div class="app-pump">
   <mat-card>
-    <mat-card-title>History: {{ settings.name }}</mat-card-title>
-    <mat-card
+   
+    <mat-card>
+      <mat-card-content>
+        <plotly-plot
+          [data]="graph.data"
+          [layout]="graph.layout"
+          [config]="graph.config"
+        ></plotly-plot>
+      </mat-card-content>
+      <div
       fxLayout
       fxLayout="row"
       fxLayoutGap="10px"
@@ -18,17 +26,8 @@
         <button mat-stroked-button (click)="onClearHistory()">
           Clear
         </button>
+    </div>
     </mat-card>
-    <mat-card>
-      <mat-card-content>
-        <plotly-plot
-          [data]="graph.data"
-          [layout]="graph.layout"
-          [config]="graph.config"
-        ></plotly-plot>
-      </mat-card-content>
-    </mat-card>
-
     <mat-expansion-panel>
       <mat-expansion-panel-header>
         <mat-panel-title>Settings</mat-panel-title>
@@ -39,7 +38,7 @@
 
     <mat-expansion-panel>
       <mat-expansion-panel-header>
-        <mat-panel-title>Manual Controls</mat-panel-title>
+        <mat-panel-title>Pump Controls</mat-panel-title>
       </mat-expansion-panel-header>
       <app-manual-pump-controls
         fxLayout="row"
