@@ -1,32 +1,6 @@
 <mat-card class="container">
   <mat-card-title>Waterer</mat-card-title>
-  <mat-card
-    fxLayout
-    fxLayoutGap="10px"
-    fxLayoutAlign="space-around"
-    fxLayout.xs="column"
-  >
-    <div>
-      <mat-slide-toggle
-        [(ngModel)]="autoUpdate"
-        color="primary"
-        (change)="onAutoUpdateChange()"
-      >
-        Auto-Update
-      </mat-slide-toggle>
-    </div>
-    <div>
-      <button mat-stroked-button (click)="onSaveUserSettings()">
-        Save Settings
-      </button>
-      </div>
-      <div>
-      <button mat-stroked-button (click)="onSaveHistory()">
-        Save History
-      </button>
-    </div>
-  </mat-card>
-
+  
   <mat-tab-group>
     <div *ngFor="let channel of channels">
       <mat-tab>
@@ -60,6 +34,30 @@
     </mat-expansion-panel-header>
     <app-logs>
     </app-logs>
+  </mat-expansion-panel>
+  <mat-expansion-panel>
+    <mat-expansion-panel-header>
+      <mat-panel-title>Settings</mat-panel-title>
+    </mat-expansion-panel-header>
+    <div fxLayout
+    fxLayout="row"
+    fxLayoutGap="10px"
+    fxLayoutAlign="space-around"
+    fxLayout.xs="column">
+      <mat-slide-toggle
+        [(ngModel)]="autoUpdate"
+        color="primary"
+        (change)="onAutoUpdateChange()"
+      >
+        Auto-Update
+      </mat-slide-toggle>
+      <button mat-stroked-button (click)="onSaveUserSettings()">
+        Save Settings
+      </button>
+      <button mat-stroked-button (click)="onSaveHistory()">
+        Save History
+      </button>
+    </div>
   </mat-expansion-panel>
 </mat-card>
 <notifier-container></notifier-container>
