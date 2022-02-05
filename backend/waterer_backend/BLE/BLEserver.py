@@ -111,7 +111,9 @@ def create_app(manager: BLEPumpManager) -> web.Application:
     async def set_settings(request: web.Request):
         channel = request.match_info["channel"]
 
-        new_settings = SmartPumpSettings(**request.json)  # type: ignore
+        request_dict = await request.json()
+
+        new_settings = SmartPumpSettings(**request_dict)  # type: ignore
         get_pump_manager(request).set_settings(
             channel=int(channel), settings=new_settings
         )
