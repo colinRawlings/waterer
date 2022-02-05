@@ -3,13 +3,13 @@ import struct
 from contextlib import AsyncExitStack
 from time import time
 
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 from bleak import BleakClient, BleakScanner
 from bleak.backends.device import BLEDevice
-
-plt.ion()
-
 from waterer_backend.status_log import BinaryStatusLog, FloatStatusLog
+
+# plt.ion()
+
 
 PUMP_NAME = "Ard Pump Lo"
 PUMP_ATTR_ID = "00002a67-0000-1000-8000-00805f9b34fb"

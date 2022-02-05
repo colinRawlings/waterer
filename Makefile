@@ -82,6 +82,8 @@ else
 	sudo npm install -g -y yarn
 	sudo npm install -g -y @angular/cli
 	sudo npm install -g -y lite-server
+	# bluetooth
+	sudo apt install -y bluez
 endif
 
 install-dev: venv
