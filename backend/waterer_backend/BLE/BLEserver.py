@@ -13,6 +13,7 @@ from aiohttp import web
 from waterer_backend import __version__
 from waterer_backend.BLE.BLEpump_manager import BLEPumpManager
 from waterer_backend.service_logs import get_service_logs
+from waterer_backend.smart_pump import SmartPumpSettings
 
 ###############################################################
 # Definitions
