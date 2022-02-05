@@ -127,7 +127,7 @@ up-backend-dev:
 	${BACKEND_VENV_PYTHON} -m waterer_backend.BLE.run_server
 
 up-backend:
-	${BACKEND_VENV_PYTHON} -m waterer_backend.run_server
+	${BACKEND_VENV_PYTHON} -m waterer_backend.BLE.run_server
 
 tests-backend:
 	${BACKEND_VENV_PYTHON} -m pytest ${makefile_dir}/backend/tests
