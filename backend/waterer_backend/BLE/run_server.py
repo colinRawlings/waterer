@@ -25,6 +25,16 @@ PORT = 5000
 ###############################################################
 
 
+def init_logging() -> None:
+
+    logging.basicConfig(level=logging.INFO)
+    aiohttp_logger = logging.getLogger("aiohttp")
+    aiohttp_logger.setLevel(logging.ERROR)
+
+
+###############################################################
+
+
 async def run_site(app: web.Application) -> None:
     try:
         runner = web.AppRunner(app)
@@ -41,7 +51,7 @@ async def run_site(app: web.Application) -> None:
 
 
 async def main():
-    logging.basicConfig(level=logging.INFO)
+    init_logging()
 
     pumps_config = get_pumps_config()
 
