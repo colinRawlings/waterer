@@ -63,6 +63,34 @@ def create_app(manager: BLEPumpManager) -> web.Application:
         num_pumps = get_pump_manager(request).num_pumps
         return web.json_response({"data": num_pumps})
 
+    @routes.get("/turn_on/{channel}")
+    async def turn_on(request: web.Request):
+        channel = request.match_info["channel"]
+
+        await get_pump_manager(request).turn_on(channel=int(channel))
+        return web.json_response({"data": ""})
+
+    @routes.post("/turn_on_for/{channel}")
+    async def turn_on_for(request: web.Request):
+
+        request_dict = await request.json()
+        channel = request.match_info["channel"]
+
+        duration_s = int(request_dict["duration_s"])  # type: ignore
+
+        await get_pump_manager(request).turn_on(
+            channel=int(channel), duration_ms=duration_s * 1000
+        )
+        return web.json_response({"data": ""})
+
+    @routes.get("/turn_off/{channel}")
+    async def turn_off(request: web.Request):
+
+        channel = request.match_info["channel"]
+
+        await get_pump_manager(request).turn_off(channel=int(channel))
+        return web.json_response({"data": ""})
+
     @routes.get("/status/{channel}")
     async def get_pump_status(request: web.Request):
         channel = request.match_info["channel"]

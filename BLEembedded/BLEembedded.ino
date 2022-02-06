@@ -2,6 +2,7 @@
 
 #include "SmartPump.h"
 #include "HWDef.h"
+#include "DigitalOutput.h"
 
 long previousMillis = 0;
 int interval = 0;
@@ -13,7 +14,9 @@ BLELongCharacteristic pump_attr(PUMP_ATTR_ID, BLERead | BLEWrite);
 BLEBoolCharacteristic pump_status_attr(PUMP_STATUS_ATTR_ID, BLERead);
 BLEFloatCharacteristic humidity_attr(HUMIDITY_ATTR_ID, BLERead | BLEWrite);
 
+//
 CSmartPump smart_pump(PUMP_DIGITAL_PIN, PUMP_ANALOGUE_PIN);
+CDigitalOutput connection_indicator(LED_BUILTIN, false);
 
 template <typename T>
 void safe_println(T msg)
@@ -36,10 +39,6 @@ void safe_print(T msg)
 void setup()
 {
     Serial.begin(9600);
-
-    // set built in LED pin to output mode
-    pinMode(10, OUTPUT);
-    pinMode(LED_BUILTIN, OUTPUT);
 
     // begin initialization
     if (!BLE.begin())
@@ -72,66 +71,77 @@ void setup()
     safe_println("BLE Ard Pump Lo");
 }
 
+void update()
+{
+    smart_pump.Update();
+    connection_indicator.Update();
+}
+
+void on_pump_attr_change()
+{
+    auto written_val = pump_attr.value();
+    safe_print("Recieved instruction: ");
+    safe_println(written_val);
+
+    if (written_val == -1)
+    {
+        safe_println("Pump on");
+
+        smart_pump.TurnOn();
+    }
+    else if (written_val == 0)
+    {
+        safe_println("Pump off");
+
+        smart_pump.TurnOff();
+    }
+    else if (written_val > 0)
+    {
+        safe_print("Turn on for (ms): ");
+        safe_println(written_val);
+
+        smart_pump.TurnOnFor(written_val);
+    }
+    else
+    {
+        safe_print("Pump unhandled instruction: ");
+        safe_println(written_val);
+    }
+}
+
+void connected_loop()
+{
+    update();
+
+    auto humidity_V = smart_pump.GetHumidityVoltage();
+    humidity_attr.writeValue(humidity_V);
+    pump_status_attr.writeValue(smart_pump.IsOn());
+
+    if (pump_attr.written())
+    {
+        on_pump_attr_change();
+    }
+}
+
 void loop()
 {
-    // listen for BLE peripherals to connect:
-    BLEDevice central = BLE.central();
+    update();
 
-    // if a central is connected to peripheral:
-    if (central)
+    if (BLEDevice central = BLE.central())
     {
 
         safe_print("Connected to central: ");
-        // print the central's MAC address:
         safe_println(central.address());
 
-        digitalWrite(LED_BUILTIN, HIGH); // will turn the LED off
+        connection_indicator.TurnOn();
 
-        // while the central is still connected to peripheral:
         while (central.connected())
         {
-            smart_pump.Update();
-
-            auto humidity_V = smart_pump.GetHumidityVoltage();
-            humidity_attr.writeValue(humidity_V);
-            pump_status_attr.writeValue(smart_pump.IsOn());
-
-            if (pump_attr.written())
-            {
-                auto written_val = pump_attr.value();
-                safe_print("Recieved instruction: ");
-                safe_println(written_val);
-
-                if (written_val == -1)
-                {
-                    safe_println("Pump on");
-
-                    smart_pump.TurnOn();
-                }
-                else if (written_val == 0)
-                {
-                    safe_println("Pump off");
-
-                    smart_pump.TurnOff();
-                }
-                else if (written_val > 0)
-                {
-                    safe_print("Turn on for (ms): ");
-                    safe_println(written_val);
-
-                    smart_pump.TurnOnFor(written_val);
-                }
-                else
-                {
-                    safe_print("Pump unhandled instruction: ");
-                    safe_println(written_val);
-                }
-            }
+            connected_loop();
         }
 
-        // when the central disconnects, print it out:
         safe_print("Disconnected from central: ");
         safe_println(central.address());
-        digitalWrite(LED_BUILTIN, LOW); // will turn the LED off
+        connection_indicator.TurnOff();
     }
 }

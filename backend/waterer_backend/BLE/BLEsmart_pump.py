@@ -195,14 +195,14 @@ class BLESmartPump:
             _LOGGER.warning("No device connected")
             return
 
-        on_code_bytes = bytearray(struct.pack("l", duration_ms))
+        on_code_bytes = bytearray(struct.pack("<I", duration_ms))
 
         current_char_bytes = await self._client.read_gatt_char(PUMP_ATTR_ID)
         _LOGGER.info(
             f"preparing to write {on_code_bytes} (current: {current_char_bytes})"
         )
 
-        await self._client.write_gatt_char(PUMP_ATTR_ID, current_char_bytes)
+        await self._client.write_gatt_char(PUMP_ATTR_ID, on_code_bytes)
 
     async def turn_off(self):
 
@@ -210,7 +210,13 @@ class BLESmartPump:
             _LOGGER.warning("No device connected")
             return
 
-        off_code_bytes = struct.pack("l", 0)
+        off_code_bytes = struct.pack("<I", 0)
+
+        current_char_bytes = await self._client.read_gatt_char(PUMP_ATTR_ID)
+        _LOGGER.info(
+            f"preparing to write {off_code_bytes} (current: {current_char_bytes})"
+        )
+
         await self._client.write_gatt_char(PUMP_ATTR_ID, off_code_bytes)
 
     ###############################################################

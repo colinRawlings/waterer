@@ -19,7 +19,7 @@ from waterer_backend.config import get_history_dir, save_user_pumps_config
 
 logger = logging.getLogger(__name__)
 
-SCAN_DURATION_S = 15
+SCAN_DURATION_S = 5
 
 ###############################################################
 # Class
