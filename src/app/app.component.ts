@@ -20,7 +20,7 @@ export class AppComponent implements OnInit, OnDestroy {
   public autoSwitchGraphs: boolean;
   public channels: number[];
 
-  public arduino_address: string;
+  public devices: string[];
   public frontend_version: string = packageInfo.version;
   public backend_version: string;
 
@@ -30,15 +30,15 @@ export class AppComponent implements OnInit, OnDestroy {
     private statusService: PumpStatusService,
     private constantsService: ConstantsService
   ) {
-    this.arduino_address = '';
+    this.devices = [];
     this.autoUpdate = true;
   }
 
   ngOnInit(): void {
     this.http.get(this.constantsService.kBackendURL).subscribe(
       (data: keyable) => {
-        this.arduino_address = `${data.data.arduino_address}`;
-        this.backend_version = `${data.data.version}`;
+        this.devices = data.device_info;
+        this.backend_version = `${data.version}`;
       },
       (err) => this.notifierService.notify('error', `HTTP Error:  ${err.message}`)
     );

@@ -53,7 +53,7 @@ def create_app(manager: BLEPumpManager) -> web.Application:
 
         return web.json_response(
             {
-                "arduino_address": get_pump_manager(request).connection_info,
+                "device_info": get_pump_manager(request).device_info,
                 "version": __version__,
             }
         )

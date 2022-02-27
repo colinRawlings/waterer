@@ -15,18 +15,24 @@
     </mat-expansion-panel-header>
     <mat-list>
       <mat-list-item>
-        <h5>Arduino Address</h5>
-        : {{ arduino_address }}
+        <h3 mat-subheader>Backend Version</h3>
+         {{ backend_version }}
       </mat-list-item>
       <mat-list-item>
-        <h5>Backend Version</h5>
-        : {{ backend_version }}
-      </mat-list-item>
-      <mat-list-item>
-        <h5>Frontend Version</h5>
-        : {{ frontend_version }}
+        <h3 mat-subheader>Frontend Version</h3>
+         {{ frontend_version }}
       </mat-list-item>
     </mat-list>
+  </mat-expansion-panel>
+  <mat-expansion-panel>
+    <mat-expansion-panel-header>
+      <mat-panel-title>Devices</mat-panel-title>
+    </mat-expansion-panel-header>
+    <div *ngFor="let device of devices">
+      <mat-list-item>
+        {{ device }}
+      </mat-list-item>
+    </div>
   </mat-expansion-panel>
   <mat-expansion-panel>
     <mat-expansion-panel-header>

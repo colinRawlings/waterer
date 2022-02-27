@@ -16,6 +16,7 @@ from time import time
 
 import bleak
 import numpy as np
+from bleak.backends.device import BLEDevice
 from waterer_backend.BLE.BLE_ids import (
     HUMIDITY_ATTR_ID,
     PUMP_ATTR_ID,
@@ -48,6 +49,7 @@ class BLESmartPump:
         self,
         channel: int,
         client: ty.Optional[bleak.BleakClient],
+        pump_device: ty.Optional[BLEDevice],
         settings: SmartPumpSettings,
         status_update_interval_s: float = 5,
         allow_load_history: bool = False,
@@ -55,6 +57,10 @@ class BLESmartPump:
     ) -> None:
 
         self._client = client
+        if client is None:
+            _LOGGER.warning("Pump created without valid client")
+
+        self._pump_device = pump_device
         if client is None:
             _LOGGER.warning("Pump created without valid device")
 
@@ -85,7 +91,8 @@ class BLESmartPump:
     @property
     def info(self) -> str:
         assert self._client is not None
-        return self._client.address
+        assert self._pump_device is not None
+        return f"{self._client.address}, signal strength: {self._pump_device.rssi} dBm"
 
     @property
     def channel(self) -> int:
@@ -98,7 +105,7 @@ class BLESmartPump:
     @settings.setter
     def settings(self, value: SmartPumpSettings) -> None:
         self._settings = value
-        _LOGGER.info(f"New setting for channel {self._channel}: {self._settings}")
+        _LOGGER.info(f"{self._channel}: New settings: {self._settings}")
 
     def save_history(self) -> None:
 
@@ -115,14 +122,14 @@ class BLESmartPump:
         with open(filepath, "w") as fh:
             json.dump(history.dict(), fh)
 
-        _LOGGER.info(f"Saved history for pump {self._channel} to {filepath}")
+        _LOGGER.info(f"{self._channel}: Saved history to {filepath}")
 
     def load_history(self) -> None:
         filepath = get_history_filepath(self._channel)
 
         if not filepath.is_file():
             _LOGGER.info(
-                f"Failed to find history file to load for pump {self._channel}: {filepath}"
+                f"{self._channel}: Failed to find history file for: {filepath}"
             )
             self._init_logs()
             return
@@ -133,11 +140,13 @@ class BLESmartPump:
         try:
             history = SmartPumpStatusData(**history_dict)
         except Exception as e:
-            _LOGGER.error(f"Failed to parse history file: {filepath} with exception{e}")
+            _LOGGER.error(
+                f"{self._channel}: Failed to parse history file: {filepath} with exception{e}"
+            )
             self._init_logs()
             return
 
-        _LOGGER.info(f"Loaded history for pump {self._channel} from {filepath}")
+        _LOGGER.info(f"{self._channel}: Loaded history from {filepath}")
 
         self._rel_humidity_V_log = FloatStatusLog.from_data(history.rel_humidity_V_log)
         self._smoothed_rel_humidity_V_log = FloatStatusLog.from_data(
@@ -397,17 +406,21 @@ class BLESmartPump:
                 await self._do_loop_iteration()
                 await asyncio.sleep(self._status_update_interval_s)
             except asyncio.CancelledError:
-                _LOGGER.info(f"Smart pump for channel: {self._channel} stopped")
+                _LOGGER.info(f"{self._channel}: run cancelled, stopping ...")
                 break
             except Exception as e:
                 _LOGGER.error(
                     f"{self.channel}: Encountered exception in run loop:\n\n{tb.format_exc()}"
                 )
 
-    def start(self):
-        self._task = asyncio.get_event_loop().create_task(self.run())
+        _LOGGER.info(f"{self.channel}: run() finished")
 
-    # Stops the feedback loop (so a join() should execute quickly)
+    def start(self):
+        self._task = asyncio.get_event_loop().create_task(
+            self.run(), name=f"main_loop_pump_{self.channel}"
+        )
+
+    # Stops the feedback loop
     async def interrupt(self):
 
         if self._task is not None and not self._task.done():

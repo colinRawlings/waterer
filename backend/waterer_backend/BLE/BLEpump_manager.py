@@ -9,6 +9,7 @@ from typing import List, Optional, Union
 
 import waterer_backend.smart_pump as sp
 from bleak import BleakClient, BleakScanner
+from bleak.backends.device import BLEDevice
 from waterer_backend.BLE.BLE_ids import PUMP_NAME
 from waterer_backend.BLE.BLEsmart_pump import BLESmartPump
 from waterer_backend.config import get_history_dir, save_user_pumps_config
@@ -34,8 +35,9 @@ class BLEPumpManager:
         settings: pump_manager_settings_type,
         status_update_interval_s: int = 5,
         clients: List[BleakClient] = [],
+        pump_devices: List[BLEDevice] = [],
         config_filepath: Optional[pt.Path] = None,
-        allow_load_history: bool = False,
+        allow_load_history: bool = True,
     ) -> None:
 
         self._status_update_interval_s = status_update_interval_s
@@ -52,6 +54,9 @@ class BLEPumpManager:
         else:
             raise ValueError(f"Unexpected type for settings argument {type(settings)}")
 
+        if len(clients) != len(pump_devices):
+            raise ValueError("Inconsistent lengths of clients and devices")
+
         self._config_filepath = config_filepath
         self._allow_load_history = allow_load_history
 
@@ -63,6 +68,7 @@ class BLEPumpManager:
                 BLESmartPump(
                     channel=channel,
                     client=client,
+                    pump_device=pump_devices[channel],
                     settings=self._init_settings[channel],
                     status_update_interval_s=self._status_update_interval_s,
                     allow_load_history=self._allow_load_history,
@@ -70,10 +76,10 @@ class BLEPumpManager:
             )
 
     @property
-    def connection_info(self) -> str:
-        info = ""
+    def device_info(self) -> List[str]:
+        info = []
         for idx, pump in enumerate(self._pumps):
-            info += f"pump {idx}: {pump.info}\n"
+            info.append(f"pump {idx}: {pump.info}")
         return info
 
     @property
@@ -140,6 +146,7 @@ class BLEPumpManager:
 
     async def interrupt(self):
         for pump in self._pumps:
+            logger.info(f"interrupting: {pump.channel}")
             await pump.interrupt()
 
         for pump in self._pumps:
@@ -179,8 +186,10 @@ class PumpManagerContext:
 
         logger.info(f"Found: {len(pump_devices)} pump(s):")
 
-        for pump_device in pump_devices:
-            logger.info(pump_device)
+        for channel, pump_device in enumerate(pump_devices):
+            logger.info(
+                f"Channel {channel}: name {pump_device.name}, address: {pump_device.address}, signal strength: {pump_device.rssi} dBm"
+            )
 
         if len(pump_devices) == 0:
             logger.warning("No pumps found")
@@ -198,6 +207,7 @@ class PumpManagerContext:
         self._pump_manager = BLEPumpManager(
             settings=self._init_settings,
             clients=self._clients,
+            pump_devices=pump_devices,
             config_filepath=self._config_filepath,
             status_update_interval_s=self._status_update_interval_s,
             allow_load_history=self._allow_load_history,
