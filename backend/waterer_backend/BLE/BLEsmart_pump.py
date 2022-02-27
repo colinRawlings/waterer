@@ -198,8 +198,8 @@ class BLESmartPump:
         on_code_bytes = bytearray(struct.pack("<I", duration_ms))
 
         current_char_bytes = await self._client.read_gatt_char(PUMP_ATTR_ID)
-        _LOGGER.info(
-            f"preparing to write {on_code_bytes} (current: {current_char_bytes})"
+        _LOGGER.debug(
+            f"{self.channel}: preparing to write {on_code_bytes} (current: {current_char_bytes})"
         )
 
         await self._client.write_gatt_char(PUMP_ATTR_ID, on_code_bytes)
@@ -213,8 +213,8 @@ class BLESmartPump:
         off_code_bytes = struct.pack("<I", 0)
 
         current_char_bytes = await self._client.read_gatt_char(PUMP_ATTR_ID)
-        _LOGGER.info(
-            f"preparing to write {off_code_bytes} (current: {current_char_bytes})"
+        _LOGGER.debug(
+            f"{self.channel}: preparing to write {off_code_bytes} (current: {current_char_bytes})"
         )
 
         await self._client.write_gatt_char(PUMP_ATTR_ID, off_code_bytes)
@@ -361,7 +361,9 @@ class BLESmartPump:
             isinstance(current_humidity_pcnt, float)
             and self._settings.feedback_setpoint_pcnt > current_humidity_pcnt
         ):
-            _LOGGER.info(f"Activating pump for {self._settings.pump_on_time_s} s")
+            _LOGGER.info(
+                f"{self.channel}: Activating pump for {self._settings.pump_on_time_s} s"
+            )
 
             await self.turn_on(self._settings.pump_on_time_s)
 
@@ -390,12 +392,17 @@ class BLESmartPump:
 
     async def run(self):
 
-        try:
-            while not self._abort_running:
+        while not self._abort_running:
+            try:
                 await self._do_loop_iteration()
                 await asyncio.sleep(self._status_update_interval_s)
-        except asyncio.CancelledError:
-            _LOGGER.info(f"Smart pump for channel: {self._channel} stopped")
+            except asyncio.CancelledError:
+                _LOGGER.info(f"Smart pump for channel: {self._channel} stopped")
+                break
+            except Exception as e:
+                _LOGGER.error(
+                    f"{self.channel}: Encountered exception in run loop:\n\n{tb.format_exc()}"
+                )
 
     def start(self):
         self._task = asyncio.get_event_loop().create_task(self.run())
