@@ -115,6 +115,9 @@ up-frontend:
 	${BACKEND_VENV_PYTHON} ${makefile_dir}/make_templates.py
 	cd ${FRONTEND_DIR} && lite-server
 
+install-service: startup_script
+	sudo cp ${makefile_dir}/waterer.service /etc/systemd/system/waterer.service
+
 up-service:
 	systemctl start waterer.service
 
