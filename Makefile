@@ -61,6 +61,12 @@ install: venv
 	${COMMENT_CHAR} Install Frontend
 	cd ${FRONTEND_DIR} && yarn install --production=true
 
+install-ssh:
+	sudo apt update
+	sudo apt install -y openssh-server
+	sudo systemctl enable ssh
+	sudo systemctl start ssh
+
 install-host-tools:
 	${COMMENT_CHAR} TODO: Install Arduino IDE/CLI, downgrade board manager to 1.8.2 to allow arduino extension for STL
 ifdef OS
@@ -70,9 +76,9 @@ else
 	sudo apt update
 	# installing arduino IDE
 	sudo snap install arduino
-	sudo usermod -aG dialout test
+	sudo usermod -aG dialout $(shell whoami)
 	#
-	sudo apt install -y gcc make clang-format-10
+	sudo apt install -y build-essential gcc make clang-format-10
 	#
 	sudo apt-get install -y python3-dev
 	sudo apt-get install -y python3-venv
@@ -118,7 +124,7 @@ down-service:
 push-frontend:
 	ng build
 ifdef OS
-	${COMMENT_CHAR} Run: wsl scp -r ./dist  $(SERVER_USER)@$(SERVER_IP):/home/ubuntu/waterer/
+	${COMMENT_CHAR} Run: wsl scp -r ./dist	$(SERVER_USER)@$(SERVER_IP):/home/ubuntu/waterer/
 else
 	scp -r ./dist  $(SERVER_USER)@$(SERVER_IP):/home/ubuntu/waterer/
 endif
