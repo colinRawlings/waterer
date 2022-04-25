@@ -117,6 +117,7 @@ up-frontend:
 
 install-service: startup_script
 	sudo cp ${makefile_dir}/waterer.service /etc/systemd/system/waterer.service
+	systemctl enable waterer
 
 up-service:
 	systemctl start waterer.service
