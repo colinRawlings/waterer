@@ -151,7 +151,8 @@ pip-list:
 startup_script: ${startup_script}
 
 ${startup_script}:
-	echo "cd $(makefile_dir) && $(shell which make) -f $(makefile_dir)/Makefile up-backend &" > ${startup_script}
+	echo "#!/bin/bash" > ${startup_script}
+	echo "cd $(makefile_dir) && $(shell which make) -f $(makefile_dir)/Makefile up-backend &" >> ${startup_script}
 	echo "cd $(makefile_dir) && $(shell which make) -f $(makefile_dir)/Makefile up-frontend &" >> ${startup_script}
 	chmod u+x ${startup_script}
 
