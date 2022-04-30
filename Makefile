@@ -7,7 +7,7 @@ BACKEND_VENV_DIR = ${BACKEND_DIR}/.venv
 
 startup_script := $(makefile_dir)/launch.sh
 
-SERVER_IP = 192.168.8.119
+SERVER_IP = 192.168.8.103
 SERVER_USER = ubuntu
 
 ip_config_filepath = $(makefile_dir)/ip_config.json
@@ -67,7 +67,7 @@ install-ssh:
 	sudo systemctl enable ssh
 	sudo systemctl start ssh
 
-install-host-tools:
+install-host-tools: install-ssh
 	${COMMENT_CHAR} TODO: Install Arduino IDE/CLI, downgrade board manager to 1.8.2 to allow arduino extension for STL
 ifdef OS
 	${COMMENT_CHAR} TODO: node, npm, yarn, angular, arduino
@@ -111,7 +111,7 @@ up-frontend-dev: venv
 	cd ${FRONTEND_DIR} && yarn start
 
 # useful for the rpi that lacks the power to build the frontend
-up-frontend:
+up-frontend: venv
 	${BACKEND_VENV_PYTHON} ${makefile_dir}/make_templates.py
 	cd ${FRONTEND_DIR} && lite-server
 
@@ -152,10 +152,11 @@ pip-list:
 startup_script: ${startup_script}
 
 ${startup_script}:
-	echo "#!/bin/bash" > ${startup_script}
+	echo "#!/bin/sh" > ${startup_script}
+	echo "set -eux" >> ${startup_script}
 	echo "cd $(makefile_dir) && $(shell which make) -f $(makefile_dir)/Makefile up-backend &" >> ${startup_script}
-	echo "cd $(makefile_dir) && $(shell which make) -f $(makefile_dir)/Makefile up-frontend &" >> ${startup_script}
-	chmod u+x ${startup_script}
+	echo "cd $(makefile_dir) && $(shell which make) -f $(makefile_dir)/Makefile up-frontend " >> ${startup_script}
+	chmod +x ${startup_script}
 
 # waterer service
 .PHONY: waterer-shell restart-service up-status
