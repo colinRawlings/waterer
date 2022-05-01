@@ -179,8 +179,10 @@ class PumpManagerContext:
 
         logger.info(f"Scanning for devices for {self._scan_duration_s}s ... ")
         devices = await BleakScanner.discover(timeout=self._scan_duration_s)
+
+        logger.info(f"Found: {len(devices)} device(s):")
         for d in devices:
-            logger.info(d)
+            logger.info(f"- {d}")
 
         pump_devices = [device for device in devices if device.name == PUMP_NAME]
 
