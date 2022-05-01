@@ -83,7 +83,7 @@ else
 	sudo apt-get install -y python3-dev
 	sudo apt-get install -y python3-venv
 	# node
-	curl -fsSL https://deb.nodesource.com/setup_12.x | sudo -E bash -
+	curl -fsSL https://deb.nodesource.com/setup_16.x | sudo -E bash -
 	sudo apt install -y nodejs
 	sudo npm install -g -y yarn
 	sudo npm install -g -y @angular/cli
