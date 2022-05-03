@@ -52,15 +52,6 @@ requirements: venv
 	${BACKEND_VENV_PYTHON} -m piptools compile ${BACKEND_DIR}/requirements/dev.in
 	${COMMENT_CHAR} Call install(-dev) to update ...
 
-install: venv
-	${COMMENT_CHAR} TODO: Install node
-	${COMMENT_CHAR} TODO: Install yarn
-	${COMMENT_CHAR} Install Backend
-	${BACKEND_VENV_PIP_SYNC} ${BACKEND_DIR}/requirements/base.txt
-	${BACKEND_VENV_PYTHON} -m pip install -e ${BACKEND_DIR}
-	${COMMENT_CHAR} Install Frontend
-	cd ${FRONTEND_DIR} && yarn install --production=true
-
 install-ssh:
 	sudo apt update
 	sudo apt install -y openssh-server
@@ -92,7 +83,7 @@ else
 	sudo apt install -y bluez
 endif
 
-install-dev: venv
+install-dev: | install-ssh install-host-tools venv
 	${COMMENT_CHAR} Python Tools
 	${BACKEND_VENV_PYTHON} -m pip install pip-tools
 	${BACKEND_VENV_PIP_SYNC} ${BACKEND_DIR}/requirements/dev.txt
@@ -106,6 +97,21 @@ install-dev: venv
 	cd ${FRONTEND_DIR} && yarn install --production=false
 	cd ${FRONTEND_DIR}/node_modules/@types && ${RENAME_CMD} plotly.js plotly.js-dist ; exit 0
 
+install: | install-ssh install-host-tools venv
+	${COMMENT_CHAR} TODO: Install node
+	${COMMENT_CHAR} TODO: Install yarn
+	${COMMENT_CHAR} Install Backend
+	${BACKEND_VENV_PIP_SYNC} ${BACKEND_DIR}/requirements/base.txt
+	${BACKEND_VENV_PYTHON} -m pip install -e ${BACKEND_DIR}
+	${COMMENT_CHAR} Install Frontend
+	cd ${FRONTEND_DIR} && yarn install --production=true
+	${COMMENT_CHAR} For pi run: make install-service
+
+
+install-service: startup_script
+	sudo cp ${makefile_dir}/waterer.service /etc/systemd/system/waterer.service
+	systemctl enable waterer
+
 up-frontend-dev: venv
 	${BACKEND_VENV_PYTHON} ${makefile_dir}/make_templates.py
 	cd ${FRONTEND_DIR} && yarn start
@@ -115,9 +121,6 @@ up-frontend: venv
 	${BACKEND_VENV_PYTHON} ${makefile_dir}/make_templates.py
 	cd ${FRONTEND_DIR} && lite-server
 
-install-service: startup_script
-	sudo cp ${makefile_dir}/waterer.service /etc/systemd/system/waterer.service
-	systemctl enable waterer
 
 up-service:
 	systemctl start waterer.service

@@ -7,6 +7,7 @@ import logging
 import pathlib as pt
 from typing import List, Optional, Union
 
+import numpy as np
 import waterer_backend.smart_pump as sp
 from bleak import BleakClient, BleakScanner
 from bleak.backends.device import BLEDevice
@@ -184,7 +185,13 @@ class PumpManagerContext:
         for d in devices:
             logger.info(f"- {d}")
 
-        pump_devices = [device for device in devices if device.name == PUMP_NAME]
+        # Sort results (so that restarts yield ~consistent pump mapping)
+        unsorted_pump_devices = [
+            device for device in devices if device.name == PUMP_NAME
+        ]
+        pump_addresses = [device.address for device in unsorted_pump_devices]
+        sort_indices = np.argsort(pump_addresses)
+        pump_devices = [unsorted_pump_devices[int(idx)] for idx in sort_indices]
 
         logger.info(f"Found: {len(pump_devices)} pump(s):")
 
