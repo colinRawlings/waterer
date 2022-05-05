@@ -9,6 +9,7 @@ startup_script := $(makefile_dir)/launch.sh
 
 SERVER_IP = 192.168.8.103
 SERVER_USER = ubuntu
+SERVER_TIMEZONE = Europe/Zurich
 
 ip_config_filepath = $(makefile_dir)/ip_config.json
 
@@ -127,6 +128,10 @@ up-service:
 
 down-service:
 	systemctl stop waterer.service
+
+set-timezone:
+	sudo timedatectl set-timezone ${SERVER_TIMEZONE}
+	timedatectl
 
 push-frontend:
 	ng build
