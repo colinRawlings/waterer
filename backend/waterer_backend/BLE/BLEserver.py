@@ -185,7 +185,7 @@ def create_app(manager: BLEPumpManager) -> web.Application:
 
     # Configure CORS on all routes.
     for route in list(app.router.routes()):
-        cors.add(route)
+        cors.add(route)  # type: ignore  # invalid type hint for routing perameter
 
     return app
 

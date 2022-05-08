@@ -218,7 +218,7 @@ class BinaryStatusLog(AbstractStatusLog):
 
     @staticmethod
     def from_data(
-        log_data=BinaryStatusLogData,
+        log_data: BinaryStatusLogData,
         settings: BinaryStatusLogSettings = BinaryStatusLogSettings(),
     ) -> "BinaryStatusLog":
 
