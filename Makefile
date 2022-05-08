@@ -69,12 +69,15 @@ else
 	sudo snap install arduino
 	sudo usermod -aG dialout $(shell whoami)
 	#
-	sudo apt install -y build-essential gcc make clang-format-10
+	sudo apt install -y build-essential gcc make clang-format
 	#
-	sudo apt-get install -y python3-dev
-	sudo apt-get install -y python3-venv
+	sudo apt-get install -y python3-dev\
+	 python3-venv\
+	 python3-pip
+	# pillow via matplotlib
+	sudo apt install -y libjpeg8-dev zlib1g-dev
 	# node
-	curl -fsSL https://deb.nodesource.com/setup_12.x | sudo -E bash -
+	curl -fsSL https://deb.nodesource.com/setup_16.x | sudo -E bash -
 	sudo apt install -y nodejs
 	sudo npm install -g -y yarn
 	sudo npm install -g -y @angular/cli
@@ -83,12 +86,11 @@ else
 	sudo apt install -y bluez
 endif
 
-install-dev: | install-ssh install-host-tools venv
+install-dev: | install-host-tools venv
 	${COMMENT_CHAR} Python Tools
 	${BACKEND_VENV_PYTHON} -m pip install pip-tools
 	${BACKEND_VENV_PIP_SYNC} ${BACKEND_DIR}/requirements/dev.txt
 	${COMMENT_CHAR} Formatting
-	${COMMENT_CHAR} TODO: Install clang-format
 	${BACKEND_VENV_PYTHON} -m pre_commit install --install-hooks
 	${COMMENT_CHAR} Install backend
 	${BACKEND_VENV_PYTHON} -m pip install -e ${BACKEND_DIR}
@@ -97,7 +99,7 @@ install-dev: | install-ssh install-host-tools venv
 	cd ${FRONTEND_DIR} && yarn install --production=false
 	cd ${FRONTEND_DIR}/node_modules/@types && ${RENAME_CMD} plotly.js plotly.js-dist ; exit 0
 
-install: | install-ssh install-host-tools venv
+install: | install-host-tools venv
 	${COMMENT_CHAR} TODO: Install node
 	${COMMENT_CHAR} TODO: Install yarn
 	${COMMENT_CHAR} Install Backend
