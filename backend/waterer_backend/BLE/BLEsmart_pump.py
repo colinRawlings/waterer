@@ -207,7 +207,7 @@ class BLESmartPump:
         on_code_bytes = bytearray(struct.pack("<I", duration_ms))
 
         current_char_bytes = await self._client.read_gatt_char(PUMP_ATTR_ID)
-        _LOGGER.debug(
+        _LOGGER.info(
             f"{self.channel}: preparing to write {on_code_bytes} (current: {current_char_bytes})"
         )
 
