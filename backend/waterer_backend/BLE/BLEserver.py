@@ -5,6 +5,7 @@
 ###############################################################
 
 
+import asyncio
 import logging
 from dataclasses import asdict
 
@@ -155,6 +156,18 @@ def create_app(manager: BLEPumpManager) -> web.Application:
 
         logs = get_service_logs(int(number_log_lines))
         return web.json_response({"data": logs})
+
+    @routes.get("/shutdown")
+    async def shutdown(request: web.Request):
+        logger.info("got request to shutdown ...")
+        loop = asyncio.get_event_loop()
+        stop_event: asyncio.Event = request.app["STOP_EVENT"]
+
+        async def set_stop_event():
+            stop_event.set()
+
+        loop.create_task(set_stop_event())
+        return web.json_response({"data": "created shutdown task ... "})
 
     app.add_routes(routes)
 

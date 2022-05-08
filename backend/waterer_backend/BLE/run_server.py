@@ -81,6 +81,7 @@ async def main():
 
         manager.start()
         app = create_app(manager)
+        app["STOP_EVENT"] = asyncio.Event()
 
         #
 
@@ -89,15 +90,15 @@ async def main():
 
         # wait forever
         try:
-            await asyncio.Event().wait()
+            await app["STOP_EVENT"].wait()
         except asyncio.CancelledError:
             logger.info("Stop requested ... ")
+        finally:
             if not task.done():
                 task.cancel()
                 await task
             else:
                 logger.debug("Startup task was already done")
-
             logger.info("Stopping webserver")
 
             runner = get_runner(app)
