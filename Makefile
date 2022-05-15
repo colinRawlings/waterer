@@ -5,9 +5,10 @@ FRONTEND_DIR = ${makefile_dir}
 BACKEND_DIR = ${makefile_dir}/backend
 BACKEND_VENV_DIR = ${BACKEND_DIR}/.venv
 
-startup_script := $(makefile_dir)/launch.sh
+backend_startup_script := $(makefile_dir)/launch_backend.sh
+frontend_startup_script := $(makefile_dir)/launch_frontend.sh
 
-SERVER_IP = 192.168.0.23
+SERVER_IP = 192.168.8.103
 SERVER_USER = ubuntu
 SERVER_TIMEZONE = Europe/Zurich
 
@@ -60,7 +61,6 @@ install-ssh:
 	sudo systemctl start ssh
 
 install-host-tools: install-ssh
-	${COMMENT_CHAR} TODO: Install Arduino IDE/CLI, downgrade board manager to 1.8.2 to allow arduino extension for STL
 ifdef OS
 	${COMMENT_CHAR} TODO: node, npm, yarn, angular, arduino
 else
@@ -84,7 +84,7 @@ else
 endif
 
 install-host-dev-tools: install-host-tools
-	# This probably only works on ubuntu
+	# This probably only works on debian
 	sudo apt update
 	# installing arduino IDE
 	sudo snap install arduino
@@ -117,12 +117,50 @@ install: | install-host-tools venv
 	${BACKEND_VENV_PYTHON} -m pip install -e ${BACKEND_DIR}
 	${COMMENT_CHAR} Install Frontend
 	cd ${FRONTEND_DIR} && yarn install --production=true
-	${COMMENT_CHAR} For pi run: make install-service
+	${COMMENT_CHAR} For pi run: make install-service; make install-fw
 
 
-install-service: startup_script
-	sudo cp ${makefile_dir}/waterer.service /etc/systemd/system/waterer.service
-	systemctl enable waterer
+install-services: | backend_startup_script frontend_startup_script
+	sudo cp ${makefile_dir}/waterer_backend.service /etc/systemd/system/waterer_backend.service
+	systemctl enable waterer_backend
+	sudo cp ${makefile_dir}/waterer_frontend.service /etc/systemd/system/waterer_frontend.service
+	systemctl enable waterer_frontend
+
+
+set-timezone:
+	sudo timedatectl set-timezone ${SERVER_TIMEZONE}
+	timedatectl
+
+#
+
+push-frontend:
+	ng build
+ifdef OS
+	${COMMENT_CHAR} Run: wsl scp -r ./dist	$(SERVER_USER)@$(SERVER_IP):/home/ubuntu/waterer/
+else
+	scp -r ./dist  $(SERVER_USER)@$(SERVER_IP):/home/ubuntu/waterer/
+endif
+	# don't forget to make waterer-shell && cd waterer && git pull && make restart-services
+
+#
+
+backend_startup_script: ${backend_startup_script}
+
+${backend_startup_script}:
+	echo "#!/bin/sh" > ${backend_startup_script}
+	echo "set -eux" >> ${backend_startup_script}
+	echo "cd $(makefile_dir) && $(shell which make) -f $(makefile_dir)/Makefile up-backend" >> ${backend_startup_script}
+	chmod +x ${backend_startup_script}
+
+frontend_startup_script: ${frontend_startup_script}
+
+${frontend_startup_script}:
+	echo "#!/bin/sh" > ${frontend_startup_script}
+	echo "set -eux" >> ${frontend_startup_script}
+	echo "cd $(makefile_dir) && $(shell which make) -f $(makefile_dir)/Makefile up-frontend" >> ${frontend_startup_script}
+	chmod +x ${frontend_startup_script}
+
+#
 
 up-frontend-dev: venv
 	${BACKEND_VENV_PYTHON} ${makefile_dir}/make_templates.py
@@ -133,25 +171,6 @@ up-frontend: venv
 	${BACKEND_VENV_PYTHON} ${makefile_dir}/make_templates.py
 	cd ${FRONTEND_DIR} && lite-server
 
-
-up-service:
-	systemctl start waterer.service
-
-down-service:
-	systemctl stop waterer.service
-
-set-timezone:
-	sudo timedatectl set-timezone ${SERVER_TIMEZONE}
-	timedatectl
-
-push-frontend:
-	ng build
-ifdef OS
-	${COMMENT_CHAR} Run: wsl scp -r ./dist	$(SERVER_USER)@$(SERVER_IP):/home/ubuntu/waterer/
-else
-	scp -r ./dist  $(SERVER_USER)@$(SERVER_IP):/home/ubuntu/waterer/
-endif
-	# don't forget to make waterer-shell && cd waterer && git pull && make restart-service
 
 up-backend-dev: export WATERER_FAKE_DATA=1
 up-backend-dev:
@@ -164,27 +183,50 @@ tests-backend:
 	${BACKEND_VENV_PYTHON} -m pytest ${makefile_dir}/backend/tests
 	${ACTIVATE_CMD} && pyright --verbose
 
-pip-list:
-	${BACKEND_VENV_PYTHON} -m pip list
-
-
-startup_script: ${startup_script}
-
-${startup_script}:
-	echo "#!/bin/sh" > ${startup_script}
-	echo "set -eux" >> ${startup_script}
-	echo "cd $(makefile_dir) && $(shell which make) -f $(makefile_dir)/Makefile up-backend &" >> ${startup_script}
-	echo "cd $(makefile_dir) && $(shell which make) -f $(makefile_dir)/Makefile up-frontend " >> ${startup_script}
-	chmod +x ${startup_script}
-
 # waterer service
-.PHONY: waterer-shell restart-service up-status
+.PHONY: waterer-shell restart-services up-status
 
-up-status:
-	journalctl -u waterer.service -f
+up-backend-service:
+	systemctl start waterer_backend.service
 
-restart-service:
-	systemctl restart waterer.service
+up-frontend-service:
+	systemctl start waterer_frontend.service
+
+make up-services: | up-backend-service up-frontend-service
+
+#
+
+down-backend-service:
+	systemctl start waterer_backend.service
+
+down-frontend-service:
+	systemctl start waterer_frontend.service
+
+make down-services: | down-backend-service up-frontend-service
+
+#
+
+up-backend-status:
+	journalctl -u waterer_backend.service -f
+
+up-frontend-status:
+	journalctl -u waterer_frontend.service -f
+
+#
+
+make restart-backend-service:
+	systemctl restart waterer_backend.service
+
+make restart-frontend-service:
+	systemctl restart waterer_frontend.service
+
+restart-services: | restart-frontend-service restart-backend-service
+
+#
 
 waterer-shell:
 	ssh $(SERVER_USER)@$(SERVER_IP)
+
+
+pip-list:
+	${BACKEND_VENV_PYTHON} -m pip list

@@ -23,6 +23,8 @@ logger = logging.getLogger(__name__)
 
 SCAN_DURATION_S = 5
 
+MIN_RSSI = -95
+
 ###############################################################
 # Class
 ###############################################################
@@ -191,14 +193,22 @@ class PumpManagerContext:
         ]
         pump_addresses = [device.address for device in unsorted_pump_devices]
         sort_indices = np.argsort(pump_addresses)
-        pump_devices = [unsorted_pump_devices[int(idx)] for idx in sort_indices]
+        all_pump_devices = [unsorted_pump_devices[int(idx)] for idx in sort_indices]
 
-        logger.info(f"Found: {len(pump_devices)} pump(s):")
+        logger.info(f"Found: {len(all_pump_devices)} pump(s):")
 
-        for channel, pump_device in enumerate(pump_devices):
+        pump_devices = []
+        for channel, pump_device in enumerate(all_pump_devices):
             logger.info(
                 f"Channel {channel}: name {pump_device.name}, address: {pump_device.address}, signal strength: {pump_device.rssi} dBm"
             )
+
+            if pump_device.rssi > MIN_RSSI:
+                pump_devices.append(pump_device)
+            else:
+                logger.warning(
+                    f"Rejecting: {channel} as signal is too weak  {pump_device.rssi} <= {MIN_RSSI}"
+                )
 
         if len(pump_devices) == 0:
             logger.warning("No pumps found")

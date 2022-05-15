@@ -1,0 +1,8 @@
+[Unit]
+After=network.service
+
+[Service]
+ExecStart=/home/ubuntu/waterer/launch_frontend.sh
+
+[Install]
+WantedBy=default.target

@@ -1,8 +1,8 @@
 [Unit]
-After=network.service
+After=bluetooth.target
 
 [Service]
-ExecStart=/home/ubuntu/waterer/launch.sh
+ExecStart=/home/ubuntu/waterer/launch_backend.sh
 KillSignal=SIGINT
 
 [Install]
