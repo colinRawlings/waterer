@@ -7,7 +7,7 @@ BACKEND_VENV_DIR = ${BACKEND_DIR}/.venv
 
 startup_script := $(makefile_dir)/launch.sh
 
-SERVER_IP = 192.168.8.103
+SERVER_IP = 192.168.0.23
 SERVER_USER = ubuntu
 SERVER_TIMEZONE = Europe/Zurich
 
@@ -66,9 +66,6 @@ ifdef OS
 else
 	# This probably only works on ubuntu
 	sudo apt update
-	# installing arduino IDE
-	sudo snap install arduino
-	sudo usermod -aG dialout $(shell whoami)
 	#
 	sudo apt install -y build-essential gcc make clang-format
 	#
@@ -76,18 +73,26 @@ else
 	 python3-venv\
 	 python3-pip
 	# pillow via matplotlib
-	sudo apt install -y libjpeg8-dev zlib1g-dev
+	sudo apt install -y libjpeg62-turbo-dev zlib1g-dev
 	# node
 	curl -fsSL https://deb.nodesource.com/setup_16.x | sudo -E bash -
 	sudo apt install -y nodejs
 	sudo npm install -g -y yarn
-	sudo npm install -g -y @angular/cli
 	sudo npm install -g -y lite-server
 	# bluetooth
 	sudo apt install -y bluez
 endif
 
-install-dev: | install-host-tools venv
+install-host-dev-tools: install-host-tools
+	# This probably only works on ubuntu
+	sudo apt update
+	# installing arduino IDE
+	sudo snap install arduino
+	sudo usermod -aG dialout $(shell whoami)
+	sudo npm install -g -y @angular/cli
+
+
+install-dev: | install-host-dev-tools venv
 	${COMMENT_CHAR} Python Tools
 	${BACKEND_VENV_PYTHON} -m pip install pip-tools
 	${BACKEND_VENV_PIP_SYNC} ${BACKEND_DIR}/requirements/dev.txt
@@ -100,10 +105,14 @@ install-dev: | install-host-tools venv
 	cd ${FRONTEND_DIR} && yarn install --production=false
 	cd ${FRONTEND_DIR}/node_modules/@types && ${RENAME_CMD} plotly.js plotly.js-dist ; exit 0
 
+install-fw:
+	sudo cp ${makefile_dir}/BLE_fw/rtl8761b_config /lib/firmware/rtl_bt/rtl8761bu_config.bin
+	sudo cp ${makefile_dir}/BLE_fw/rtl8761b_fw /lib/firmware/rtl_bt/rtl8761bu_fw.bin
+
+
 install: | install-host-tools venv
-	${COMMENT_CHAR} TODO: Install node
-	${COMMENT_CHAR} TODO: Install yarn
 	${COMMENT_CHAR} Install Backend
+	${BACKEND_VENV_PYTHON} -m pip install pip-tools
 	${BACKEND_VENV_PIP_SYNC} ${BACKEND_DIR}/requirements/base.txt
 	${BACKEND_VENV_PYTHON} -m pip install -e ${BACKEND_DIR}
 	${COMMENT_CHAR} Install Frontend

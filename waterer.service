@@ -3,6 +3,7 @@ After=network.service
 
 [Service]
 ExecStart=/home/ubuntu/waterer/launch.sh
+KillSignal=SIGINT
 
 [Install]
 WantedBy=default.target
