@@ -216,9 +216,12 @@ class PumpManagerContext:
         logger.info(f"Creating {len(pump_devices)} clients")
         self._clients = [BleakClient(pump.address) for pump in pump_devices]
 
+        def disconnect_callback(client: BleakClient) -> None:
+            logger.error(f"client disconnected: {client.address}")
+
         for client in self._clients:
             logger.info(f"Connecting: {client.address} ... ")
-            if await client.connect():
+            if await client.connect(disconnect_callback=disconnect_callback):
                 logger.info("ok")
             else:
                 logger.info("FAIL")

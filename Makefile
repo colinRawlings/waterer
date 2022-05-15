@@ -72,8 +72,8 @@ else
 	sudo apt-get install -y python3-dev\
 	 python3-venv\
 	 python3-pip
-	# pillow via matplotlib
-	sudo apt install -y libjpeg62-turbo-dev zlib1g-dev
+	# matplotlib (inc. deps)
+	sudo apt install -y python3-matplotlib
 	# node
 	curl -fsSL https://deb.nodesource.com/setup_16.x | sudo -E bash -
 	sudo apt install -y nodejs
@@ -100,7 +100,7 @@ install-dev: | install-host-dev-tools venv
 	${BACKEND_VENV_PYTHON} -m pre_commit install --install-hooks
 	${COMMENT_CHAR} Install backend
 	${BACKEND_VENV_PYTHON} -m pip install -e ${BACKEND_DIR}
-	${COMMENT_CHAR} npm install -g pyright@1.1.138
+	${COMMENT_CHAR} npm install -g pyright@1.1.240
 	${COMMENT_CHAR} Install Frontend
 	cd ${FRONTEND_DIR} && yarn install --production=false
 	cd ${FRONTEND_DIR}/node_modules/@types && ${RENAME_CMD} plotly.js plotly.js-dist ; exit 0

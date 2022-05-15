@@ -198,11 +198,21 @@ class BLESmartPump:
 
         return alpha * rel_humidity_V + (1 - alpha) * last_value
 
-    async def turn_on(self, duration_ms: int = -1):
+    async def check_client(self) -> bool:
 
         if self._client is None:
             _LOGGER.warning("No device connected")
+            return False
+
+        return self._client.is_connected  # n.b. log warning on disconnect
+
+    async def turn_on(self, duration_ms: int = -1):
+
+        if not await self.check_client():
+            _LOGGER.info("{self.channel}: turn_on: failed check_client")
             return
+
+        assert self._client is not None
 
         on_code_bytes = bytearray(struct.pack("<I", duration_ms))
 
@@ -215,9 +225,11 @@ class BLESmartPump:
 
     async def turn_off(self):
 
-        if self._client is None:
-            _LOGGER.warning("No device connected")
+        if not await self.check_client():
+            _LOGGER.info("{self.channel}: turn_off: failed check_client")
             return
+
+        assert self._client is not None
 
         off_code_bytes = struct.pack("<I", 0)
 
@@ -234,17 +246,25 @@ class BLESmartPump:
 
     async def get_humidity_V(self) -> float:
 
-        if self._client is None:
-            logging.warning(f"no client returning a humidity of 0.5 V")
+        if not await self.check_client():
+            _LOGGER.info(
+                "{self.channel}: get_humidity_V: no client returning a humidity of 0.5 V"
+            )
             return 0.5
+
+        assert self._client is not None
 
         humidity_bytes = await self._client.read_gatt_char(HUMIDITY_ATTR_ID)
         return struct.unpack("f", humidity_bytes)[0]
 
     async def get_pump_status(self) -> bool:
-        if self._client is None:
-            logging.warning(f"no client returning a pump status of False")
+        if not await self.check_client():
+            _LOGGER.info(
+                "{self.channel}: get_pump_status: no client returning a pump status of False"
+            )
             return False
+
+        assert self._client is not None
 
         status_bytes = await self._client.read_gatt_char(PUMP_STATUS_ATTR_ID)
         return struct.unpack("b", status_bytes)[0]  # type: ignore
