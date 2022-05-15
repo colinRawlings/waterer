@@ -10,3 +10,4 @@ pydantic
 bleak
 aiohttp
 aiohttp-cors
+debugpy
