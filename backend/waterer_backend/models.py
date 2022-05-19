@@ -5,7 +5,8 @@
 ###############################################################
 
 import typing as ty
-from dataclasses import asdict, dataclass
+
+# from pydantic.dataclasses import dataclass
 from datetime import datetime
 
 from pydantic import BaseModel
@@ -14,20 +15,22 @@ from pydantic import BaseModel
 # Definitions
 ###############################################################
 
-PUMP_UPDATE_TIME_FMT = "%I:%M %p"
-
 
 ###############################################################
 # Classes
 ###############################################################
 
 
-@dataclass
-class SmartPumpSettings:
+class ActivationTime(BaseModel):
+    hour: int = 8
+    minute: int = 0
+
+
+class SmartPumpSettings(BaseModel):
     dry_humidity_V: float = 3.3
     wet_humidity_V: float = 0
     pump_on_time_s: int = 2
-    pump_activation_time: str = "8:00 AM"
+    pump_activation_time: ActivationTime = ActivationTime()
     feedback_active: bool = False
     feedback_setpoint_pcnt: float = 50
     num_smoothing_samples: float = 10
@@ -38,7 +41,13 @@ class SmartPumpSettings:
 
     @property
     def pump_activation_time_as_date(self) -> datetime:
-        return datetime.strptime(self.pump_activation_time, PUMP_UPDATE_TIME_FMT)
+        return datetime(
+            1900,
+            1,
+            1,
+            hour=self.pump_activation_time.hour,
+            minute=self.pump_activation_time.minute,
+        )
 
     def validate(self):
 
@@ -52,7 +61,7 @@ class SmartPumpSettings:
                 f"pump_on_time_s: {self.pump_on_time_s} s cannot be negative"
             )
 
-        dt = self.pump_activation_time_as_date
+        dt = self.pump_activation_time_as_date  # check construction succeeds
 
         if self.num_smoothing_samples <= 1:
             raise ValueError(
@@ -86,8 +95,7 @@ class SmartPumpStatusData(BaseModel):
     pump_status_log: BinaryStatusLogData
 
 
-@dataclass
-class SmartPumpStatus:
+class SmartPumpStatus(BaseModel):
     rel_humidity_V: float
     rel_humidity_pcnt: float
     smoothed_rel_humidity_pcnt: ty.Optional[float]
@@ -95,8 +103,7 @@ class SmartPumpStatus:
     epoch_time: float
 
 
-@dataclass
-class SmartPumpStatusHistory:
+class SmartPumpStatusHistory(BaseModel):
     rel_humidity_V: ty.List[ty.Optional[float]]
     rel_humidity_V_epoch_time: ty.List[float]
 

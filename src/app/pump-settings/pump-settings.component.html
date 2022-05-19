@@ -53,13 +53,13 @@
       </mat-form-field>
     </div>
     <div>
-      <mat-form-field (change)="onSettingsChange()" class="example-form-field">
-        <mat-label>Run Time</mat-label>
-        <input matInput [ngxTimepicker]="toggleTimepicker" [(ngModel)]="settings.pump_activation_time" [disableClick]="true" readonly>
-        <ngx-material-timepicker-toggle [for]="toggleTimepicker"></ngx-material-timepicker-toggle>
-        <ngx-material-timepicker #toggleTimepicker (timeChanged)="onSettingsChange()"></ngx-material-timepicker>
-      </mat-form-field>
+      <ngb-timepicker (change)="onSettingsChange()" [(ngModel)]="settings.pump_activation_time"></ngb-timepicker>
     </div>
+    <!-- <div>
+      <mat-form-field (change)="onSettingsChange()" class="example-form-field">
+        <mat-label>Run Time </mat-label>
+      </mat-form-field>
+    </div> -->
   </mat-card>
 
   <mat-card fxLayout fxLayout="column">

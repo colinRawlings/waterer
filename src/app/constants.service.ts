@@ -7,7 +7,7 @@ import { EnvService } from './env.service';
 export class ConstantsService {
 
   public kBackendURL: string;
-  public kNumChannels = 2;
+  public kNumChannels = 1;
 
   constructor(private env: EnvService) {
     this.kBackendURL = `http://${env.apiUrl}/`;

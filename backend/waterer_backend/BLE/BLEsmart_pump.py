@@ -326,11 +326,11 @@ class BLESmartPump:
         assert isinstance(smoothed_rel_humidity_pcnt, float)
 
         return SmartPumpStatus(
-            rel_humidity_V,
-            rel_humidity_pcnt,
-            smoothed_rel_humidity_pcnt,
-            pump_status,
-            status_time,
+            rel_humidity_V=rel_humidity_V,
+            rel_humidity_pcnt=rel_humidity_pcnt,
+            smoothed_rel_humidity_pcnt=smoothed_rel_humidity_pcnt,
+            pump_running=pump_status,
+            epoch_time=status_time,
         )
 
     def clear_status_logs(self):
@@ -409,7 +409,7 @@ class BLESmartPump:
             and update_spans_activation_time(
                 self._last_feedback_update_time,
                 next_update_time,
-                self._settings.pump_activation_time,
+                self._settings.pump_activation_time_as_date,
             )
         )
 

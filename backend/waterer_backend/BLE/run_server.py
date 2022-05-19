@@ -32,7 +32,7 @@ def init_logging() -> None:
 
     logging.basicConfig(level=logging.INFO)
     aiohttp_logger = logging.getLogger("aiohttp")
-    aiohttp_logger.setLevel(logging.ERROR)
+    aiohttp_logger.setLevel(logging.INFO)
 
 
 ###############################################################

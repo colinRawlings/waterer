@@ -27,6 +27,7 @@ import { ManualPumpControlsComponent } from './manual-pump-controls/manual-pump-
 import { PumpSettingsComponent } from './pump-settings/pump-settings.component';
 import { EnvServiceProvider } from './env.service.provider';
 import { LogsComponent } from './logs/logs.component';
+import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 
 PlotlyModule.plotlyjs = PlotlyJS;
 
@@ -60,6 +61,7 @@ PlotlyModule.plotlyjs = PlotlyJS;
       // Custom options in here
       theme: 'material',
     }),
+    NgbModule,
   ],
   providers: [EnvServiceProvider],
   bootstrap: [AppComponent],

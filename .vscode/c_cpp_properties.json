@@ -500,6 +500,7 @@
                 "USBCON"
             ],
             "compileCommands": "${workspaceFolder}/ArduinoOutput/compile_commands.json"
+            // "compileCommands": "${workspaceFolder}/ArduinoOutput/compile_commands.json"
         }
     ]
 }
