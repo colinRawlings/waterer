@@ -129,10 +129,20 @@ def create_app(manager: BLEPumpManager) -> web.Application:
 
     @routes.get("/settings/{channel}")
     async def get_settings(request: web.Request):
+        print("entering get_settings ... ")
         channel = request.match_info["channel"]
 
         settings = get_pump_manager(request).get_settings(channel=int(channel))
-        return web.json_response({"data": settings.dict()})
+
+        settings_dict = {"data": settings.dict()}
+
+        print(f"settings_dict: {settings_dict}")
+
+        response = web.json_response(settings_dict)
+
+        print(f"composed response: {response}")
+
+        return response
 
     @routes.get("/set_settings/{channel}")
     @routes.post("/set_settings/{channel}")
