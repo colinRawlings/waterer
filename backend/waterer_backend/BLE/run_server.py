@@ -7,6 +7,7 @@
 import asyncio
 import logging
 from typing import Optional
+import debugpy
 
 from aiohttp import web
 from waterer_backend.BLE.BLEpump_manager import PumpManagerContext
@@ -19,6 +20,7 @@ from waterer_backend.config import get_pumps_config
 
 logger = logging.getLogger(__name__)
 PORT = 5000
+DEBUG_PORT = 5678
 
 RUNNER_KEY = "app_runner"
 
@@ -33,6 +35,15 @@ def init_logging() -> None:
     logging.basicConfig(level=logging.INFO)
     aiohttp_logger = logging.getLogger("aiohttp")
     aiohttp_logger.setLevel(logging.INFO)
+
+
+###############################################################
+
+
+def init_debugging() -> None:
+
+    logger.info(f"Initializing debug on port: {DEBUG_PORT}")
+    debugpy.listen(DEBUG_PORT)
 
 
 ###############################################################
@@ -72,6 +83,7 @@ async def run_site(app: web.Application) -> None:
 
 async def main():
     init_logging()
+    init_debugging()
 
     pumps_config = get_pumps_config()
 
