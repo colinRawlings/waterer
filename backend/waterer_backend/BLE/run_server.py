@@ -7,8 +7,8 @@
 import asyncio
 import logging
 from typing import Optional
-import debugpy
 
+import debugpy
 from aiohttp import web
 from waterer_backend.BLE.BLEpump_manager import PumpManagerContext
 from waterer_backend.BLE.BLEserver import create_app
@@ -34,7 +34,7 @@ def init_logging() -> None:
 
     logging.basicConfig(level=logging.INFO)
     aiohttp_logger = logging.getLogger("aiohttp")
-    aiohttp_logger.setLevel(logging.INFO)
+    aiohttp_logger.setLevel(logging.WARNING)
 
 
 ###############################################################

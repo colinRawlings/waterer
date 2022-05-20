@@ -394,7 +394,7 @@ class BLESmartPump:
                 f"{self.channel}: Activating pump for {self._settings.pump_on_time_s} s"
             )
 
-            await self.turn_on(self._settings.pump_on_time_s)
+            await self.turn_on(duration_ms=self._settings.pump_on_time_s * 1000)
 
     async def _do_loop_iteration(self):
 

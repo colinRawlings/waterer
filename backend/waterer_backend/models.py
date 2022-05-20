@@ -31,6 +31,7 @@ class SmartPumpSettings(BaseModel):
     wet_humidity_V: float = 0
     pump_on_time_s: int = 2
     pump_activation_time: ActivationTime = ActivationTime()
+    pump_activation_period_days: int = 1
     feedback_active: bool = False
     feedback_setpoint_pcnt: float = 50
     num_smoothing_samples: float = 10
@@ -107,10 +108,10 @@ class SmartPumpStatusHistory(BaseModel):
     rel_humidity_V: ty.List[ty.Optional[float]]
     rel_humidity_V_epoch_time: ty.List[float]
 
-    rel_humidity_pcnt: ty.List[float]
+    rel_humidity_pcnt: ty.List[ty.Optional[float]]
     rel_humidity_pcnt_epoch_time: ty.List[float]
 
-    smoothed_rel_humidity_pcnt: ty.List[float]
+    smoothed_rel_humidity_pcnt: ty.List[ty.Optional[float]]
     smoothed_rel_humidity_pcnt_epoch_time: ty.List[float]
 
     pump_running: ty.List[int]

@@ -46,7 +46,7 @@ def create_app(manager: BLEPumpManager) -> web.Application:
     routes = web.RouteTableDef()
 
     @routes.get("/")
-    async def main(request: web.Request):
+    async def default_route(request: web.Request):
 
         manager = request.app[PUMP_MANAGER_KEY]
         assert isinstance(get_pump_manager(request), BLEPumpManager)
@@ -129,18 +129,13 @@ def create_app(manager: BLEPumpManager) -> web.Application:
 
     @routes.get("/settings/{channel}")
     async def get_settings(request: web.Request):
-        print("entering get_settings ... ")
         channel = request.match_info["channel"]
 
         settings = get_pump_manager(request).get_settings(channel=int(channel))
 
         settings_dict = {"data": settings.dict()}
 
-        print(f"settings_dict: {settings_dict}")
-
         response = web.json_response(settings_dict)
-
-        print(f"composed response: {response}")
 
         return response
 

@@ -11,6 +11,7 @@ import { MatTabsModule } from '@angular/material/tabs';
 import { MatSliderModule } from '@angular/material/slider';
 import { MatGridListModule } from '@angular/material/grid-list';
 import { MatListModule } from '@angular/material/list';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatIconModule } from '@angular/material/icon';
 import { NgxMaterialTimepickerModule } from 'ngx-material-timepicker';
 
@@ -49,6 +50,7 @@ PlotlyModule.plotlyjs = PlotlyJS;
     MatInputModule,
     MatButtonModule,
     MatListModule,
+    MatTooltipModule,
     MatTabsModule,
     MatCardModule,
     MatIconModule,
