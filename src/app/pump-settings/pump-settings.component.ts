@@ -22,6 +22,7 @@ export class PumpSettingsComponent implements OnInit {
   }
 
   settings: keyable;
+
   private status: keyable;
 
   ngOnInit(): void {

@@ -7,7 +7,6 @@
 
 import asyncio
 import logging
-from dataclasses import asdict
 
 import aiohttp_cors
 from aiohttp import web
@@ -47,7 +46,7 @@ def create_app(manager: BLEPumpManager) -> web.Application:
     routes = web.RouteTableDef()
 
     @routes.get("/")
-    async def main(request: web.Request):
+    async def default_route(request: web.Request):
 
         manager = request.app[PUMP_MANAGER_KEY]
         assert isinstance(get_pump_manager(request), BLEPumpManager)
@@ -96,7 +95,7 @@ def create_app(manager: BLEPumpManager) -> web.Application:
     async def get_pump_status(request: web.Request):
         channel = request.match_info["channel"]
         status = await get_pump_manager(request).get_status(channel=int(channel))
-        return web.json_response({"data": asdict(status)})
+        return web.json_response({"data": status.dict()})
 
     @routes.get("/clear_status/{channel}")
     async def clear_status(request: web.Request):
@@ -116,7 +115,7 @@ def create_app(manager: BLEPumpManager) -> web.Application:
         status_history = get_pump_manager(request).get_status_since(
             channel=int(channel), earliest_epoch_time_s=earliest_time
         )
-        return web.json_response({"data": asdict(status_history)})
+        return web.json_response({"data": status_history.dict()})
 
     @routes.get("/save_settings")
     async def save_settings(request: web.Request):
@@ -133,7 +132,12 @@ def create_app(manager: BLEPumpManager) -> web.Application:
         channel = request.match_info["channel"]
 
         settings = get_pump_manager(request).get_settings(channel=int(channel))
-        return web.json_response({"data": asdict(settings)})
+
+        settings_dict = {"data": settings.dict()}
+
+        response = web.json_response(settings_dict)
+
+        return response
 
     @routes.get("/set_settings/{channel}")
     @routes.post("/set_settings/{channel}")
@@ -148,7 +152,7 @@ def create_app(manager: BLEPumpManager) -> web.Application:
         )
 
         settings = get_pump_manager(request).get_settings(channel=int(channel))
-        return web.json_response({"data": asdict(settings)})
+        return web.json_response({"data": settings.dict()})
 
     @routes.get("/service_logs/{number_log_lines}")
     async def service_logs(request: web.Request):

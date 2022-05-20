@@ -14,7 +14,11 @@
       </mat-form-field>
       <mat-form-field (change)="onSettingsChange()" class="example-form-field">
         <mat-label>Smoothing (Samples)</mat-label>
-        <input matInput type="number" [(ngModel)]="settings.num_smoothing_samples" />
+        <input
+          matInput
+          type="number"
+          [(ngModel)]="settings.num_smoothing_samples"
+        />
       </mat-form-field>
     </div>
   </mat-card>
@@ -53,13 +57,28 @@
       </mat-form-field>
     </div>
     <div>
+      <mat-label>Activation Time</mat-label>
+      <ngb-timepicker
+        [(ngModel)]="settings.pump_activation_time"
+      ></ngb-timepicker>
+      <button mat-button (click)="onSettingsChange()">Apply</button>
+    </div>
+    <div>
       <mat-form-field (change)="onSettingsChange()" class="example-form-field">
-        <mat-label>Run Time</mat-label>
-        <input matInput [ngxTimepicker]="toggleTimepicker" [(ngModel)]="settings.pump_activation_time" [disableClick]="true" readonly>
-        <ngx-material-timepicker-toggle [for]="toggleTimepicker"></ngx-material-timepicker-toggle>
-        <ngx-material-timepicker #toggleTimepicker (timeChanged)="onSettingsChange()"></ngx-material-timepicker>
+        <mat-label>Periodicity (days)</mat-label>
+        <input
+          matInput
+          type="number"
+          matTooltip="Run once every this many days"
+          [(ngModel)]="settings.pump_activation_period_days"
+        />
       </mat-form-field>
     </div>
+    <!-- <div>
+      <mat-form-field (change)="onSettingsChange()" class="example-form-field">
+        <mat-label>Run Time </mat-label>
+      </mat-form-field>
+    </div> -->
   </mat-card>
 
   <mat-card fxLayout fxLayout="column">

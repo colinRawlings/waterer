@@ -11,6 +11,7 @@ import { MatTabsModule } from '@angular/material/tabs';
 import { MatSliderModule } from '@angular/material/slider';
 import { MatGridListModule } from '@angular/material/grid-list';
 import { MatListModule } from '@angular/material/list';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatIconModule } from '@angular/material/icon';
 import { NgxMaterialTimepickerModule } from 'ngx-material-timepicker';
 
@@ -27,6 +28,7 @@ import { ManualPumpControlsComponent } from './manual-pump-controls/manual-pump-
 import { PumpSettingsComponent } from './pump-settings/pump-settings.component';
 import { EnvServiceProvider } from './env.service.provider';
 import { LogsComponent } from './logs/logs.component';
+import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 
 PlotlyModule.plotlyjs = PlotlyJS;
 
@@ -48,6 +50,7 @@ PlotlyModule.plotlyjs = PlotlyJS;
     MatInputModule,
     MatButtonModule,
     MatListModule,
+    MatTooltipModule,
     MatTabsModule,
     MatCardModule,
     MatIconModule,
@@ -60,6 +63,7 @@ PlotlyModule.plotlyjs = PlotlyJS;
       // Custom options in here
       theme: 'material',
     }),
+    NgbModule,
   ],
   providers: [EnvServiceProvider],
   bootstrap: [AppComponent],

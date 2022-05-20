@@ -27,7 +27,7 @@ ifdef OS
 	ACTIVATE_CMD = ${BACKEND_VENV_DIR}/Scripts/activate
 else
 	COMMENT_CHAR = \#
-	BASE_PYTHON = python3
+	BASE_PYTHON = python3.9
 	BACKEND_VENV_PYTHON = ${BACKEND_VENV_DIR}/bin/python
 	BACKEND_VENV_PIP_SYNC = ${BACKEND_VENV_DIR}/bin/pip-sync
 	RENAME_CMD = mv
@@ -68,11 +68,12 @@ else
 	sudo apt update
 	#
 	sudo apt install -y build-essential gcc make clang-format
-	#
-	sudo apt-get install -y python3-dev\
-	 python3-venv\
-	 python3-pip
-	# matplotlib (inc. deps)
+	# Currently have to force python3.9
+	sudo add-apt-repository ppa:deadsnakes/ppa
+	sudo apt update
+	sudo apt-get install -y python3.9-dev\
+	 python3.9-venv
+	# matplotlib (deps)
 	sudo apt install -y python3-matplotlib
 	# node
 	curl -fsSL https://deb.nodesource.com/setup_16.x | sudo -E bash -
@@ -202,7 +203,7 @@ down-backend-service:
 down-frontend-service:
 	systemctl start waterer_frontend.service
 
-make down-services: | down-backend-service up-frontend-service
+down-services: | down-backend-service up-frontend-service
 
 #
 
@@ -214,10 +215,10 @@ up-frontend-status:
 
 #
 
-make restart-backend-service:
+restart-backend-service:
 	systemctl restart waterer_backend.service
 
-make restart-frontend-service:
+restart-frontend-service:
 	systemctl restart waterer_frontend.service
 
 restart-services: | restart-frontend-service restart-backend-service
