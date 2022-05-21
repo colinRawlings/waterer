@@ -10,7 +10,7 @@ import subprocess as sp
 # Definitions
 ###############################################################
 
-SERVICE_NAME = "waterer.service"
+SERVICE_NAME = "waterer_backend.service"
 
 
 ###############################################################
