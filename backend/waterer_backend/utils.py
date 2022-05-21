@@ -30,3 +30,10 @@ def update_spans_activation_time(
     update_dt_today = time_today_from_update_time(update_time)
 
     return last_update_dt < update_dt_today and update_dt_today <= current_dt
+
+
+###############################################################
+
+
+def day_of_the_year() -> int:
+    return datetime.now().timetuple().tm_yday

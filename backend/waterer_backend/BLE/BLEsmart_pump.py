@@ -16,6 +16,7 @@ from time import time
 
 import bleak
 import numpy as np
+import waterer_backend.utils as ut
 from bleak.backends.device import BLEDevice
 from waterer_backend.BLE.BLE_ids import (
     HUMIDITY_ATTR_ID,
@@ -30,7 +31,6 @@ from waterer_backend.models import (
     SmartPumpStatusHistory,
 )
 from waterer_backend.status_log import BinaryStatusLog, FloatStatusLog
-from waterer_backend.utils import update_spans_activation_time
 
 ###############################################################
 # Logging
@@ -248,7 +248,7 @@ class BLESmartPump:
 
         if not await self.check_client():
             _LOGGER.info(
-                "{self.channel}: get_humidity_V: no client returning a humidity of 0.5 V"
+                f"{self.channel}: get_humidity_V: no client returning a humidity of 0.5 V"
             )
             return 0.5
 
@@ -260,7 +260,7 @@ class BLESmartPump:
     async def get_pump_status(self) -> bool:
         if not await self.check_client():
             _LOGGER.info(
-                "{self.channel}: get_pump_status: no client returning a pump status of False"
+                f"{self.channel}: get_pump_status: no client returning a pump status of False"
             )
             return False
 
@@ -396,28 +396,76 @@ class BLESmartPump:
 
             await self.turn_on(duration_ms=self._settings.pump_on_time_s * 1000)
 
+    async def _should_activate(self) -> bool:
+
+        next_update_time = datetime.now()
+
+        should_activate = (
+            self._last_feedback_update_time is not None
+            and ut.update_spans_activation_time(
+                self._last_feedback_update_time,
+                next_update_time,
+                self._settings.pump_activation_time_as_date,
+            )
+        )
+        self._last_feedback_update_time = next_update_time
+
+        if not should_activate:
+            return False
+
+        #
+
+        _LOGGER.info(
+            f"{self.channel}: Update interval spans activation time - performing feedback"
+        )
+
+        years_day = ut.day_of_the_year()
+
+        _LOGGER.info(
+            f"{self.channel}: Checking period: Day of the year: {years_day}, period: {self._settings.pump_activation_period_days} day(s)"
+        )
+
+        should_activate = years_day % self._settings.pump_activation_period_days == 0
+        if not should_activate:
+            _LOGGER.info(f"{self.channel}: Skipping today ... ")
+            return False
+
+        #
+
+        (
+            _,
+            current_humidity_V,
+        ) = self._smoothed_rel_humidity_V_log.get_newest_value()
+        current_humidity_pcnt = self._pcnt_from_V_humidity(current_humidity_V)
+
+        _LOGGER.info(
+            f"{self.channel}: Humidity: Current: {current_humidity_pcnt} %, Target: {self._settings.feedback_setpoint_pcnt} %"
+        )
+
+        if (
+            isinstance(current_humidity_pcnt, float)
+            and self._settings.feedback_setpoint_pcnt <= current_humidity_pcnt
+        ):
+            _LOGGER.info(
+                f"{self.channel}: Humidity greater than target skipping feedback"
+            )
+            return False
+
+        return True
+
     async def _do_loop_iteration(self):
 
         ok = await self._update_status()
         if not ok:
             return
 
-        next_update_time = datetime.now()
+        if await self._should_activate():
 
-        should_activate = (
-            self._last_feedback_update_time is not None
-            and update_spans_activation_time(
-                self._last_feedback_update_time,
-                next_update_time,
-                self._settings.pump_activation_time_as_date,
+            _LOGGER.info(
+                f"{self.channel}: Activating pump for {self._settings.pump_on_time_s} s"
             )
-        )
 
-        self._last_feedback_update_time = next_update_time
-
-        if should_activate:
-            _LOGGER.info(f"{self.channel}: Performing feedback event: ")
-            await self._do_activate_closed_loop_pump()
+            await self.turn_on(duration_ms=self._settings.pump_on_time_s * 1000)
 
     async def run(self):
 

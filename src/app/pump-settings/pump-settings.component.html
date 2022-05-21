@@ -16,6 +16,7 @@
         <mat-label>Smoothing (Samples)</mat-label>
         <input
           matInput
+          min="1"
           type="number"
           [(ngModel)]="settings.num_smoothing_samples"
         />
@@ -45,6 +46,8 @@
         <mat-label>Target Humidity (%)</mat-label>
         <input
           matInput
+          min="0"
+          max="100"
           type="number"
           [(ngModel)]="settings.feedback_setpoint_pcnt"
         />
@@ -53,7 +56,7 @@
     <div>
       <mat-form-field (change)="onSettingsChange()" class="example-form-field">
         <mat-label>Run Interval (s)</mat-label>
-        <input matInput type="number" [(ngModel)]="settings.pump_on_time_s" />
+        <input matInput type="number" min="1" [(ngModel)]="settings.pump_on_time_s" />
       </mat-form-field>
     </div>
     <div>
@@ -69,6 +72,7 @@
         <input
           matInput
           type="number"
+          min="1"
           matTooltip="Run once every this many days"
           [(ngModel)]="settings.pump_activation_period_days"
         />
@@ -86,7 +90,7 @@
     <div>
       <mat-form-field (change)="onSettingsChange()" class="example-form-field">
         <mat-label>Dry Soil (V)</mat-label>
-        <input matInput type="number" [(ngModel)]="settings.dry_humidity_V" />
+        <input matInput type="number" min="0" max="3.3" [(ngModel)]="settings.dry_humidity_V" />
       </mat-form-field>
       <button mat-button (click)="onTakeCurrentHumidityAsDry()">
         Take Current
@@ -95,7 +99,7 @@
     <div>
       <mat-form-field (change)="onSettingsChange()" class="example-form-field">
         <mat-label>Wet Soil (V)</mat-label>
-        <input matInput type="number" [(ngModel)]="settings.wet_humidity_V" />
+        <input matInput type="number" min="0" max="3.3" [(ngModel)]="settings.wet_humidity_V" />
       </mat-form-field>
       <button mat-button (click)="onTakeCurrentHumidityAsWet()">
         Take Current
