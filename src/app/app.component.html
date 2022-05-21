@@ -23,11 +23,7 @@
          {{ frontend_version }}
       </mat-list-item>
     </mat-list>
-  </mat-expansion-panel>
-  <mat-expansion-panel>
-    <mat-expansion-panel-header>
-      <mat-panel-title>Devices</mat-panel-title>
-    </mat-expansion-panel-header>
+      <h3 mat-subheader>Devices</h3>
     <div *ngFor="let device of devices">
       <mat-list-item>
         {{ device }}

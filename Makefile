@@ -8,7 +8,7 @@ BACKEND_VENV_DIR = ${BACKEND_DIR}/.venv
 backend_startup_script := $(makefile_dir)/launch_backend.sh
 frontend_startup_script := $(makefile_dir)/launch_frontend.sh
 
-SERVER_IP = 192.168.8.103
+SERVER_IP = 192.168.8.133
 SERVER_USER = ubuntu
 SERVER_TIMEZONE = Europe/Zurich
 

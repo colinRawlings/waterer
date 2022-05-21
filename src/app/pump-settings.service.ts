@@ -28,7 +28,12 @@ export class PumpSettingsService {
     private http: HttpClient,
     private constantsService: ConstantsService,
     private notifierService: NotifierService) {
-    for (let p = 0; p < this.constantsService.kNumChannels; ++p) {
+
+    if (this.constantsService.numChannels === -1) {
+      this.notifierService.notify('error', 'weird numChannels!!');
+    }
+
+    for (let p = 0; p < this.constantsService.numChannels; ++p) {
       this.settingsSubjects.push(new Subject<keyable>());
       this.allSettings$.push(this.settingsSubjects[p].asObservable());
     }

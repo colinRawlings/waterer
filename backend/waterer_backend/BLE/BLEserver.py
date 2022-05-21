@@ -55,6 +55,7 @@ def create_app(manager: BLEPumpManager) -> web.Application:
             {
                 "device_info": get_pump_manager(request).device_info,
                 "version": __version__,
+                "num_pumps": get_pump_manager(request).num_pumps,
             }
         )
 

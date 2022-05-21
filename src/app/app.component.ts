@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { ConstantsService } from './constants.service';
 import { NotifierService } from 'angular-notifier';
 import { PumpStatusService } from './pump-status.service';
-import packageInfo  from '../../package.json';
+import packageInfo from '../../package.json';
 
 interface keyable {
   [key: string]: any;
@@ -18,7 +18,8 @@ export class AppComponent implements OnInit, OnDestroy {
   title = 'waterer';
   public autoUpdate: boolean;
   public autoSwitchGraphs: boolean;
-  public channels: number[];
+  public channels: number[] = [];
+  public num_channels: number = 0;
 
   public devices: string[];
   public frontend_version: string = packageInfo.version;
@@ -35,20 +36,29 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+
+    this.constantsService.numChannels$.subscribe(
+      (numChannels: number) => {
+        this.num_channels = numChannels;
+        this.channels = [];
+        for (let channel = 0; channel < this.num_channels; channel++) {
+          this.channels.push(channel);
+        }
+
+      }
+    )
+
+      this.constantsService.update();
+
     this.http.get(this.constantsService.kBackendURL).subscribe(
       (data: keyable) => {
         this.devices = data.device_info;
         this.backend_version = `${data.version}`;
+
+        this.onAutoUpdateChange();
       },
       (err) => this.notifierService.notify('error', `HTTP Error:  ${err.message}`)
     );
-
-    this.channels = [];
-    for(let channel = 0; channel < this.constantsService.kNumChannels; channel++){
-      this.channels.push(channel);
-    }
-
-    this.onAutoUpdateChange();
   }
 
   ngOnDestroy(): void {

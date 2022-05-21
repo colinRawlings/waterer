@@ -26,10 +26,10 @@
       }
     },
     {
-      "name": "Launch chrome",
+      "name": "Launch chrome lo:4200",
       "request": "launch",
       "type": "pwa-chrome",
-      "url": "http://192.168.8.103:8080",
+      "url": "http://localhost:4200",
       "webRoot": "${workspaceFolder}"
     }
   ]

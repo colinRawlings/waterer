@@ -31,11 +31,18 @@ export class PumpStatusService {
     private notifierService: NotifierService,
     private constantsService: ConstantsService
   ) {
-    for (let p = 0; p < this.constantsService.kNumChannels; ++p) {
-      this.statusSubjects.push(new Subject<keyable>());
-      this.statuses$.push(this.statusSubjects[p].asObservable());
-      this.lastUpdateTime.push(null);
-    }
+
+    this.constantsService.numChannels$.subscribe((data: number) => {
+      if (this.constantsService.numChannels === -1) {
+        this.notifierService.notify('error', 'weird numChannels!!');
+      }
+
+      for (let p = 0; p < this.constantsService.numChannels; ++p) {
+        this.statusSubjects.push(new Subject<keyable>());
+        this.statuses$.push(this.statusSubjects[p].asObservable());
+        this.lastUpdateTime.push(null);
+      }
+    })
   }
 
   //
@@ -65,7 +72,7 @@ export class PumpStatusService {
   startDataStream(): void {
     for (
       let channel = 0;
-      channel < this.constantsService.kNumChannels;
+      channel < this.constantsService.numChannels;
       channel++
     ) {
       this.subscriptionsMap[`${channel}`] = this.getStatusStream(
@@ -79,7 +86,7 @@ export class PumpStatusService {
   stopDataStream(): void {
     for (
       let channel = 0;
-      channel < this.constantsService.kNumChannels;
+      channel < this.constantsService.numChannels;
       channel++
     ) {
       this.subscriptionsMap[`${channel}`].unsubscribe();
