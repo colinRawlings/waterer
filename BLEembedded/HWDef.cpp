@@ -23,3 +23,6 @@ extern const char PUMP_SERVICE_ATTR_ID[]{'1', '8', '0', 'A', '\0'};
 extern const char PUMP_ATTR_ID[]{'2', 'A', '6', '7', '\0'};
 extern const char PUMP_STATUS_ATTR_ID[]{'2', 'A', '6', '8', '\0'};
 extern const char HUMIDITY_ATTR_ID[]{'2', 'A', '6', '9', '\0'};
+
+extern const char WATCHDOG_PING_ATTR_ID[]{'2', 'A', '6', 'A', '\0'};
+extern const char WATCHDOG_COUNTDOWN_ATTR_ID[]{'2', 'A', '6', 'B', '\0'};

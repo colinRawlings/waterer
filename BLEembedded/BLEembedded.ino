@@ -3,6 +3,7 @@
 #include "SmartPump.h"
 #include "HWDef.h"
 #include "DigitalOutput.h"
+#include "Watchdog.h"
 
 long previousMillis = 0;
 int interval = 0;
@@ -13,10 +14,13 @@ BLEService pump_service(PUMP_SERVICE_ATTR_ID);
 BLELongCharacteristic pump_attr(PUMP_ATTR_ID, BLERead | BLEWrite);
 BLEBoolCharacteristic pump_status_attr(PUMP_STATUS_ATTR_ID, BLERead);
 BLEFloatCharacteristic humidity_attr(HUMIDITY_ATTR_ID, BLERead | BLEWrite);
+BLELongCharacteristic watchdog_ping_attr(WATCHDOG_PING_ATTR_ID, BLERead | BLEWrite);
+BLELongCharacteristic watchdog_countdown_attr(WATCHDOG_COUNTDOWN_ATTR_ID, BLERead | BLEWrite);
 
 //
 CSmartPump smart_pump(PUMP_DIGITAL_PIN, PUMP_ANALOGUE_PIN);
 CDigitalOutput connection_indicator(LED_BUILTIN, false);
+CWatchdog watchdog(watchdog_ping_attr, watchdog_countdown_attr, 10);
 
 template <typename T>
 void safe_println(T msg)
@@ -57,6 +61,8 @@ void setup()
     pump_service.addCharacteristic(pump_attr);
     pump_service.addCharacteristic(pump_status_attr);
     pump_service.addCharacteristic(humidity_attr);
+    pump_service.addCharacteristic(watchdog_ping_attr);
+    pump_service.addCharacteristic(watchdog_countdown_attr);
 
     // add service
     BLE.addService(pump_service);
@@ -75,6 +81,7 @@ void update()
 {
     smart_pump.Update();
     connection_indicator.Update();
+    watchdog.Update();
 }
 
 void on_pump_attr_change()
@@ -134,8 +141,9 @@ void loop()
         safe_println(central.address());
 
         connection_indicator.TurnOn();
+        watchdog.Reset();
 
-        while (central.connected())
+        while (central.connected() && !watchdog.Expired())
         {
             connected_loop();
         }

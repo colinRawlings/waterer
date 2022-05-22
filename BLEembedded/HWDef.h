@@ -30,3 +30,6 @@ extern const char PUMP_SERVICE_ATTR_ID[];
 extern const char PUMP_ATTR_ID[];
 extern const char PUMP_STATUS_ATTR_ID[];
 extern const char HUMIDITY_ATTR_ID[];
+
+extern const char WATCHDOG_PING_ATTR_ID[];
+extern const char WATCHDOG_COUNTDOWN_ATTR_ID[];
