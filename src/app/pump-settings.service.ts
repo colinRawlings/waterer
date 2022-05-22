@@ -6,6 +6,7 @@ import { NotifierService } from 'angular-notifier';
 import {
   Observable,
   Subject,
+  Subscription,
 } from 'rxjs';
 
 interface keyable {
@@ -17,9 +18,12 @@ interface keyable {
 })
 export class PumpSettingsService {
 
-  // TODO follow the pattern in the status service to have
-  // subscriptions to subjects not observables so that new
-  // values can be pushed to components ... 
+  private isReadySubject: Subject<boolean>;
+  public isReady$: Observable<boolean>;
+  public isReady: boolean;
+
+  private constantsIsReadySubscription: Subscription;
+
 
   private settingsSubjects: Subject<keyable>[] = [];
   public allSettings$: Observable<keyable>[] = [];
@@ -29,14 +33,33 @@ export class PumpSettingsService {
     private constantsService: ConstantsService,
     private notifierService: NotifierService) {
 
-    if (this.constantsService.numChannels === -1) {
-      this.notifierService.notify('error', 'weird numChannels!!');
-    }
+    console.log(`Constructing settings service`);
 
+    this.isReady = false;
+    this.isReadySubject = new Subject<boolean>();
+    this.isReady$ = this.isReadySubject.asObservable();
+
+    if (constantsService.isReady) {
+      this.Init();
+    } else {
+      this.constantsIsReadySubscription = constantsService.isReady$.subscribe((constantsIsReady: boolean)=>{
+        if(!constantsIsReady) console.error("Constants notified not-ready");
+        this.constantsIsReadySubscription.unsubscribe();
+        this.Init();
+      })
+      this.constantsService.Init();
+    }
+  }
+
+  public Init(): void {
     for (let p = 0; p < this.constantsService.numChannels; ++p) {
       this.settingsSubjects.push(new Subject<keyable>());
       this.allSettings$.push(this.settingsSubjects[p].asObservable());
     }
+
+    this.isReady = true;
+    this.isReadySubject.next(this.isReady);
+    console.log(`Init'd settings service`);
   }
 
   public updateSettings(channel: number): void {

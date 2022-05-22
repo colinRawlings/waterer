@@ -4,6 +4,7 @@ import { ConstantsService } from './constants.service';
 import { NotifierService } from 'angular-notifier';
 import { PumpStatusService } from './pump-status.service';
 import packageInfo from '../../package.json';
+import { Subscription } from 'rxjs';
 
 interface keyable {
   [key: string]: any;
@@ -15,11 +16,16 @@ interface keyable {
 })
 export class AppComponent implements OnInit, OnDestroy {
 
+  private constantsIsReadySubscription: Subscription;
+  private statusIsReadySubscription: Subscription;
+
+  //
+
   title = 'waterer';
   public autoUpdate: boolean;
   public autoSwitchGraphs: boolean;
   public channels: number[] = [];
-  public num_channels: number = 0;
+  public numChannels: number = 0;
 
   public devices: string[];
   public frontend_version: string = packageInfo.version;
@@ -37,18 +43,26 @@ export class AppComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
 
-    this.constantsService.numChannels$.subscribe(
-      (numChannels: number) => {
-        this.num_channels = numChannels;
-        this.channels = [];
-        for (let channel = 0; channel < this.num_channels; channel++) {
-          this.channels.push(channel);
-        }
+    console.log(`ngOnInit App Component`);
 
-      }
-    )
+    if (this.constantsService.isReady) {
+      this.Init();
+    } else {
+      this.constantsIsReadySubscription = this.constantsService.isReady$.subscribe((constantsIsReady: boolean) => {
+        if(!constantsIsReady) console.error("Constants notified not-ready");
+        this.constantsIsReadySubscription.unsubscribe();
+        this.Init();
+      })
+      this.constantsService.Init();
+    }
 
-      this.constantsService.update();
+  }
+
+  public Init(): void {
+    this.channels = [];
+    for (let channel = 0; channel < this.constantsService.numChannels; channel++) {
+      this.channels.push(channel);
+    }
 
     this.http.get(this.constantsService.kBackendURL).subscribe(
       (data: keyable) => {
@@ -66,6 +80,19 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   onAutoUpdateChange(): void {
+    if (this.statusService.isReady) {
+      this.doAutoUpdateChange();
+    } else {
+      this.statusIsReadySubscription = this.statusService.isReady$.subscribe((statusIsReady: boolean) => {
+        if(!statusIsReady) console.error("Status notified not-ready");
+        this.statusIsReadySubscription.unsubscribe();
+        this.doAutoUpdateChange();
+      })
+      this.statusService.Init();
+    }
+  }
+
+  doAutoUpdateChange(): void {
     if (this.autoUpdate) {
       this.statusService.startDataStream();
     } else {

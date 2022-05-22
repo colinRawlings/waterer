@@ -17,10 +17,11 @@ interface keyable {
 })
 export class ConstantsService {
 
-  private numChannelsSubject: Subject<number>;
-  public numChannels$: Observable<number>;
-  public numChannels: number = -1;
+  private isReadySubject: Subject<boolean>;
+  public isReady$: Observable<boolean>;
+  public isReady: boolean;
 
+  public numChannels: number = 0;
   public kBackendURL: string;
 
   constructor(
@@ -28,22 +29,28 @@ export class ConstantsService {
     private notifierService: NotifierService,
     private http: HttpClient) {
 
-    this.numChannelsSubject = new Subject<number>();
-    this.numChannels$ = this.numChannelsSubject.asObservable();
-    this.numChannels = -1;
+    console.log(`Constructing constants service`);
+
+    this.isReady = false;
+    this.isReadySubject = new Subject<boolean>();
+    this.isReady$ = this.isReadySubject.asObservable();
+
+    this.numChannels = 0;
 
     this.kBackendURL = `http://${env.apiUrl}/`;
   }
-  
-  public update(): void{
+
+  public Init(): void {
     this.http.get(this.kBackendURL).subscribe(
       (data: keyable) => {
         this.numChannels = data.num_pumps;
-        this.numChannelsSubject.next(this.numChannels);
+        this.isReady = true;
+        this.isReadySubject.next(this.isReady);
+        console.log(`Init'd constants service`);
       },
       (err) => this.notifierService.notify('error', `HTTP Error:  ${err.message}`)
     )
-    
+
   }
 
 }

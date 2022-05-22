@@ -3,6 +3,9 @@ import { HttpClient } from '@angular/common/http';
 import { PumpStatusService } from '../pump-status.service';
 import { NotifierService } from 'angular-notifier';
 import { PumpSettingsService } from '../pump-settings.service';
+import {
+  Subscription,
+} from 'rxjs';
 
 interface keyable {
   [key: string]: any;
@@ -75,11 +78,38 @@ export class PumpComponent implements OnInit {
   @Input()
   channel: number;
 
-  ngOnInit(): void {
-    this.statusService.statuses$[this.channel].subscribe((data: keyable) => {
-      this.onReceivedStatusData(data);
-    });
+  private settingsIsReadySubscription: Subscription;
+  private statusIsReadySubscription: Subscription;
 
+  ngOnInit(): void {
+    console.log(`ngOnInit Pump Component`);
+
+
+    if(this.settingsService.isReady){
+      this.doInitSettings();
+    } else {
+      this.settingsIsReadySubscription = this.settingsService.isReady$.subscribe((settingsIsReady: boolean)=>{
+        if(!settingsIsReady) console.error('settingsService.isReady$ emitted false');
+        this.settingsIsReadySubscription.unsubscribe();
+        this.doInitSettings();
+      })
+      this.settingsService.Init();
+    }
+
+    if(this.statusService.isReady){
+      this.doInitStatus();
+    } else {
+      this.statusIsReadySubscription = this.statusService.isReady$.subscribe((statusIsReady: boolean)=>{
+        if(!statusIsReady) console.error('statusService.isReady$ emitted false');
+        this.statusIsReadySubscription.unsubscribe();
+        this.doInitStatus();
+      })
+      this.statusService.Init();
+    }
+
+  }
+
+  private doInitSettings() : void {
     this.settingsService.allSettings$[this.channel].subscribe(
       (data: keyable) => {
         this.onResetGraph();
@@ -88,6 +118,12 @@ export class PumpComponent implements OnInit {
     );
 
     this.settingsService.updateSettings(this.channel);
+  }
+
+  private doInitStatus(): void {
+    this.statusService.statuses$[this.channel].subscribe((data: keyable) => {
+      this.onReceivedStatusData(data);
+    });
   }
 
   status: keyable = {};
