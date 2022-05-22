@@ -18,7 +18,11 @@ import bleak
 import numpy as np
 import waterer_backend.utils as ut
 from bleak.backends.device import BLEDevice
-from waterer_backend.BLE import BLE_ids
+from waterer_backend.BLE.BLE_ids import (
+    HUMIDITY_ATTR_ID,
+    PUMP_ATTR_ID,
+    PUMP_STATUS_ATTR_ID,
+)
 from waterer_backend.config import get_history_filepath
 from waterer_backend.models import (
     SmartPumpSettings,
@@ -34,7 +38,6 @@ from waterer_backend.status_log import BinaryStatusLog, FloatStatusLog
 
 _LOGGER = logging.getLogger(__name__)
 
-UPDATE_PING_INTERVAL_S = 1  # disconnect after 10s
 
 ###############################################################
 # Classes
@@ -61,7 +64,7 @@ class BLESmartPump:
         if client is None:
             _LOGGER.warning("Pump created without valid device")
 
-        self._pump_task: ty.Optional[asyncio.Task] = None
+        self._task: ty.Optional[asyncio.Task] = None
 
         self._channel = channel
 
@@ -213,12 +216,12 @@ class BLESmartPump:
 
         on_code_bytes = bytearray(struct.pack("<I", duration_ms))
 
-        current_char_bytes = await self._client.read_gatt_char(BLE_ids.PUMP_ATTR_ID)
+        current_char_bytes = await self._client.read_gatt_char(PUMP_ATTR_ID)
         _LOGGER.info(
             f"{self.channel}: preparing to write {on_code_bytes} (current: {current_char_bytes})"
         )
 
-        await self._client.write_gatt_char(BLE_ids.PUMP_ATTR_ID, on_code_bytes)
+        await self._client.write_gatt_char(PUMP_ATTR_ID, on_code_bytes)
 
     async def turn_off(self):
 
@@ -230,12 +233,12 @@ class BLESmartPump:
 
         off_code_bytes = struct.pack("<I", 0)
 
-        current_char_bytes = await self._client.read_gatt_char(BLE_ids.PUMP_ATTR_ID)
+        current_char_bytes = await self._client.read_gatt_char(PUMP_ATTR_ID)
         _LOGGER.debug(
             f"{self.channel}: preparing to write {off_code_bytes} (current: {current_char_bytes})"
         )
 
-        await self._client.write_gatt_char(BLE_ids.PUMP_ATTR_ID, off_code_bytes)
+        await self._client.write_gatt_char(PUMP_ATTR_ID, off_code_bytes)
 
     ###############################################################
     # Access Data
@@ -251,7 +254,7 @@ class BLESmartPump:
 
         assert self._client is not None
 
-        humidity_bytes = await self._client.read_gatt_char(BLE_ids.HUMIDITY_ATTR_ID)
+        humidity_bytes = await self._client.read_gatt_char(HUMIDITY_ATTR_ID)
         return struct.unpack("f", humidity_bytes)[0]
 
     async def get_pump_status(self) -> bool:
@@ -263,7 +266,7 @@ class BLESmartPump:
 
         assert self._client is not None
 
-        status_bytes = await self._client.read_gatt_char(BLE_ids.PUMP_STATUS_ATTR_ID)
+        status_bytes = await self._client.read_gatt_char(PUMP_STATUS_ATTR_ID)
         return struct.unpack("b", status_bytes)[0]  # type: ignore
 
     async def _update_status(self) -> bool:
@@ -464,55 +467,30 @@ class BLESmartPump:
 
             await self.turn_on(duration_ms=self._settings.pump_on_time_s * 1000)
 
-    async def run_pump(self):
+    async def run(self):
 
         while not self._abort_running:
             try:
                 await self._do_loop_iteration()
                 await asyncio.sleep(self._status_update_interval_s)
             except asyncio.CancelledError:
-                _LOGGER.info(f"{self._channel}: run_pump cancelled, stopping ...")
+                _LOGGER.info(f"{self._channel}: run cancelled, stopping ...")
                 break
             except Exception as e:
                 _LOGGER.error(
-                    f"{self.channel}: Encountered exception in run_pump loop:\n\n{tb.format_exc()}"
+                    f"{self.channel}: Encountered exception in run loop:\n\n{tb.format_exc()}"
                 )
 
-        _LOGGER.info(f"{self.channel}: run_pump() finished")
-
-    async def run_ping(self):
-
-        self._last_ping = 0
-        assert self._client is not None
-
-        while not self._abort_running:
-            try:
-                new_ping = int(not bool(self._last_ping))
-                ping_code_bytes = bytearray(struct.pack("<I", new_ping))
-                await self._client.write_gatt_char(
-                    BLE_ids.WATCHDOG_PING_ATTR_ID, ping_code_bytes
-                )
-                self._last_ping = new_ping
-
-                await asyncio.sleep(UPDATE_PING_INTERVAL_S)
-            except asyncio.CancelledError:
-                _LOGGER.info(f"{self._channel}: run_ping cancelled, stopping ...")
-                break
-            except Exception as e:
-                _LOGGER.error(
-                    f"{self.channel}: Encountered exception in run_ping loop:\n\n{tb.format_exc()}"
-                )
-
-        _LOGGER.info(f"{self.channel}: run_ping() finished")
+        _LOGGER.info(f"{self.channel}: run() finished")
 
     def start(self):
-        self._pump_task = asyncio.get_event_loop().create_task(
-            self.run_pump(), name=f"main_loop_pump_{self.channel}"
+        self._task = asyncio.get_event_loop().create_task(
+            self.run(), name=f"main_loop_pump_{self.channel}"
         )
 
     # Stops the feedback loop
     async def interrupt(self):
 
-        if self._pump_task is not None and not self._pump_task.done():
-            self._pump_task.cancel()
-            await self._pump_task
+        if self._task is not None and not self._task.done():
+            self._task.cancel()
+            await self._task
