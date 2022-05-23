@@ -47,13 +47,29 @@ class BLEPumpManager:
         self._clients = clients
 
         if isinstance(settings, sp.SmartPumpSettings):
+
+            logger.info(f"Duplicating supplied settings for {len(clients)} client(s)")
             self._init_settings = [settings for _ in range(len(clients))]
         elif isinstance(settings, list):
-            if len(settings) != len(clients):
-                raise ValueError(
-                    f"Length of settings list ({len(settings)}) does not match num_pumps ({len(clients)})"
+
+            if len(settings) == 0:
+                raise ValueError("Empty list of init settings supplied")
+
+            if len(settings) < len(clients):
+                logger.warning(
+                    f"Length of settings list ({len(settings)}) less than number of clients ({len(clients)}), duplicating first supplied settings"
                 )
-            self._init_settings = settings
+
+                self._init_settings = settings
+                for _ in range(len(clients) - len(settings)):
+                    self._init_settings.append(settings[0])
+
+            else:
+                logger.info(
+                    f"Applying first {len(clients)} entries from supplied init settings (total entries: {len(settings)})"
+                )
+                self._init_settings = settings[: len(clients)]
+
         else:
             raise ValueError(f"Unexpected type for settings argument {type(settings)}")
 
