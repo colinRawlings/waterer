@@ -88,7 +88,7 @@ async def main():
     pumps_config = get_pumps_config()
 
     async with PumpManagerContext(
-        settings=pumps_config[0], scan_duration_s=10, allow_load_history=True
+        settings=pumps_config, scan_duration_s=10, allow_load_history=True
     ) as manager:
 
         manager.start()
