@@ -4,6 +4,8 @@ After=bluetooth.target
 [Service]
 ExecStart=/home/ubuntu/waterer/launch_backend.sh
 KillSignal=SIGINT
+RuntimeMaxSec=86400s
+Restart=always
 
 [Install]
 WantedBy=default.target
