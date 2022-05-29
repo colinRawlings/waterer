@@ -203,7 +203,7 @@ down-backend-service:
 down-frontend-service:
 	sudo systemctl stop waterer_frontend.service
 
-down-services: | down-backend-service dwon-frontend-service
+down-services: | down-backend-service down-frontend-service
 
 #
 
