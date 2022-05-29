@@ -103,35 +103,15 @@ class BLEPumpManager:
 
     def save_settings(self) -> str:
 
-        user_config_filepath = cfg.get_user_config_filepath()
-        if user_config_filepath.is_file():
-            with open(user_config_filepath, "r") as fh:
-                user_config = json.load(fh)
-        else:
-            user_config = {}
-
         for pump in self._pumps:
-            user_config[pump.address] = pump.settings.dict()
-
-        with open(cfg.get_user_config_filepath(), "w") as fh:
-            json.dump(user_config, fh)
+            pump.save_settings()
 
         return str(cfg.get_user_config_filepath())
 
     def save_history(self) -> str:
 
-        pump_history_filepath = cfg.get_pump_history_filepath()
-        if pump_history_filepath.is_file():
-            with open(pump_history_filepath, "r") as fh:
-                pump_history = json.load(fh)
-        else:
-            pump_history = {}
-
         for pump in self._pumps:
-            pump_history[pump.address] = pump.history.dict()
-
-        with open(pump_history_filepath, "w") as fh:
-            json.dump(pump_history, fh)
+            pump.save_history()
 
         return str(cfg.get_pump_history_filepath())
 
