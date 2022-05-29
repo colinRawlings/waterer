@@ -35,6 +35,11 @@ def get_history_dir() -> pt.Path:
     return pt.Path(rc.resource_filename("waterer_backend", "history"))
 
 
+def get_pump_history_filepath() -> pt.Path:
+
+    return get_history_dir() / "pump_history.json"
+
+
 def get_history_filepath(channel: int) -> pt.Path:
 
     return get_history_dir() / f"pump_{channel}_history.json"

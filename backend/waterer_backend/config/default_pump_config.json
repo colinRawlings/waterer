@@ -1,7 +1,4 @@
-[
     {
-        "channel": 0,
-        "settings": {
             "dry_humidity_V": 1.7,
             "wet_humidity_V": 1.2,
             "pump_on_time_s": 200,
@@ -14,40 +11,4 @@
             "feedback_setpoint_pcnt": 50,
             "name": "pump 0",
             "num_smoothing_samples": 10
-        }
-    },
-    {
-        "channel": 1,
-        "settings": {
-            "dry_humidity_V": 1.7,
-            "wet_humidity_V": 1.2,
-            "pump_on_time_s": 200,
-            "pump_activation_time": {
-                "hour": 8,
-                "minute": 0
-            },
-            "pump_activation_period_days": 1,
-            "feedback_active": false,
-            "feedback_setpoint_pcnt": 50,
-            "name": "pump 1",
-            "num_smoothing_samples": 10
-        }
-    },
-    {
-        "channel": 2,
-        "settings": {
-            "dry_humidity_V": 1.7,
-            "wet_humidity_V": 1.2,
-            "pump_on_time_s": 200,
-            "pump_activation_time": {
-                "hour": 8,
-                "minute": 0
-            },
-            "pump_activation_period_days": 1,
-            "feedback_active": false,
-            "feedback_setpoint_pcnt": 50,
-            "name": "pump 2",
-            "num_smoothing_samples": 10
-        }
     }
-]

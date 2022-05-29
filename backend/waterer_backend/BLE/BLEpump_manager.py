@@ -3,17 +3,18 @@
 ###############################################################
 # Import
 ###############################################################
+import json
 import logging
 import pathlib as pt
 from typing import List, Optional, Union
 
 import numpy as np
+import waterer_backend.config as cfg
 import waterer_backend.smart_pump as sp
 from bleak import BleakClient, BleakScanner
 from bleak.backends.device import BLEDevice
 from waterer_backend.BLE.BLE_ids import PUMP_NAME
 from waterer_backend.BLE.BLEsmart_pump import BLESmartPump
-from waterer_backend.config import get_history_dir, save_user_pumps_config
 
 ###############################################################
 # Definitions
@@ -35,48 +36,18 @@ pump_manager_settings_type = Union[List[sp.SmartPumpSettings], sp.SmartPumpSetti
 class BLEPumpManager:
     def __init__(
         self,
-        settings: pump_manager_settings_type,
         status_update_interval_s: int = 5,
         clients: List[BleakClient] = [],
         pump_devices: List[BLEDevice] = [],
-        config_filepath: Optional[pt.Path] = None,
         allow_load_history: bool = True,
     ) -> None:
 
         self._status_update_interval_s = status_update_interval_s
         self._clients = clients
 
-        if isinstance(settings, sp.SmartPumpSettings):
-
-            logger.info(f"Duplicating supplied settings for {len(clients)} client(s)")
-            self._init_settings = [settings for _ in range(len(clients))]
-        elif isinstance(settings, list):
-
-            if len(settings) == 0:
-                raise ValueError("Empty list of init settings supplied")
-
-            if len(settings) < len(clients):
-                logger.warning(
-                    f"Length of settings list ({len(settings)}) less than number of clients ({len(clients)}), duplicating first supplied settings"
-                )
-
-                self._init_settings = settings
-                for _ in range(len(clients) - len(settings)):
-                    self._init_settings.append(settings[0])
-
-            else:
-                logger.info(
-                    f"Applying first {len(clients)} entries from supplied init settings (total entries: {len(settings)})"
-                )
-                self._init_settings = settings[: len(clients)]
-
-        else:
-            raise ValueError(f"Unexpected type for settings argument {type(settings)}")
-
         if len(clients) != len(pump_devices):
             raise ValueError("Inconsistent lengths of clients and devices")
 
-        self._config_filepath = config_filepath
         self._allow_load_history = allow_load_history
 
         #
@@ -88,7 +59,6 @@ class BLEPumpManager:
                     channel=channel,
                     client=client,
                     pump_device=pump_devices[channel],
-                    settings=self._init_settings[channel],
                     status_update_interval_s=self._status_update_interval_s,
                     allow_load_history=self._allow_load_history,
                 )
@@ -132,18 +102,38 @@ class BLEPumpManager:
         return self._pumps[channel].settings
 
     def save_settings(self) -> str:
-        user_settings = list()
-        for channel in range(self.num_pumps):
-            user_settings.append(self._pumps[channel].settings)
 
-        return save_user_pumps_config(user_settings)
+        user_config_filepath = cfg.get_user_config_filepath()
+        if user_config_filepath.is_file():
+            with open(user_config_filepath, "r") as fh:
+                user_config = json.load(fh)
+        else:
+            user_config = {}
+
+        for pump in self._pumps:
+            user_config[pump.address] = pump.settings.dict()
+
+        with open(cfg.get_user_config_filepath(), "w") as fh:
+            json.dump(user_config, fh)
+
+        return str(cfg.get_user_config_filepath())
 
     def save_history(self) -> str:
 
-        for pump in self._pumps:
-            pump.save_history()
+        pump_history_filepath = cfg.get_pump_history_filepath()
+        if pump_history_filepath.is_file():
+            with open(pump_history_filepath, "r") as fh:
+                pump_history = json.load(fh)
+        else:
+            pump_history = {}
 
-        return str(get_history_dir())
+        for pump in self._pumps:
+            pump_history[pump.address] = pump.history.dict()
+
+        with open(pump_history_filepath, "w") as fh:
+            json.dump(pump_history, fh)
+
+        return str(cfg.get_pump_history_filepath())
 
     async def get_status(self, channel: int) -> sp.SmartPumpStatus:
         self._check_channel(channel)
@@ -168,23 +158,18 @@ class BLEPumpManager:
             logger.info(f"interrupting: {pump.channel}")
             await pump.interrupt()
 
-        for pump in self._pumps:
-            pump.save_history()
+        self.save_history()
 
 
 class PumpManagerContext:
     def __init__(
         self,
-        settings: pump_manager_settings_type,
         status_update_interval_s: int = 5,
-        config_filepath: Optional[pt.Path] = None,
         allow_load_history: bool = False,
         scan_duration_s: float = SCAN_DURATION_S,
     ) -> None:
 
         self._status_update_interval_s = status_update_interval_s
-        self._init_settings = settings
-        self._config_filepath = config_filepath
         self._allow_load_history = allow_load_history
         self._scan_duration_s = scan_duration_s
 
@@ -243,10 +228,8 @@ class PumpManagerContext:
                 logger.info("FAIL")
 
         self._pump_manager = BLEPumpManager(
-            settings=self._init_settings,
             clients=self._clients,
             pump_devices=pump_devices,
-            config_filepath=self._config_filepath,
             status_update_interval_s=self._status_update_interval_s,
             allow_load_history=self._allow_load_history,
         )
