@@ -123,9 +123,9 @@ install: | install-host-tools venv
 
 install-services: | backend_startup_script frontend_startup_script
 	sudo cp ${makefile_dir}/waterer_backend.service /etc/systemd/system/waterer_backend.service
-	systemctl enable waterer_backend
+	sudo systemctl enable waterer_backend
 	sudo cp ${makefile_dir}/waterer_frontend.service /etc/systemd/system/waterer_frontend.service
-	systemctl enable waterer_frontend
+	sudo systemctl enable waterer_frontend
 
 
 set-timezone:
@@ -188,40 +188,40 @@ tests-backend:
 .PHONY: waterer-shell restart-services up-status
 
 up-backend-service:
-	systemctl start waterer_backend.service
+	sudo systemctl start waterer_backend.service
 
 up-frontend-service:
-	systemctl start waterer_frontend.service
+	sudo systemctl start waterer_frontend.service
 
 make up-services: | up-backend-service up-frontend-service
 
 #
 
 down-backend-service:
-	systemctl start waterer_backend.service
+	sudo systemctl start waterer_backend.service
 
 down-frontend-service:
-	systemctl start waterer_frontend.service
+	sudo systemctl start waterer_frontend.service
 
 down-services: | down-backend-service up-frontend-service
 
 #
 
 up-backend-status:
-	journalctl -u waterer_backend.service -f
+	sudo journalctl -u waterer_backend.service -f
 
 up-frontend-status:
-	journalctl -u waterer_frontend.service -f
+	sudo journalctl -u waterer_frontend.service -f
 
 #
 
 # clean up any dangling connections
 restart-backend-service:
-	systemctl restart bluetooth.service
-	systemctl restart waterer_backend.service
+	sudo systemctl restart bluetooth.service
+	sudo systemctl restart waterer_backend.service
 
 restart-frontend-service:
-	systemctl restart waterer_frontend.service
+	sudo systemctl restart waterer_frontend.service
 
 restart-services: | restart-frontend-service restart-backend-service
 
