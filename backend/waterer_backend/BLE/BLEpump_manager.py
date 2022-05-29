@@ -201,7 +201,7 @@ class PumpManagerContext:
 
         logger.info(f"Found: {len(devices)} device(s):")
         for d in devices:
-            logger.info(f"- {d}")
+            logger.debug(f"- {d}")
 
         # Sort results (so that restarts yield ~consistent pump mapping)
         unsorted_pump_devices = [
