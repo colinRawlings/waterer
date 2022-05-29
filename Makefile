@@ -198,12 +198,12 @@ make up-services: | up-backend-service up-frontend-service
 #
 
 down-backend-service:
-	sudo systemctl start waterer_backend.service
+	sudo systemctl stop waterer_backend.service
 
 down-frontend-service:
-	sudo systemctl start waterer_frontend.service
+	sudo systemctl stop waterer_frontend.service
 
-down-services: | down-backend-service up-frontend-service
+down-services: | down-backend-service dwon-frontend-service
 
 #
 
