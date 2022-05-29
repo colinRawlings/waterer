@@ -16,6 +16,7 @@ from time import time
 
 import bleak
 import numpy as np
+import waterer_backend.config as cfg
 import waterer_backend.utils as ut
 from bleak.backends.device import BLEDevice
 from waterer_backend.BLE.BLE_ids import (
@@ -23,7 +24,6 @@ from waterer_backend.BLE.BLE_ids import (
     PUMP_ATTR_ID,
     PUMP_STATUS_ATTR_ID,
 )
-from waterer_backend.config import get_history_filepath
 from waterer_backend.models import (
     SmartPumpSettings,
     SmartPumpStatus,
@@ -50,7 +50,6 @@ class BLESmartPump:
         channel: int,
         client: ty.Optional[bleak.BleakClient],
         pump_device: ty.Optional[BLEDevice],
-        settings: SmartPumpSettings,
         status_update_interval_s: float = 5,
         allow_load_history: bool = False,
         auto_save_interval_s: ty.Optional[int] = 3600,
@@ -61,14 +60,14 @@ class BLESmartPump:
             _LOGGER.warning("Pump created without valid client")
 
         self._pump_device = pump_device
-        if client is None:
+        if pump_device is None:
             _LOGGER.warning("Pump created without valid device")
 
         self._task: ty.Optional[asyncio.Task] = None
 
         self._channel = channel
 
-        self._settings = settings
+        self._settings = self._load_settings()
 
         self._abort_running = False
 
@@ -88,6 +87,41 @@ class BLESmartPump:
         self._smoothed_rel_humidity_V_log = FloatStatusLog()
         self._pump_status_log = BinaryStatusLog()
 
+    def _load_settings(self) -> SmartPumpSettings:
+
+        assert self._client and self._client.address is not None
+
+        user_config_path = cfg.get_user_config_filepath()
+        default_config_path = cfg.get_default_config_filepath()
+        if not default_config_path.is_file():
+            raise RuntimeError(
+                f"{self._channel}: No default config found at: {default_config_path}"
+            )
+
+        if user_config_path.is_file():
+
+            _LOGGER.info(
+                f"{self._channel}: Attempting to load user config: {user_config_path}"
+            )
+
+            with open(user_config_path, "r") as fh:
+                user_config_dict = json.load(fh)
+
+            if self._client.address in user_config_dict:
+                _LOGGER.info(
+                    f"{self._channel}: Loading entry for device {self._client.address} in user config, loading ..."
+                )
+                return SmartPumpSettings(**user_config_dict[self._client.address])
+
+        _LOGGER.info(
+            f"{self._channel}: Falling back to default user settings for device: {self._client.address}"
+        )
+
+        with open(default_config_path, "r") as fh:
+            default_config_dict = json.load(fh)
+
+        return SmartPumpSettings(**default_config_dict)
+
     @property
     def info(self) -> str:
         assert self._client is not None
@@ -99,6 +133,11 @@ class BLESmartPump:
         return self._channel
 
     @property
+    def address(self) -> str:
+        assert self._client and self._client.address is not None
+        return self._client.address
+
+    @property
     def settings(self) -> SmartPumpSettings:
         return self._settings
 
@@ -107,25 +146,16 @@ class BLESmartPump:
         self._settings = value
         _LOGGER.info(f"{self._channel}: New settings: {self._settings}")
 
-    def save_history(self) -> None:
-
-        history = SmartPumpStatusData(
+    @property
+    def history(self) -> SmartPumpStatusData:
+        return SmartPumpStatusData(
             rel_humidity_V_log=self._rel_humidity_V_log.to_data(),
             smoothed_rel_humidity_V_log=self._smoothed_rel_humidity_V_log.to_data(),
             pump_status_log=self._pump_status_log.to_data(),
         )
 
-        filepath = get_history_filepath(self._channel)
-
-        os.makedirs(filepath.parent, exist_ok=True)
-
-        with open(filepath, "w") as fh:
-            json.dump(history.dict(), fh)
-
-        _LOGGER.info(f"{self._channel}: Saved history to {filepath}")
-
     def load_history(self) -> None:
-        filepath = get_history_filepath(self._channel)
+        filepath = cfg.get_pump_history_filepath()
 
         if not filepath.is_file():
             _LOGGER.info(
@@ -137,8 +167,15 @@ class BLESmartPump:
         with open(filepath, "r") as fh:
             history_dict = json.load(fh)
 
+        if self.address not in history_dict:
+            _LOGGER.info(
+                f"{self._channel}: Failed to find entry in history for: {self.address}"
+            )
+            self._init_logs()
+            return
+
         try:
-            history = SmartPumpStatusData(**history_dict)
+            history = SmartPumpStatusData(**history_dict[self.address])
         except Exception as e:
             _LOGGER.error(
                 f"{self._channel}: Failed to parse history file: {filepath} with exception{e}"
