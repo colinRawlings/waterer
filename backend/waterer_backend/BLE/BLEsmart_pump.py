@@ -122,6 +122,42 @@ class BLESmartPump:
 
         return SmartPumpSettings(**default_config_dict)
 
+    def save_settings(self) -> str:
+
+        user_config_filepath = cfg.get_user_config_filepath()
+        if user_config_filepath.is_file():
+            with open(user_config_filepath, "r") as fh:
+                user_config = json.load(fh)
+        else:
+            user_config = {}
+
+        user_config[self.address] = self.settings.dict()
+
+        with open(cfg.get_user_config_filepath(), "w") as fh:
+            json.dump(user_config, fh)
+
+        _LOGGER.info(f"{self._channel}: Saved settings to: {user_config_filepath}")
+
+        return str(cfg.get_user_config_filepath())
+
+    def save_history(self) -> str:
+
+        pump_history_filepath = cfg.get_pump_history_filepath()
+        if pump_history_filepath.is_file():
+            with open(pump_history_filepath, "r") as fh:
+                pump_history = json.load(fh)
+        else:
+            pump_history = {}
+
+        pump_history[self.address] = self.history.dict()
+
+        with open(pump_history_filepath, "w") as fh:
+            json.dump(pump_history, fh)
+
+        _LOGGER.info(f"{self._channel}: Saved history to: {pump_history_filepath}")
+
+        return str(cfg.get_pump_history_filepath())
+
     @property
     def info(self) -> str:
         assert self._client is not None
@@ -505,9 +541,7 @@ class BLESmartPump:
         _LOGGER.info(f"{self.channel}: run() finished")
 
     def start(self):
-        self._task = asyncio.get_event_loop().create_task(
-            self.run(), name=f"main_loop_pump_{self.channel}"
-        )
+        self._task = asyncio.get_event_loop().create_task(self.run())
 
     # Stops the feedback loop
     async def interrupt(self):
