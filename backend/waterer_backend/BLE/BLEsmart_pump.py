@@ -262,10 +262,6 @@ class BLESmartPump:
         _, last_value = self._smoothed_rel_humidity_V_log.get_newest_value()
         _, last_status = self._pump_status_log.get_newest_value()
 
-        if last_status:
-            # value not reliable while pump is running
-            return None
-
         if last_value is None:
             return rel_humidity_V
 
