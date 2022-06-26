@@ -411,28 +411,6 @@ class BLESmartPump:
             pump_running=pump_running,
         )
 
-    async def _do_activate_closed_loop_pump(self):
-
-        (
-            _,
-            current_humidity_V,
-        ) = self._smoothed_rel_humidity_V_log.get_newest_value()
-        current_humidity_pcnt = self._pcnt_from_V_humidity(current_humidity_V)
-
-        _LOGGER.info(
-            f"{self.channel}: Humidity: Current: {current_humidity_pcnt} %, Target: {self._settings.feedback_setpoint_pcnt} %"
-        )
-
-        if (
-            isinstance(current_humidity_pcnt, float)
-            and self._settings.feedback_setpoint_pcnt > current_humidity_pcnt
-        ):
-            _LOGGER.info(
-                f"{self.channel}: Activating pump for {self._settings.pump_on_time_s} s"
-            )
-
-            await self.turn_on(duration_ms=self._settings.pump_on_time_s * 1000)
-
     async def _should_activate(self) -> bool:
 
         next_update_time = datetime.now()
@@ -465,6 +443,12 @@ class BLESmartPump:
         should_activate = years_day % self._settings.pump_activation_period_days == 0
         if not should_activate:
             _LOGGER.info(f"{self.channel}: Skipping today ... ")
+            return False
+
+        #
+
+        if not self._settings.feedback_active:
+            _LOGGER.info(f"Feedback inactive so not performing")
             return False
 
         #
