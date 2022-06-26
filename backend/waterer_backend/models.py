@@ -36,6 +36,7 @@ class SmartPumpSettings(BaseModel):
     feedback_setpoint_pcnt: float = 50
     num_smoothing_samples: float = 10
     name: str = "Unamed pump"
+    perform_feedback_hourly: bool = False
 
     def __post_init__(self):
         self.validate()

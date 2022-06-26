@@ -453,6 +453,7 @@ class BLESmartPump:
                 self._last_feedback_update_time,
                 next_update_time,
                 self._settings.pump_activation_time_as_date,
+                self._settings.perform_feedback_hourly,
             )
         )
         self._last_feedback_update_time = next_update_time
