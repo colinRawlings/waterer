@@ -27,7 +27,7 @@ ifdef OS
 	ACTIVATE_CMD = ${BACKEND_VENV_DIR}/Scripts/activate
 else
 	COMMENT_CHAR = \#
-	BASE_PYTHON = python3.9
+	BASE_PYTHON = python3.8
 	BACKEND_VENV_PYTHON = ${BACKEND_VENV_DIR}/bin/python
 	BACKEND_VENV_PIP_SYNC = ${BACKEND_VENV_DIR}/bin/pip-sync
 	RENAME_CMD = mv
