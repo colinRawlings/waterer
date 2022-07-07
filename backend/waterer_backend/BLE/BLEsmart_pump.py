@@ -133,6 +133,8 @@ class BLESmartPump:
 
         user_config[self.address] = self.settings.dict()
 
+        cfg.get_user_config_filepath().parent.mkdir(exist_ok=True, parents=True)
+
         with open(cfg.get_user_config_filepath(), "w") as fh:
             json.dump(user_config, fh)
 
@@ -144,12 +146,15 @@ class BLESmartPump:
 
         pump_history_filepath = cfg.get_pump_history_filepath()
         if pump_history_filepath.is_file():
+
             with open(pump_history_filepath, "r") as fh:
                 pump_history = json.load(fh)
         else:
             pump_history = {}
 
         pump_history[self.address] = self.history.dict()
+
+        pump_history_filepath.parent.mkdir(exist_ok=True, parents=True)
 
         with open(pump_history_filepath, "w") as fh:
             json.dump(pump_history, fh)

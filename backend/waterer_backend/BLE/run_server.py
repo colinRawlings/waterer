@@ -19,7 +19,7 @@ from waterer_backend.config import get_pumps_config
 ###############################################################
 
 logger = logging.getLogger(__name__)
-PORT = 5000
+PORT = 4000
 DEBUG_PORT = 5678
 
 RUNNER_KEY = "app_runner"
