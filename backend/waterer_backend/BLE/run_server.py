@@ -6,6 +6,7 @@
 
 import asyncio
 import logging
+from traceback import format_exc
 from typing import Optional
 
 import debugpy
@@ -43,7 +44,10 @@ def init_logging() -> None:
 def init_debugging() -> None:
 
     logger.info(f"Initializing debug on port: {DEBUG_PORT}")
-    debugpy.listen(DEBUG_PORT)
+    try:
+        debugpy.listen(DEBUG_PORT)
+    except RuntimeError as e:
+        logger.warning(f"Failed to init_debugging with: {e}\n{format_exc()}")
 
 
 ###############################################################
