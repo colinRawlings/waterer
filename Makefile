@@ -195,6 +195,10 @@ up-frontend-service:
 
 make up-services: | up-backend-service up-frontend-service
 
+make up-dev:
+	make -f $(makefile_dir)/Makefile up-frontend-dev &
+	make -f $(makefile_dir)/Makefile up-backend-dev
+
 #
 
 down-backend-service:
